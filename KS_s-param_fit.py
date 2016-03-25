@@ -32,12 +32,15 @@ runtime = -time.time()
 
 # !!! Number of points to use in fit
 Npts = 21     # Get up to QSq=0.4 for 32nt64
-Npts = 11     # Get up to QSq=0.4 for 24nt48
+#Npts = 11     # Get up to QSq=0.4 for 24nt48
 
 # errfunc will be minimized via least-squares optimization
 pade12 = lambda p, x: (p[0] + p[1] * x) / (1 + x * (p[2] + x * p[3]))
 errfunc = lambda p, x, y, err: (pade12(p, x) - y) / err
-p_in = [-0.01, -0.01, 10., 10.]   # Order-of-magnitude initial guesses
+p_in = [-0.01, -0.01, -0.1, -0.1]   # Order-of-magnitude initial guesses
+
+# !!! This could make it easier to check for bad poles...
+#pade12 = lambda p, x: (p[0] + p[1] * x) / ((x + p[2]) * (x + p[3]))
 # ------------------------------------------------------------------
 
 
@@ -193,6 +196,7 @@ if Nblocks == 0:
 
 print "# Total of %d measurements in %d block(s) of length %d" \
     % (sum(lengths), Nblocks, block_size)
+print "# Using %d points, up to Q^2 = %.4g" % (Npts, QSq[Npts - 1])
 # ------------------------------------------------------------------
 
 
@@ -207,10 +211,17 @@ if Nblocks == 1:
   for i in range(Npts):
     err = datSq[i][0] - dat[i][0]**2
     PiErr[i] = np.sqrt(err / (float(count) - 1.))
+#    print QSq[i], Pi[i], PiErr[0]
   all_out = optimize.leastsq(errfunc, p_in[:], args=(QSq, Pi, PiErr),
                              full_output = 1)
   p_out = all_out[0]
   covar = all_out[1]
+
+  # Sanity check
+#  print p_out
+  if p_out[0] > 0:
+    print "Ack!  Fitter found wrong-sign pole"
+    sys.exit(1)
 
   # Use covariance matrix to propagate uncertainties
   # derivs are derivatives of slope with each of p_out[:]
@@ -251,6 +262,11 @@ for i in range(Nblocks):  # Jackknife samples
     p_out[j][i] = temp[j]
   jkslopes[i] = 4. * np.pi * (p_out[1][i] - p_out[0][i] * p_out[2][i])
   jkFP[i] = np.sqrt(-1. * p_out[0][i])
+
+  # Sanity check
+  if p_out[0][i] > 0:
+    print "Ack!  Fitter found wrong-sign pole"
+    sys.exit(1)
 # ------------------------------------------------------------------
 
 
