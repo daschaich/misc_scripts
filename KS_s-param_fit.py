@@ -150,6 +150,7 @@ for i in range(Ndirs):  # Reset block for each directory
 
       # Running averages
       # Real part of transverse V-A vacuum polarization is 12th datum of 13
+      # !!! Scale by -0.5 to roughly match DWF results
       x = -1
       filename = dirnames[i] + '/KSdecomp.t' + str(src) + '.' + str(MDTU)
       for line in open(filename):
@@ -162,6 +163,7 @@ for i in range(Ndirs):  # Reset block for each directory
                 % (filename, float(temp[0]), QSq[x])
           sys.exit(1)
         toAdd = float(temp[11]) / 2.0
+        toAdd *= -0.5           # !!!
         toAve[x] += toAdd
         toAveSq[x] += toAdd**2
       count += 1
