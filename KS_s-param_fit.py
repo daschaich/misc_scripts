@@ -30,8 +30,9 @@ for i in range(Ndirs):
 block_size = int(sys.argv[len(sys.argv) - 1])
 runtime = -time.time()
 
-# !!! Definitions
-Npts = 21     # Number of points to use in fit
+# !!! Number of points to use in fit
+Npts = 21     # Get up to QSq=0.4 for 32nt64
+Npts = 11     # Get up to QSq=0.4 for 24nt48
 
 # errfunc will be minimized via least-squares optimization
 pade12 = lambda p, x: (p[0] + p[1] * x) / (1 + x * (p[2] + x * p[3]))
