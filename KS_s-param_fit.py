@@ -9,8 +9,8 @@ from scipy import optimize
 # Run jackknifed fits of V-A polarization function Pi(Q^2)
 # to (1, 2) rational function
 
-# Designed for domain wall fermions
-# (E.g., reads in renormalization factor from Z.dat)
+# Staggered vs. domain wall fermions affect renormalization factor
+# (here Z=1) and file names
 
 # Parse arguments: first is number of directories,
 # each of which much then be listed along with a thermalization cut
@@ -48,31 +48,13 @@ for dirname in dirnames:
     print "ERROR:", dirname, "does not exist"
     sys.exit(1)
 
-# Load renormalization factor -- should be the same in all dirs
-Z = -1
-toOpen = dirnames[0] + '/Z.dat'
-if not os.path.isfile(toOpen):
-  print "ERROR: missing", toOpen
-  sys.exit(1)
-else:
-  for line in open(toOpen):
-    if not line.startswith("#"):
-      Z = float(line.split()[0])
-if Z == -1:
-  print "ERROR: couldn't set Z from", toOpen
-  sys.exit(1)
-# ------------------------------------------------------------------
-
-
-
-# ------------------------------------------------------------------
 # Construct lists of which sources have been used on which configurations
 cfgs = []
 meas = [[] for x in range(Ndirs)]
 tot_meas = 0
 for i in range(Ndirs):
   cfgs.append([])
-  files = dirnames[i] + '/decomp.*'
+  files = dirnames[i] + '/KSdecomp.*'
   for filename in glob.glob(files):
     cfg = int((filename.split('.'))[-1])  # Number after last .
     if cfg not in cfgs[i] and cfg >= cuts[i]:
@@ -88,9 +70,9 @@ for i in range(Ndirs):
   check = -1
   for j in cfgs[i]:
     meas[i].append([])
-    files = dirnames[i] + '/decomp.t*.' + str(j)
+    files = dirnames[i] + '/KSdecomp.t*.' + str(j)
     for filename in glob.glob(files):
-      temp = filename.split('decomp.t')[1] # Everything after decomp.t
+      temp = filename.split('KSdecomp.t')[1] # Everything after KSdecomp.t
       t_src = int((temp.split('.'))[0])    # Number after '.t'
       meas[i][-1].append(t_src)
     if check > 0:
@@ -131,7 +113,7 @@ datSq = [[] for x in range(Npts)]
 lengths = []      # Number of measurements in each jackknife block
 
 # First save a reference list of the QSq we should find below
-filename = dirnames[0] + '/decomp.t' + str(meas[0][0][0]) + '.' + str(cfgs[0][0])
+filename = dirnames[0] + '/KSdecomp.t' + str(meas[0][0][0]) + '.' + str(cfgs[0][0])
 temp = []
 for line in open(filename):
   temp.append(float((line.split('\t'))[0]))
@@ -169,7 +151,7 @@ for i in range(Ndirs):  # Reset block for each directory
       # Running averages
       # Real part of transverse V-A vacuum polarization is 12th datum of 13
       x = -1
-      filename = dirnames[i] + '/decomp.t' + str(src) + '.' + str(MDTU)
+      filename = dirnames[i] + '/KSdecomp.t' + str(src) + '.' + str(MDTU)
       for line in open(filename):
         x += 1
         if x == Npts:
@@ -179,7 +161,7 @@ for i in range(Ndirs):  # Reset block for each directory
           print "ERROR: QSq mismatch in file %s: %g vs. %g" \
                 % (filename, float(temp[0]), QSq[x])
           sys.exit(1)
-        toAdd = float(temp[11]) * Z / 2.
+        toAdd = float(temp[11]) / 2.0
         toAve[x] += toAdd
         toAveSq[x] += toAdd**2
       count += 1
