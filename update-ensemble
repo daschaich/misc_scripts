@@ -1,0 +1,57 @@
+#!/bin/bash
+# ------------------------------------------------------------------
+# Set up paths
+temp=`pwd`
+dir=${temp##*Run}   # Strip everything up to and including "Run"
+path=/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir
+description=`cat tag`
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# Back up status and construct lists of files in each ensemble,
+# including "Out/Thermalization" directory if it exists
+cp -f $path/status $path/status.bak
+rm -f *.txt
+mv -f ensembles ensembles.bak
+if [ -d $path/Out/Thermalization ] ; then
+  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_ensembles.pl $dir $path/Out/out* $path/Out/Thermalization/out*
+else
+  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_ensembles.pl $dir $path/Out/out*
+fi
+sort ensembles.txt | uniq > ensembles
+rm -f ensembles.txt
+chmod 664 *.txt ensembles
+
+# Use lists of files in each ensemble to extract time series data
+date=`date`
+for file in *.txt ; do
+  #echo $file
+  rm -f data/*.${file//.txt/}.csv MISSING.${file//.txt/}
+  sort -n $file | uniq > temp
+  mv -f temp $file
+  echo "parse_files.pl $dir ${file//.txt/}"
+  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_files.pl $dir ${file//.txt/}
+done
+chmod 664 data/*.csv
+
+# Replace Web pages to update timestamp
+rm -f *.html
+echo '<html><head><title>'$description'</title></head>' > index.html
+echo '<body><p>Last update: '$date'</p><p>'$description'</p>' >> index.html
+echo '<ol start=1>' >> index.html
+for file in *.txt ; do
+  date=`date`
+  tag=${file//.txt/}
+  echo '<li><a href="'${tag}'.html">'${tag}'</a></li>' >> index.html
+  echo writePage $dir $tag "$date"
+  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writePage $dir $tag "$date"
+done
+echo '</ol></body></html>' >> index.html
+chmod 664 *.html
+rm -f *.txt                   # Done with this
+
+# Check time stamps between output files and present gauge info files
+check_configs $path > ERRORS.CFGs
+# ------------------------------------------------------------------

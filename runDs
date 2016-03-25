@@ -1,0 +1,125 @@
+#!/bin/bash
+
+if [ $# -lt 7 ]; then
+  echo "Usage: $0 <first> <last> <MH> nsteps:{<outer> <inner> <gauge>} <time> [dependency (optional)]"
+  exit 1
+fi
+
+# Input parameters
+first=$1
+last=$2
+MH=$3
+outer=$4
+inner=$5
+gauge=$6
+time=$7
+
+# Adjustable parameters
+node=64
+cpus=2048
+node=32
+cpus=1024
+Nf=8
+L=48
+Nt=24
+mass=0.005
+beta=4.85
+ratio=-0.25
+Ntraj=10
+traj_length=1
+skip=10   # !!! Should be a way to figure out skip=Ntraj*traj_length
+
+# Common parameters for all jobs
+tag=b${beta}_r${ratio}_m$mass
+echo "#!/bin/sh" > temp
+echo "#PBS -l nodes=$node" >> temp
+echo "#PBS -l walltime=$time" >> temp
+echo "#PBS -A LSD" >> temp
+echo "#PBS -q ds" >> temp
+echo "#PBS -j oe" >> temp
+echo "#PBS -N HMC${L}nt${Nt}_$tag" >> temp
+echo "#PBS -o job.\$PBS_JOBID.out" >> temp
+echo "#PBS -k oe" >> temp
+echo "#PBS -m ae -M daschaich@gmail.com" >> temp
+
+dir=/lqcdproj/lsd/KS_nHYP_FA/${Nf}f/${L}nt${Nt}/$tag
+bin=/lqcdproj/lsd/KS_nHYP_FA/su3_hmc
+cd $dir
+echo "cd $dir" >> temp
+
+# Write all evolution tasks to run in a single job
+iter=0
+for(( i=$first ; $i<$last ; i+=$skip )); do
+  iter=$[$iter + 1]
+  next=$[$i + $skip]
+  out=$dir/Out/out.$i-$next
+  lat=$dir/Configs/config
+  if [ -f $out ]; then
+    echo "ERROR: OUTPUT FILE $out EXISTS, SUBMISSION ABORTED"
+    rm -f temp
+    exit 1
+  fi
+  echo "if [ ! -f $lat.$i.lime ]; then" >> temp
+  echo "  echo \"ERROR: LATTICE $lat.$i.lime NOT FOUND, SUBMISSION ABORTED\"" >> temp
+  echo "  exit 1" >> temp
+  echo "fi" >> temp
+  if [ -f $lat.$next.lime ]; then
+    echo "ERROR: LATTICE $lat.$next.lime EXISTS, SUBMISSION ABORTED"
+    rm -f temp
+    exit 1
+  fi
+
+  echo "echo \"Job \$PBS_JOBNAME started \"\`date\`\" jobid \$PBS_JOBID\" >> $out" >> temp
+  echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> temp
+  echo "echo \"/usr/local/mvapich/bin/mpirun -np $cpus $bin\" >> $out" >> temp
+  echo "/usr/local/mvapich/bin/mpirun -np $cpus $bin << EOF  >> $out" >> temp
+  echo "prompt 0" >> temp
+  echo "nflavors $Nf" >> temp
+  echo "nx $L" >> temp
+  echo "ny $L" >> temp
+  echo "nz $L" >> temp
+  echo "nt $Nt" >> temp
+  echo "iseed ${last}41$i" >> temp
+
+  echo "warms 0" >> temp
+  echo "trajecs $Ntraj" >> temp
+  echo "traj_length $traj_length" >> temp
+  echo "number_of_PF 2" >> temp
+  echo "nstep $outer" >> temp
+  echo "nstep $inner" >> temp
+  echo "nstep_gauge $gauge" >> temp
+  echo "traj_between_meas $Ntraj" >> temp
+  echo "beta $beta" >> temp
+  echo "beta_a $ratio" >> temp
+  echo "mass $mass" >> temp
+  echo "Hasenbusch_mass $MH" >> temp
+
+  echo "Nsmear 1" >> temp
+  echo "alpha_hyp0 0.5" >> temp
+  echo "alpha_hyp1 0.5" >> temp
+  echo "alpha_hyp2 0.4" >> temp
+
+  echo "npbp 5" >> temp
+  echo "max_cg_iterations 5000" >> temp
+  echo "max_cg_restarts 1" >> temp
+  echo "error_per_site 1e-6" >> temp
+  echo "reload_serial $lat.$i.lime" >> temp
+  echo "save_serial_scidac $lat.$next.lime" >> temp
+  echo "EOF" >> temp
+
+  echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> temp
+  echo "" >> temp
+done
+
+if [ $# -gt 7 ]; then
+  qsub -W depend=afterok:$8.ds2.fnal.gov temp -r n
+else
+  qsub temp -r n
+fi
+rm -f temp
+
+echo "Requested $time to run $iter jobs ($first--$last by $Ntraj)"
+echo -ne "  The latest file in this ensemble is "
+ls -tr Out/out.* | tail -n 1
+echo     "The first file this job will write is Out/out.$first-$[$first+$Ntraj]"
+echo "Cancel the job if this doesn't look right"

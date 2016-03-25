@@ -1,0 +1,46 @@
+#!/bin/bash
+# ------------------------------------------------------------------
+if [ $# != 1 ]; then
+  echo "Usage: $0 <tag>"
+  exit 1
+fi
+
+tag=$1
+temp=`pwd`
+dir=${temp##*Run}   # Strip everything up to and including "Run"
+path=/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# Construct list of files in given ensemble,
+# including "Out/Thermalization" directory if it exists
+rm -f $tag.txt MISSING.$tag ERRORS.$tag
+if [ -e $path/Out/Thermalization/out_$tag.1 ] ; then
+  for i in $path/Out/out_$tag.* $path/Out/Thermalization/out_$tag.* ; do
+    echo ${i##*.} >> temp.$tag    # Strip everything up to and including the last "."
+  done
+else
+  for i in $path/Out/out_$tag.* ; do
+    echo ${i##*.} >> temp.$tag    # Strip everything up to and including the last "."
+  done
+fi
+sort temp.$tag -n | uniq > $tag.txt
+rm -f temp.$tag
+
+# Use list of files in given ensemble to extract time series data
+rm -f data/*.$tag.csv
+echo "parse_files.pl $dir $tag"
+/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_files.pl $dir $tag
+chmod 664 data/*.$tag.csv
+rm -f $tag.txt                # Done with this
+
+# Replace Web pages to update timestamp
+# Assume index.html is OK
+date=`date`
+rm -f $tag.html
+echo writePage $dir $tag "$date"
+/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writePage $dir $tag "$date"
+chmod 664 $tag.html
+# ------------------------------------------------------------------

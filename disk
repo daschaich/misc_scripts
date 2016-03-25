@@ -1,0 +1,133 @@
+#!/bin/bash
+
+if [ $# == 1 ]; then
+  echo "Usage: $0 <tag>"
+  cd /p/lscratche/schaich2/$1/
+fi
+
+path=`pwd`
+temp=${path##*f/}   # Strip everything up to and including "f/"
+vol=${temp%%/*}     # Strip everything after and including "/" 
+echo "--> $vol"
+
+# Staggered S parameter
+temp=${path##*schaich2/}   # Strip everything up to and including "schaich2/"
+toCheck=${temp%%/*}        # Strip everything after and including "/" 
+if [ "$toCheck" == "KS_nHYP_FA" ]; then
+  echo -ne "job:       "
+  ls Out/s-param.t* | wc -l
+  echo -ne "done:      "
+  grep "RUNNING COMPLETED" Out/s-param.t* | wc -l
+  echo -ne "decomp:    "
+
+  if [ "$vol" == "32nt64" ]; then
+    head -n 1 Out/KSdecomp.* | grep 0.009638 | wc -l 
+    echo -ne "Wflow:     "
+    wc -l Out/Wflow.* | grep " 3248 " | wc -l
+
+    echo -ne "axic:      "
+    ls -l Out/KSaxi.t* | grep 268439904 | wc -l 
+    echo -ne "vecc:      "
+    ls -l Out/KSvec.t* | grep 268439904 | wc -l 
+    echo -ne "configs:   "
+    ls -l Configs/config.*.lime | grep 603981808 | wc -l 
+
+  elif [ "$vol" == "24nt48" ]; then
+    head -n 1 Out/KSdecomp.* | grep 0.01713 | wc -l 
+    echo -ne "Wflow:     "
+    wc -l Out/Wflow.* | grep " 2078 " | wc -l
+
+    echo -ne "axic:      "
+    ls -l Out/KSaxi.t* | grep 84939104 | wc -l 
+    echo -ne "vecc:      "
+    ls -l Out/KSvec.t* | grep 84939104 | wc -l 
+    echo -ne "configs:   "
+    ls -l Configs/config.*.lime | grep 191104536 | wc -l 
+  fi
+
+  exit 0
+fi
+
+# Mostly domain wall S parameter
+# Some cruft from static potential, spectrum, eigenmodes
+echo -ne "job:       "
+ls job.t* | wc -l
+echo -ne "vers:      "
+grep Inversion job.t* | wc -l
+echo -ne "mesons:    "
+head -n 1 mesons.t* | grep '99	 0	 0	 0' | wc -l
+echo -ne "mesonsc:   "
+head -n 1 mesonsc.t* | grep '99	 0	 1	 1' | wc -l
+echo -ne "mesonsm:   "
+head -n 1 mesonsm.t* | grep '99	 0	 0	 0' | wc -l
+echo -ne "ward:      "
+ls  | grep wardv.t | wc -l
+echo -ne "potential: "
+grep "RUNNING COMPLETED" potential.* | wc -l
+echo -ne "Wflow:     "
+grep "RUNNING COMPLETED" Wflow.* | wc -l
+echo -ne "spectrum:  "
+grep "RUNNING COMPLETED" spectrum.* | wc -l
+echo -ne "eig:       "
+grep "RUNNING COMPLETED" eig.* | wc -l
+echo -ne "mode:      "
+grep "RUNNING COMPLETED" mode.* | wc -l
+echo -ne "decomp:    "
+
+if [ "$vol" == "64nt128" ]; then
+  echo -ne "configs:   "
+  ls -lh | grep .lime | grep 9.1G | wc -l 
+elif [ "$vol" == "48nt96" ]; then
+  head -n 1 decomp.* | grep 0.004284 | wc -l 
+
+  echo -ne "axic:      "
+  ls -l | grep axic.t | grep 1358959016 | wc -l 
+  echo -ne "vecc:      "
+  ls -l | grep vecc.t | grep 1358959016 | wc -l 
+  echo -ne "prop:      "
+  ls -l | grep prop.t | grep 12230591952 | wc -l 
+  echo -ne "configs:   "
+  ls -lh | grep .lime | grep 2.9G | wc -l 
+elif [ "$vol" == "32nt64" ]; then
+  head -n 1 decomp.* | grep 0.009638 | wc -l 
+
+  echo -ne "axic:      "
+  ls -l | grep axic.t | grep 268439976 | wc -l 
+  echo -ne "vecc:      "
+  ls -l | grep vecc.t | grep 268439976 | wc -l 
+  echo -ne "prop:      "
+  ls -l | grep prop.t | grep 2415920592 | wc -l 
+  echo -ne "configs:   "
+  ls -lh | grep .lime | grep 577M | wc -l 
+elif [ "$vol" == "24nt48" ]; then
+  head -n 1 decomp.* | grep 0.01713 | wc -l 
+
+  echo -ne "axic:      "
+  ls -l | grep axic.t | grep 84939176 | wc -l 
+  echo -ne "vecc:      "
+  ls -l | grep vecc.t | grep 84939176 | wc -l 
+  echo -ne "prop:      "
+  ls -l | grep prop.t | grep 764413392 | wc -l 
+  echo -ne "configs:   "
+  ls -lh | grep .lime | grep 183M | wc -l 
+elif [ "$vol" == "24nt32" ]; then
+  head -n 1 decomp.* | grep 0.03855 | wc -l 
+
+  echo -ne "axic:      "
+  ls -l | grep axic.t | grep 56627624 | wc -l 
+  echo -ne "vecc:      "
+  ls -l | grep vecc.t | grep 56627624 | wc -l 
+  echo -ne "prop:      "
+  ls -l | grep prop.t | grep 509609424 | wc -l 
+elif [ "$vol" == "16nt32" ]; then
+  head -n 1 decomp.* | grep 0.03855 | wc -l 
+
+  echo -ne "axic:      "
+  ls -l | grep axic.t | grep 16781736 | wc -l 
+  echo -ne "vecc:      "
+  ls -l | grep vecc.t | grep 16781736 | wc -l 
+  echo -ne "prop:      "
+  ls -l | grep prop.t | grep 150996432 | wc -l 
+  echo -ne "configs:   "
+  ls -lh | grep .lime | grep 37M | wc -l 
+fi

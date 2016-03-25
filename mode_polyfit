@@ -1,0 +1,45 @@
+file=$1
+Nvec=$2
+step=$3
+name=$4
+ns=$5
+nt=$6
+
+rm -f avgeig* start rho* count Max Min
+
+cat Out/$file.* | awk '/EIGEN/{if($2==0)i++}END{print i}' > count
+tol=$(cat count)
+nvec=`expr $Nvec - 1`
+
+vol=$(echo "$nt*$ns^3"|bc)
+
+grep 'EIGENVALUE '$nvec' ' Out/${file}.* > Max
+grep 'EIGENVALUE 0 ' Out/${file}.* > Min
+uplim=$(sort Max | head -1|awk '{print sqrt($3)}')
+downlim=$(printf '%f' $(sort Min | head -1|awk '{print sqrt($3)}'))
+num=$(echo "scale=0; ($uplim - $downlim) / $step" | bc)
+
+for((i=1;i<=$num;i++)); do
+  echo "$downlim + $i*$step" | bc -l >> start
+done
+
+grep 'EIGENVALUE ' Out/$file.* > eig
+for ((cc=1; cc<=$tol; cc++)); do
+  for ((k=0; k<$Nvec; k++)); do
+    grep 'EIGENVALUE '$k' ' eig |awk 'BEGIN {s=0;s2=0}{if(NR != '$cc'){s+=sqrt($3)}} END{print s/('$tol'-1), ('$k'+1),0.001}' >> avgeig_$cc
+  done
+
+  for ((n=1; n<=$num; n++)); do
+    cut=$(sed -n ${n}p start | awk '{print $1}')
+    fit3 0 $cut < avgeig_$cc | awk '/C  2/{print $3/'$vol', $5/'$vol'}' >> rho_$cc
+  done
+done
+
+for((i=0;i<$num;i++)); do
+  cat rho_* |awk 'BEGIN {s=0;s2=0;err=0} {if ((NR-1)%'$num'=='$i') {s+=$1;s2+=$1**2;err+=$2}}END{print s/'$tol',err/'$tol'}'>> rho
+#  cat rho_* |awk 'BEGIN {s=0;s2=0;err=0} {if ((NR-1)%'$num'=='$i') {s+=$1;s2+=$1**2;err+=$2}}END{print s/'$tol',sqrt(s2/'$tol'-(s/'$tol')**2)+err/'$tol'}' >> rho
+done
+
+echo "#cm 2 e c \di ">jack_lam_rho_${name}_${step}_${Nvec}
+paste start rho >> jack_lam_rho_${name}_${step}_${Nvec}
+rm -f avgeig* start rho* count Max Min
