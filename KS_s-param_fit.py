@@ -38,9 +38,6 @@ Npts = 21     # Get up to QSq=0.4 for 32nt64
 pade12 = lambda p, x: (p[0] + p[1] * x) / (1 + x * (p[2] + x * p[3]))
 errfunc = lambda p, x, y, err: (pade12(p, x) - y) / err
 p_in = [-0.01, -0.01, -0.1, -0.1]   # Order-of-magnitude initial guesses
-
-# !!! This could make it easier to check for bad poles...
-#pade12 = lambda p, x: (p[0] + p[1] * x) / ((x + p[2]) * (x + p[3]))
 # ------------------------------------------------------------------
 
 
@@ -211,29 +208,28 @@ if Nblocks == 1:
   for i in range(Npts):
     err = datSq[i][0] - dat[i][0]**2
     PiErr[i] = np.sqrt(err / (float(count) - 1.))
-#    print QSq[i], Pi[i], PiErr[0]
   all_out = optimize.leastsq(errfunc, p_in[:], args=(QSq, Pi, PiErr),
                              full_output = 1)
   p_out = all_out[0]
   covar = all_out[1]
 
-  # Sanity check
-#  print p_out
-  if p_out[0] > 0:
-    print "Ack!  Fitter found wrong-sign pole"
-    sys.exit(1)
+  # Print average data and fit function to check by eye
+  print "# (%.4g + %.4g * x) / (1 + x * (%.4g + %.4g * x))" \
+        % (p_out[0], p_out[1], p_out[2], p_out[3])
+  for i in range(Npts):
+    print "%.4g %.4g %.4g" % (QSq[i], Pi[i], PiErr[i])
 
   # Use covariance matrix to propagate uncertainties
   # derivs are derivatives of slope with each of p_out[:]
   slope = 4 * np.pi * (p_out[1] - p_out[0] * p_out[2])
   derivs = 4 * np.pi * np.array([-p_out[2], 1, -p_out[0], 0])
   err = np.sqrt(np.dot(derivs, np.dot(covar, derivs)))
-  print "slope %.6g %.4g" % (slope, err)
+  print "# slope %.6g %.4g" % (slope, err)
 
   FP = np.sqrt(-1. * p_out[0])
   derivs = np.array([-1  / (2 * FP), 0, 0, 0])
   err = np.sqrt(np.dot(derivs, np.dot(covar, derivs)))
-  print "FP %.6g %.4g" % (FP, err)
+  print "# FP %.6g %.4g" % (FP, err)
   runtime += time.time()
   print "# Runtime: %.2g seconds" % runtime
   sys.exit(0)
@@ -262,11 +258,6 @@ for i in range(Nblocks):  # Jackknife samples
     p_out[j][i] = temp[j]
   jkslopes[i] = 4. * np.pi * (p_out[1][i] - p_out[0][i] * p_out[2][i])
   jkFP[i] = np.sqrt(-1. * p_out[0][i])
-
-  # Sanity check
-  if p_out[0][i] > 0:
-    print "Ack!  Fitter found wrong-sign pole"
-    sys.exit(1)
 # ------------------------------------------------------------------
 
 
@@ -284,6 +275,10 @@ for i in range(len(p_in)):
     cov[i][j] = (Nblocks - 1.) * temp / float(Nblocks)
     if j > i:
       cov[j][i] = cov[i][j]
+
+# Print average fit function to check against average data
+print "# (%.4g + %.4g * x) / (1 + x * (%.4g + %.4g * x))" \
+      % (p_ave[0], p_ave[1], p_ave[2], p_ave[3])
 
 # Slope
 slope = 4. * np.pi * (p_ave[1] - p_ave[0] * p_ave[2])
