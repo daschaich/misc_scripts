@@ -30,9 +30,16 @@ for i in range(Ndirs):
 block_size = int(sys.argv[len(sys.argv) - 1])
 runtime = -time.time()
 
-# !!! Number of points to use in fit
-Npts = 21     # Get up to QSq=0.4 for 32nt64
-#Npts = 11     # Get up to QSq=0.4 for 24nt48
+# Set number of points from volume in path
+# Fit up to QSq = 0.4 (checked to be optimal for 32nt64 DWF)
+path = os.getcwd()
+if '24nt48' in path:
+  Npts = 11
+elif '32nt64' in path:
+  Npts = 21
+else:
+  print "Error: Unrecognized volume in", path
+  sys.exit(1)
 
 # errfunc will be minimized via least-squares optimization
 pade12 = lambda p, x: (p[0] + p[1] * x) / (1 + x * (p[2] + x * p[3]))
@@ -216,18 +223,22 @@ if Nblocks == 1:
   # Print average data and fit function to check by eye
   print "# (%.4g + %.4g * x) / (1 + x * (%.4g + %.4g * x))" \
         % (p_out[0], p_out[1], p_out[2], p_out[3])
+  temp = np.sqrt(p_out[2] * p_out[2] - 4.0 * p_out[3])
+  pole1 = (p_out[2] + temp) / (-2.0 * p_out[3])
+  pole2 = (p_out[2] - temp) / (-2.0 * p_out[3])
+  print "# Poles at QSq = %.4g and %.4g" % (pole1, pole2)
   for i in range(Npts):
     print "%.4g %.4g %.4g" % (QSq[i], Pi[i], PiErr[i])
 
   # Use covariance matrix to propagate uncertainties
   # derivs are derivatives of slope with each of p_out[:]
-  slope = 4 * np.pi * (p_out[1] - p_out[0] * p_out[2])
-  derivs = 4 * np.pi * np.array([-p_out[2], 1, -p_out[0], 0])
+  slope = 4.0 * np.pi * (p_out[1] - p_out[0] * p_out[2])
+  derivs = 4.0 * np.pi * np.array([-1.0 * p_out[2], 1.0, -1.0 * p_out[0], 0.0])
   err = np.sqrt(np.dot(derivs, np.dot(covar, derivs)))
   print "# slope %.6g %.4g" % (slope, err)
 
-  FP = np.sqrt(-1. * p_out[0])
-  derivs = np.array([-1  / (2 * FP), 0, 0, 0])
+  FP = np.sqrt(-1.0 * p_out[0])
+  derivs = np.array([0.5 / FP, 0.0, 0.0, 0.0])
   err = np.sqrt(np.dot(derivs, np.dot(covar, derivs)))
   print "# FP %.6g %.4g" % (FP, err)
   runtime += time.time()
@@ -250,14 +261,14 @@ for i in range(Nblocks):  # Jackknife samples
   Pi = np.empty(Npts, dtype = np.float)
   PiErr = np.empty(Npts, dtype = np.float)
   for Q in range(Npts):
-    Pi[Q] = (tot[Q] - dat[Q][i]) / (Nblocks - 1.)
-    temp = (totSq[Q] - datSq[Q][i]) / (Nblocks - 1.)
+    Pi[Q] = (tot[Q] - dat[Q][i]) / (Nblocks - 1.0)
+    temp = (totSq[Q] - datSq[Q][i]) / (Nblocks - 1.0)
     PiErr[Q] = np.sqrt(temp - Pi[Q]**2)
   temp, success = optimize.leastsq(errfunc, p_in[:], args=(QSq, Pi, PiErr))
   for j in range(len(p_in)):
     p_out[j][i] = temp[j]
-  jkslopes[i] = 4. * np.pi * (p_out[1][i] - p_out[0][i] * p_out[2][i])
-  jkFP[i] = np.sqrt(-1. * p_out[0][i])
+  jkslopes[i] = 4.0 * np.pi * (p_out[1][i] - p_out[0][i] * p_out[2][i])
+  jkFP[i] = np.sqrt(-1.0 * p_out[0][i])
 # ------------------------------------------------------------------
 
 
@@ -279,25 +290,29 @@ for i in range(len(p_in)):
 # Print average fit function to check against average data
 print "# (%.4g + %.4g * x) / (1 + x * (%.4g + %.4g * x))" \
       % (p_ave[0], p_ave[1], p_ave[2], p_ave[3])
+temp = np.sqrt(p_ave[2] * p_ave[2] - 4.0 * p_ave[3])
+pole1 = (p_ave[2] + temp) / (-2.0 * p_ave[3])
+pole2 = (p_ave[2] - temp) / (-2.0 * p_ave[3])
+print "# Poles at QSq = %.4g and %.4g" % (pole1, pole2)
 
 # Slope
-slope = 4. * np.pi * (p_ave[1] - p_ave[0] * p_ave[2])
-derivs = 4. * np.pi * np.array([-p_ave[2], 1, -p_ave[0], 0])
+slope = 4.0 * np.pi * (p_ave[1] - p_ave[0] * p_ave[2])
+derivs = 4.0 * np.pi * np.array([-p_ave[2], 1.0, -p_ave[0], 0.0])
 err = np.sqrt(np.dot(derivs, np.dot(cov, derivs)))
 print "slope %.6g %.4g" % (slope, err)
 
 ave = np.average(jkslopes)
-var = (Nblocks - 1.) * np.sum((jkslopes - ave)**2) / float(Nblocks)
+var = (Nblocks - 1.0) * np.sum((jkslopes - ave)**2) / float(Nblocks)
 print "check %.6g %.4g" % (ave, np.sqrt(var))
 
 # Intercept
-FP = np.sqrt(-1. * p_ave[0])
-derivs = np.array([-1  / (2 * FP), 0, 0, 0])
+FP = np.sqrt(-1.0 * p_ave[0])
+derivs = np.array([0.5 / FP, 0.0, 0.0, 0.0])
 err = np.sqrt(np.dot(derivs, np.dot(cov, derivs)))
 print "FP %.6g %.4g" % (FP, err)
 
 ave = np.average(jkFP)
-var = (Nblocks - 1.) * np.sum((jkFP - ave)**2) / float(Nblocks)
+var = (Nblocks - 1.0) * np.sum((jkFP - ave)**2) / float(Nblocks)
 print "check %.6g %.4g" % (ave, np.sqrt(var))
 
 runtime += time.time()
