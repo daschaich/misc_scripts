@@ -3,7 +3,7 @@
 # Set up paths
 temp=`pwd`
 dir=${temp##*Run}   # Strip everything up to and including "Run"
-path=/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir
+path=/nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir
 description=`cat tag`
 # ------------------------------------------------------------------
 
@@ -16,9 +16,9 @@ cp -f $path/status $path/status.bak
 rm -f *.txt
 mv -f ensembles ensembles.bak
 if [ -d $path/Out/Thermalization ] ; then
-  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_ensembles.pl $dir $path/Out/out* $path/Out/Thermalization/out*
+  /nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_ensembles.pl $dir $path/Out/out* $path/Out/Thermalization/out*
 else
-  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_ensembles.pl $dir $path/Out/out*
+  /nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_ensembles.pl $dir $path/Out/out*
 fi
 sort ensembles.txt | uniq > ensembles
 rm -f ensembles.txt
@@ -32,7 +32,7 @@ for file in *.txt ; do
   sort -n $file | uniq > temp
   mv -f temp $file
   echo "parse_files.pl $dir ${file//.txt/}"
-  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_files.pl $dir ${file//.txt/}
+  /nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_files.pl $dir ${file//.txt/}
 done
 chmod 664 data/*.csv
 
@@ -46,7 +46,7 @@ for file in *.txt ; do
   tag=${file//.txt/}
   echo '<li><a href="'${tag}'.html">'${tag}'</a></li>' >> index.html
   echo writePage $dir $tag "$date"
-  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writePage $dir $tag "$date"
+  /nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writePage $dir $tag "$date"
 done
 echo '</ol></body></html>' >> index.html
 chmod 664 *.html

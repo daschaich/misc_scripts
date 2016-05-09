@@ -34,7 +34,7 @@ runtime = -time.time()
 # Fit up to QSq = 0.4 (checked to be optimal for 32nt64 DWF)
 path = os.getcwd()
 if '24nt48' in path:
-  Npts = 11
+  Npts = 15
 elif '32nt64' in path:
   Npts = 21
 else:

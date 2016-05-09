@@ -9,7 +9,7 @@ die "Usage: $0 <dir> <input files (full path)>\n"
   if (@ARGV < 1);
 
 my $dir = shift;
-my $write_path = "/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir";
+my $write_path = "/nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir";
 
 while (@ARGV > 0) {
   my $file = shift;

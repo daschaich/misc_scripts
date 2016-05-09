@@ -8,7 +8,7 @@ fi
 tag=$1
 temp=`pwd`
 dir=${temp##*Run}   # Strip everything up to and including "Run"
-path=/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir
+path=/nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir
 # ------------------------------------------------------------------
 
 

@@ -11,7 +11,7 @@ die "Usage: $0 <path> <tag>\n"
   if (@ARGV != 2);
 
 my $dir = shift;
-my $path = "/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir";
+my $path = "/nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/Run$dir";
 my $tag = shift;
 my $i;
 my $junk;

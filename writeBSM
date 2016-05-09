@@ -11,7 +11,7 @@ date=$2
 if [ -d /data/bsm/nHYP/ ] ; then
   out="/data/bsm/nHYP/$tag/index.html"
 else
-  out="/nfs/beowulf02/schaich/BSM/$tag/index.html"
+  out="/nfs/beowulf03/schaich/BSM/$tag/index.html"
 fi
 #echo "Writing $out"
 

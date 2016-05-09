@@ -11,7 +11,7 @@ if [ -d /data/bsm/nHYP/ ] ; then
   path=/data/bsm/nHYP/$dir
 else
   dir=${temp##*BSM/}    # Strip everything up to and including "BSM/"
-  path=/nfs/beowulf02/schaich/BSM/$dir
+  path=/nfs/beowulf03/schaich/BSM/$dir
 fi
 # ------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ echo "parse_BSM.pl $path"
 if [ -f /home/schaich/bin/parse_BSM.pl ] ; then
   /home/schaich/bin/parse_BSM.pl $path
 else
-  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_BSM.pl $path
+  /nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_BSM.pl $path
 fi
 chmod 664 data/*.csv
 rm -f list.txt            # Done with this
@@ -45,7 +45,7 @@ echo writeBSM $dir "$date"
 if [ -f /home/schaich/bin/writeBSM ] ; then
   /home/schaich/bin/writeBSM $dir "$date"
 else
-  /nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writeBSM $dir "$date"
+  /nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writeBSM $dir "$date"
 fi
 chmod 664 index.html
 # ------------------------------------------------------------------
