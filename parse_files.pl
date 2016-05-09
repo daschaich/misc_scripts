@@ -613,6 +613,8 @@ FILE: for my $file (@files) {
   elsif ($walltime == -2) {
     # Placeholder file -- error has been addressed as well as possible,
     # but don't print nonsense wall clock time
+    # Count correct number of trajectories...
+    $traj += 10;
   }
   else {    # We are good to go
     # Average walltime over all trajectories
