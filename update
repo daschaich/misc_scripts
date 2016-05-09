@@ -32,7 +32,7 @@ rm -f temp.$tag
 # Use list of files in given ensemble to extract time series data
 rm -f data/*.$tag.csv
 echo "parse_files.pl $dir $tag"
-/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_files.pl $dir $tag
+/nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/parse_files.pl $dir $tag
 chmod 664 data/*.$tag.csv
 rm -f $tag.txt                # Done with this
 
@@ -41,6 +41,6 @@ rm -f $tag.txt                # Done with this
 date=`date`
 rm -f $tag.html
 echo writePage $dir $tag "$date"
-/nfs/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writePage $dir $tag "$date"
+/nfs/beowulf03/beowulf02/anna2/KSNHYP/FA-ks481216/scripts/writePage $dir $tag "$date"
 chmod 664 $tag.html
 # ------------------------------------------------------------------
