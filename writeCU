@@ -84,7 +84,6 @@ echo '                            "data/poly.csv",' >> $out
 echo '                            { colors: ["blue"],' >> $out
 echo '                              drawPoints: true,' >> $out
 echo '                              strokeWidth: 0,' >> $out
-#echo '                              valueRange: [-0.25, 0.25],' >> $out
 echo '                              showLabelsOnHighlight: false,' >> $out
 echo '                              xValueFormatter: function(x) {' >> $out
 echo '                                var shift = Math.pow(10, 4)' >> $out
@@ -105,7 +104,6 @@ echo '                            "data/xpoly.csv",' >> $out
 echo '                            { colors: ["blue"],' >> $out
 echo '                              drawPoints: true,' >> $out
 echo '                              strokeWidth: 0,' >> $out
-#echo '                              valueRange: [-0.25, 0.25],' >> $out
 echo '                              showLabelsOnHighlight: false,' >> $out
 echo '                              xValueFormatter: function(x) {' >> $out
 echo '                                var shift = Math.pow(10, 4)' >> $out
@@ -132,7 +130,7 @@ echo '          <div id="poly_r"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("poly_r"),' >> $out
 echo '                            "data/poly_r.csv",' >> $out
-echo '                            { rollPeriod: 5,' >> $out
+echo '                            { rollPeriod: 50,' >> $out
 echo '                              colors: ["blue"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -147,7 +145,7 @@ echo '          <div id="poly_mod"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("poly_mod"),' >> $out
 echo '                            "data/poly_mod.csv",' >> $out
-echo '                            { rollPeriod: 5,' >> $out
+echo '                            { rollPeriod: 50,' >> $out
 echo '                              colors: ["blue"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -171,7 +169,7 @@ echo '          <div id="xpoly_r"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("xpoly_r"),' >> $out
 echo '                            "data/xpoly_r.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -186,7 +184,7 @@ echo '          <div id="xpoly_mod"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("xpoly_mod"),' >> $out
 echo '                            "data/xpoly_mod.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -210,7 +208,7 @@ echo '          <div id="plaq_diff"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("plaq_diff"),' >> $out
 echo '                            "data/plaq_diff.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "black"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -225,7 +223,7 @@ echo '          <div id="link_diff"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("link_diff"),' >> $out
 echo '                            "data/link_diff.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "black"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -264,7 +262,7 @@ echo '          <div id="Wflow"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("Wflow"),' >> $out
 echo '                            "data/Wflow.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "red", "green", "black"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -318,7 +316,7 @@ echo '          <div id="plaqB"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("plaqB"),' >> $out
 echo '                            "data/plaqB.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -347,7 +345,6 @@ echo '                            "data/polyB.csv",' >> $out
 echo '                            { colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              drawPoints: true,' >> $out
 echo '                              strokeWidth: 0,' >> $out
-#echo '                              valueRange: [-0.25, 0.25],' >> $out
 echo '                              showLabelsOnHighlight: false,' >> $out
 echo '                              xValueFormatter: function(x) {' >> $out
 echo '                                var shift = Math.pow(10, 4)' >> $out
@@ -368,7 +365,6 @@ echo '                            "data/xpolyB.csv",' >> $out
 echo '                            { colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              drawPoints: true,' >> $out
 echo '                              strokeWidth: 0,' >> $out
-#echo '                              valueRange: [-0.25, 0.25],' >> $out
 echo '                              showLabelsOnHighlight: false,' >> $out
 echo '                              xValueFormatter: function(x) {' >> $out
 echo '                                var shift = Math.pow(10, 4)' >> $out
@@ -395,7 +391,7 @@ echo '          <div id="poly_rB"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("poly_rB"),' >> $out
 echo '                            "data/poly_rB.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -410,7 +406,7 @@ echo '          <div id="poly_modB"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("poly_modB"),' >> $out
 echo '                            "data/poly_modB.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -434,7 +430,7 @@ echo '          <div id="xpoly_rB"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("xpoly_rB"),' >> $out
 echo '                            "data/xpoly_rB.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -449,7 +445,7 @@ echo '          <div id="xpoly_modB"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("xpoly_modB"),' >> $out
 echo '                            "data/xpoly_modB.csv",' >> $out
-echo '                            { rollPeriod: 1,' >> $out
+echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["blue", "orange", "red", "green", "purple"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
@@ -520,7 +516,7 @@ echo '                            "data/deltaS.csv",' >> $out
 echo '                            { rollPeriod: 5,' >> $out
 echo '                              colors: ["red"],' >> $out
 echo '                              showRoller: true,' >> $out
-echo '                              valueRange: [-2.5, 2.501],' >> $out
+echo '                              valueRange: [-2.5, 2.51],' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out
 echo '                                var shift = Math.pow(10, 4)' >> $out
 echo '                                return Math.round(x * shift) / shift' >> $out
