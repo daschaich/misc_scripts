@@ -13,7 +13,7 @@ if len(sys.argv) < 2:
   sys.exit(1)
 filename = str(sys.argv[1])
 if len(sys.argv) > 2:
-  power = 1. / (1. + float(sys.argv[2]))
+  power = 1.0 / (1.0 + float(sys.argv[2]))
   # For MP^2
 #  power = 2. / (1. + float(sys.argv[2]))
   # For topological susceptibility
@@ -74,14 +74,14 @@ print "coeff %.6g %.4g" % (p_out[0], np.sqrt(covar[0][0]))
 if power == 999:
   x = float(p_out[1])
   x_err = np.sqrt(covar[1][1])
-  gamma = (1. - x) / x    # Power = 1 / (1 + gamma_m)
+  gamma = (1.0 - x) / x       # Power = 1 / (1 + gamma_m)
   ga_err = x_err / x**2
   # For MP^2
-#  gamma = (2. - x) / x    # Power = 1 / (1 + gamma_m)
-#  ga_err = 2. * x_err / x**2
+#  gamma = (2.0 - x) / x      # Power = 2 / (1 + gamma_m)
+#  ga_err = 2.0 * x_err / x**2
   # For topological susceptibility
-#  gamma = (4. - x) / x    # Power = 1 / (1 + gamma_m)
-#  ga_err = 4. * x_err / x**2
+#  gamma = (4.0 - x) / x      # Power = 4 / (1 + gamma_m)
+#  ga_err = 4.0 * x_err / x**2
   print "power %.6g %.4g --> %.6g %.4g" \
         % (x, x_err, gamma, ga_err)
 

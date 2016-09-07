@@ -263,6 +263,7 @@ FILE: for my $file (@files) {
 
   if ($traj == 0 && $file > 1 || $file != ($oldfile + 1)) {
     print STDERR "$infile: guessing approximate starting trajectory\n";
+    print ERRFILE "$infile: guessing approximate starting trajectory\n";
     $traj = $traj_per_file * ($file - 1);
     $endtraj = $traj + $traj_per_file;
   }

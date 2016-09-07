@@ -51,5 +51,14 @@ tSqE += 2.0
 
 # Done after overall factor of 64pi^2 t^2 / (3 L^4)
 tSqE *= (64.0 * np.pi**2 * t**2) / (3.0 * float(L**4))
-print "%d %.4g %.4g %.8g" % (L, c, t, tSqE)
+print "%d %.4g %.6g %.8g" % (L, c, t, tSqE)
+
+# Match format in Anna's Ct_pert_c0.38
+# TODO: How is pert related to tSqE and zeromode?
+#pert = ??? * (64.0 * np.pi**2 * t**2) / (3.0 * float(L**4))
+#zeromode = 128 * np.pi**2 * t**2 / (3.0 * float(L**4))
+#print "Lat %d c %.4g tc %.6g" % (L, c, t),
+#print "C(t) %.8g" % tSqE,
+#print "Pert %.8g" % pert,
+#print "Zeromode %.8g" % zeromode
 # ------------------------------------------------------------------

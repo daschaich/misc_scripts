@@ -69,6 +69,7 @@ chiSq_dof = chiSq / float(dof)
 cov /= chiSq_dof
 intercept = out[degree]
 int_err = np.sqrt(cov[degree][degree])    # Component of covar matrix
-print "0 %.6g %.4g # %.4g/%d = %.4g" % (intercept, int_err, chiSq, dof, chiSq / dof)
+print "0 %.6g %.4g # %.4g/%d = %.4g" \
+      % (intercept, int_err, chiSq, dof, chiSq / dof)
 #print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
 # ------------------------------------------------------------------
