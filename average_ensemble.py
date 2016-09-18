@@ -194,7 +194,7 @@ mcrgCheck = glob.glob(mcrgFiles)
 if len(mcrgCheck) == 0:
   polyObs = ['poly_r']
 else:
-  polyObs = ['poly_r', 'xpoly_r']
+  polyObs = ['poly_r']
 for obs in polyObs:
   count = 0
   ave = 0.          # Accumulate within each block

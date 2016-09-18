@@ -27,7 +27,6 @@ chmod 664 *.txt ensembles
 # Use lists of files in each ensemble to extract time series data
 date=`date`
 for file in *.txt ; do
-  #echo $file
   rm -f data/*.${file//.txt/}.csv MISSING.${file//.txt/}
   sort -n $file | uniq > temp
   mv -f temp $file
