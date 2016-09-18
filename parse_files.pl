@@ -773,7 +773,7 @@ ORDER:
       $check = 1;
     }
   }
-  if ($check < 0) {
+  if ($check > 0) {
     goto EIGEN;
   }
 
