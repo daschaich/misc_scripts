@@ -761,6 +761,11 @@ ORDER:
     print MISSINGFILES "$infile\n";
     goto EIGEN;
   }
+  elsif ($line =~/^PLACEHOLDER/) {
+    # Placeholder file -- error has been addressed as well as possible,
+    # but don't print nonsense nulls
+    goto EIGEN;
+  }
   my @order = <ORDER>;
   close ORDER;
 

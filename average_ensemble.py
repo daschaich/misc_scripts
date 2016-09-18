@@ -242,6 +242,9 @@ if len(mcrgCheck) == 0:
   mcrgObs = []
 else:
   mcrgObs = ['plaqB', 'poly_rB', 'xpoly_rB']
+
+# Turn off MCRG-blocked measurements for now
+mcrgObs = []
 for obs in mcrgObs:
   count = 0
   ave = [0. for x in range(blMax + 1)] # Accumulate within each block
