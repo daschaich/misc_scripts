@@ -45,7 +45,7 @@ echo writePage $dir $tag "$date"
 chmod 664 $tag.html
 
 # I like to monitor this
-wc -l M* | grep -v " 0 "
-wc -l E* | grep -v " 0 "
+wc -l M* | grep -v "0 "
+wc -l E* | grep -v "0 "
 echo
 # ------------------------------------------------------------------

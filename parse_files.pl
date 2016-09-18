@@ -769,8 +769,9 @@ ORDER:
   # but we don't want to print nonsense nulls
   $check = -1;
   for my $line (@order) {
-  elsif ($line =~/^PLACEHOLDER/) {
-    $check = 1;
+    if ($line =~/^PLACEHOLDER/) {
+      $check = 1;
+    }
   }
   if ($check < 0) {
     goto EIGEN;
