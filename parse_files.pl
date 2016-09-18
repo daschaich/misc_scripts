@@ -761,13 +761,20 @@ ORDER:
     print MISSINGFILES "$infile\n";
     goto EIGEN;
   }
-  elsif ($line =~/^PLACEHOLDER/) {
-    # Placeholder file -- error has been addressed as well as possible,
-    # but don't print nonsense nulls
-    goto EIGEN;
-  }
   my @order = <ORDER>;
   close ORDER;
+
+  # Check to see if it is just a placeholder file
+  # In this case the error has been addressed as well as possible,
+  # but we don't want to print nonsense nulls
+  $check = -1;
+  for my $line (@order) {
+  elsif ($line =~/^PLACEHOLDER/) {
+    $check = 1;
+  }
+  if ($check < 0) {
+    goto EIGEN;
+  }
 
   # We have a file, so let's cycle over its lines
   $check = -1;               # Check whether file completed successfully
