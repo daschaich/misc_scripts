@@ -16,7 +16,7 @@ from scipy import special
 # Data files contain c=0.2, 0.25, 0.3 and 0.35
 # We print (a/L)^2 SSF err, (a/L)^2-->0 linear extrapolation, and its slope
 
-# Parse arguments: the number of smearing steps, the Wilson flow parameter c,
+# Parse arguments: the Wilson flow parameter c,
 # the t-shift parameter tau (which will tell us what files to use),
 # and the form of the rational function
 # The data files are produced by average_Wflow.py, which already includes
@@ -109,10 +109,10 @@ for i in range(len(L)):
     print "ERROR: Not enough data points to fit to rational function"
     sys.exit(1)
 
-  # Record available range of input gc^2=u, from min(L=30) to max(L=12)
+  # Record available range of input gc^2=u, from min(L=36) to max(L=12)
   if L[i] == 12:
     u_max = dat.max()
-  elif L[i] == 30:
+  elif L[i] == 36:
     u_min = dat.min()
 
   # Save fit parameters and covariance matrix
