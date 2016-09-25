@@ -21,22 +21,14 @@ from scipy import special
 # and the form of the rational function
 # The data files are produced by average_Wflow.py, which already includes
 # the perturbative finite-volume + zero-mode corrections
-if len(sys.argv) < 5:
-  print "Usage:", str(sys.argv[0]), "<#HYP> <c> <tau> <fit_form>"
+if len(sys.argv) < 4:
+  print "Usage:", str(sys.argv[0]), "<c> <tau> <fit_form>"
   sys.exit(1)
 HYP_switch = int(sys.argv[1])
 c_tag = str(sys.argv[2]).rstrip('0')    # Strip trailing zeroes
 tau = str(sys.argv[3])    # Need to save as string for file formatting...
 fit_form = int(sys.argv[4])
-
-# Swap between once- and twice-smeared runs
-if HYP_switch == 1:
-  dirpat = "Run_APBC8_"
-elif HYP_switch == 2:
-  dirpat = "Run_2HYPAPBC8_"
-else:
-  print "Error: don't have %d-times smeared data" % HYP_switch
-  sys.exit(1)
+dirpat = "Run_APBC12_"
 
 # Set c_index and err_index based on c_tag read in
 if c_tag == "0.2":
@@ -80,7 +72,7 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 # ------------------------------------------------------------------
 # Carry out fits and store results
 # !!! Note order of L: decreasing small then large with fixed s=1.5
-L = np.array([20, 16, 12, 30, 24, 18], dtype = np.int)
+L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
 #L = np.array([20, 16, 30, 24], dtype = np.int)
 u_min = -1
 u_max = -1
