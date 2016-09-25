@@ -24,10 +24,9 @@ from scipy import special
 if len(sys.argv) < 4:
   print "Usage:", str(sys.argv[0]), "<c> <tau> <fit_form>"
   sys.exit(1)
-HYP_switch = int(sys.argv[1])
-c_tag = str(sys.argv[2]).rstrip('0')    # Strip trailing zeroes
-tau = str(sys.argv[3])    # Need to save as string for file formatting...
-fit_form = int(sys.argv[4])
+c_tag = str(sys.argv[1]).rstrip('0')    # Strip trailing zeroes
+tau = str(sys.argv[2])    # Need to save as string for file formatting...
+fit_form = int(sys.argv[3])
 dirpat = "Run_APBC12_"
 
 # Set c_index and err_index based on c_tag read in
