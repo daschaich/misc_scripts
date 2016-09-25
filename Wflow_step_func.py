@@ -72,7 +72,7 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 # Carry out fits and store results
 # !!! Note order of L: decreasing small then large with fixed s=1.5
 L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
-#L = np.array([20, 16, 30, 24], dtype = np.int)
+#L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
 u_min = -1
 u_max = -1
 all_beta = []   # Will be list of all beta on each volume
