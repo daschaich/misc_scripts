@@ -16,29 +16,44 @@ from scipy import special
 # Data files contain c=0.2, 0.25, 0.3 and 0.35
 # We print (a/L)^2 SSF err, (a/L)^2-->0 linear extrapolation, and its slope
 
-# Parse arguments: the Wilson flow parameter c,
+# Parse arguments: the scale factor s, the Wilson flow parameter c,
 # the t-shift parameter tau (which will tell us what files to use),
 # and the form of the rational function
-# Optional fourth  argument tells us to use the plaquette observable
+# Optional fifth  argument tells us to use the plaquette observable
 # The data files are produced by average_Wflow.py, which already includes
 # the perturbative finite-volume + zero-mode corrections
-if len(sys.argv) < 4:
-  print "Usage:", str(sys.argv[0]), "<c> <tau> <fit_form> <obs>"
+if len(sys.argv) < 5:
+  print "Usage:", str(sys.argv[0]), "<s> <c> <tau> <fit_form> <obs>"
   sys.exit(1)
-c_tag = str(sys.argv[1]).rstrip('0')    # Strip trailing zeroes
-tau = str(sys.argv[2])    # Need to save as string for file formatting...
-fit_form = int(sys.argv[3])
+s_tag = str(sys.argv[1])
+c_tag = str(sys.argv[2]).rstrip('0')    # Strip trailing zeroes
+tau = str(sys.argv[3])    # Need to save as string for file formatting...
+fit_form = int(sys.argv[4])
 dirpat = "Run_APBC12_"
 
 # Choose which observable to use -- require 'plaq' as specific argument
-if len(sys.argv) > 4:
-  if str(sys.argv[4]) == 'plaq':
+if len(sys.argv) > 5:
+  if str(sys.argv[5]) == 'plaq':
     filetag = '/results/Wplaq-all-tau'
   else:
     print "Warning: Implicitly using clover observable"
     filetag = '/results/Wflow-all-tau'
 else:
   filetag = '/results/Wflow-all-tau'
+
+# Set L based on s_tag read in
+# !!! Note order of L: decreasing small then large with fixed s=1.5
+if s_tag == "3/2"
+  #L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
+  L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
+elif s_tag == "2"
+  L = np.array([18, 16, 12, 36, 32, 24], dtype = np.int)
+elif s_tag == "4/3"
+  L = np.array([24, 18, 12, 32, 24, 16], dtype = np.int)
+else:
+  print "Error: only s=3/2, 2 and 4/3 set up,",
+  print "while", c_tag, "was read in"
+  sys.exit(1)
 
 # Set c_index and err_index based on c_tag read in
 if c_tag == "0.2":
@@ -68,7 +83,7 @@ elif fit_form == 23:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * (p[4] + x * p[5]))))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if c_tag == "0.25":
+  if c_tag == "0.2" or c_tag == "0.25":
     p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 else:
   print "Error: only (2, 2) and (2, 3) rational functions set up,",
@@ -81,9 +96,6 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 
 # ------------------------------------------------------------------
 # Carry out fits and store results
-# !!! Note order of L: decreasing small then large with fixed s=1.5
-#L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
-L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
 u_min = -1
 u_max = -1
 all_beta = []   # Will be list of all beta on each volume

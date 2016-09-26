@@ -59,7 +59,7 @@ elif fit_form == 23:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * (p[4] + x * p[5]))))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if c_tag == "0.25":
+  if c_tag == "0.2" or c_tag == "0.25":
     p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 else:
   print "Error: only (2, 2) and (2, 3) rational functions set up,",
