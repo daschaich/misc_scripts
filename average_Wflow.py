@@ -14,13 +14,27 @@ import numpy as np
 # third is block size (should be larger than auto-correlation time)
 # We discard any partial blocks at the end
 # Fourth argument is t-shift optimization parameter tau
+# Optional fifth argument tells us to use the plaquette observable
 if len(sys.argv) < 5:
-  print "Usage:", str(sys.argv[0]), "<tag> <cut> <block> <tau>"
+  print "Usage:", str(sys.argv[0]), "<tag> <cut> <block> <tau> <obs>"
   sys.exit(1)
 tag = str(sys.argv[1])
 cut = int(sys.argv[2])
 block_size = int(sys.argv[3])
 tau = float(sys.argv[4])
+
+# Choose which observable to use -- require 'plaq' as specific argument
+if len(sys.argv) < 5:
+  if str(sys.argv[1]) == 'plaq':
+    col = 6
+    outfilename = 'results/Wplaq-tau%g.%s' % (tau, tag)
+  else:
+    print "Warning: Implicitly using clover observable"
+    col = 3
+    outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
+else:
+  col = 3
+  outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
 # ------------------------------------------------------------------
 
 
@@ -121,7 +135,7 @@ for traj in open(keyfile):
         t = float(temp[1]) - tau    # Include t-shift
         for i in range(len(magic_c)):
           if t - dt + 1.0e-4 < magic_t[i] and t + 1.0e-4 >= magic_t[i]:
-            ave[i] += t**2 * float(temp[3])    # t**2 * E(t + tau)
+            ave[i] += t**2 * float(temp[col])    # t**2 * E(t + tau)
             count[i] += 1
 
 # The file_tag check in the loop above means that
@@ -163,7 +177,6 @@ for i in range(len(magic_c)):
     if temp[1] == str(L):
       gprop[i] = 128.0 * 3.14159**2 / (24.0 * float(temp[7]))
       break
-outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
 outfile = open(outfilename, 'w')
 print >> outfile, "# tau=%g" % tau
 print >> outfile, "# c=%g err c=%g err c=%g err c=%g err" \
