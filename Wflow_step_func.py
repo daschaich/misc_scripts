@@ -46,10 +46,13 @@ else:
 if s_tag == "3/2":
   #L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
   L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
+  div = np.log(9.0 / 4.0)
 elif s_tag == "2":
   L = np.array([18, 16, 12, 36, 32, 24], dtype = np.int)
+  div = np.log(4.0)
 elif s_tag == "4/3":
   L = np.array([24, 18, 12, 32, 24, 16], dtype = np.int)
+  div = np.log(16.0 / 9.0)
 else:
   print "Error: only s=3/2, 2 and 4/3 set up,",
   print "while", c_tag, "was read in"
@@ -156,7 +159,6 @@ for i in range(len(L)):
 # Compute step scaling function and its uncertainty at this beta_F
 # Linear extrapolation to (a / L)^2 --> 0
 # Recall s=1.5 is hard-coded
-div = np.log(9.0 / 4.0)
 print "# Fitting for %.4g <= u <= %.4g" % (u_min, u_max)
 for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
   if gSq < u_min:
