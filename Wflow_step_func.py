@@ -82,8 +82,8 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 # ------------------------------------------------------------------
 # Carry out fits and store results
 # !!! Note order of L: decreasing small then large with fixed s=1.5
-L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
-#L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
+#L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
+L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
 u_min = -1
 u_max = -1
 all_beta = []   # Will be list of all beta on each volume
@@ -119,10 +119,10 @@ for i in range(len(L)):
     print "ERROR: Not enough data points to fit to rational function"
     sys.exit(1)
 
-  # Record available range of input gc^2=u, from min(L=36) to max(L=12)
-  if L[i] == 12:
+  # Record available range of input gc^2=u, from min(L_min) to max(L_max)
+  if L[i] == min(L):
     u_max = dat.max()
-  elif L[i] == 36:
+  elif L[i] == max(L):
     u_min = dat.min()
 
   # Save fit parameters and covariance matrix
