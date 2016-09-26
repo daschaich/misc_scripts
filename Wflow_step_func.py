@@ -43,12 +43,12 @@ else:
 
 # Set L based on s_tag read in
 # !!! Note order of L: decreasing small then large with fixed s=1.5
-if s_tag == "3/2"
+if s_tag == "3/2":
   #L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
   L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
-elif s_tag == "2"
+elif s_tag == "2":
   L = np.array([18, 16, 12, 36, 32, 24], dtype = np.int)
-elif s_tag == "4/3"
+elif s_tag == "4/3":
   L = np.array([24, 18, 12, 32, 24, 16], dtype = np.int)
 else:
   print "Error: only s=3/2, 2 and 4/3 set up,",
