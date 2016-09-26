@@ -24,17 +24,15 @@ block_size = int(sys.argv[3])
 tau = float(sys.argv[4])
 
 # Choose which observable to use -- require 'plaq' as specific argument
+plaq = -1
+outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
 if len(sys.argv) > 5:
   if str(sys.argv[5]) == 'plaq':
+    plaq = 1
     col = 6
     outfilename = 'results/Wplaq-tau%g.%s' % (tau, tag)
   else:
     print "Warning: Implicitly using clover observable"
-    col = 3
-    outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
-else:
-  col = 3
-  outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
 # ------------------------------------------------------------------
 
 
@@ -135,7 +133,12 @@ for traj in open(keyfile):
         t = float(temp[1]) - tau    # Include t-shift
         for i in range(len(magic_c)):
           if t - dt + 1.0e-4 < magic_t[i] and t + 1.0e-4 >= magic_t[i]:
-            ave[i] += t**2 * float(temp[col])    # t**2 * E(t + tau)
+            if plaq < 0:
+              ave[i] += t**2 * float(temp[3])    # t**2 * E(t + tau)
+            else:
+              # Data is (t + tau)**2 * E(t + tau)...
+              rescale = t / float(temp[1])
+              ave[i] += rescale**2 * float(temp[col])
             count[i] += 1
 
 # The file_tag check in the loop above means that
