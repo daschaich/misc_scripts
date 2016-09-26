@@ -19,15 +19,26 @@ from scipy import special
 # Parse arguments: the Wilson flow parameter c,
 # the t-shift parameter tau (which will tell us what files to use),
 # and the form of the rational function
+# Optional fourth  argument tells us to use the plaquette observable
 # The data files are produced by average_Wflow.py, which already includes
 # the perturbative finite-volume + zero-mode corrections
 if len(sys.argv) < 4:
-  print "Usage:", str(sys.argv[0]), "<c> <tau> <fit_form>"
+  print "Usage:", str(sys.argv[0]), "<c> <tau> <fit_form> <obs>"
   sys.exit(1)
 c_tag = str(sys.argv[1]).rstrip('0')    # Strip trailing zeroes
 tau = str(sys.argv[2])    # Need to save as string for file formatting...
 fit_form = int(sys.argv[3])
 dirpat = "Run_APBC12_"
+
+# Choose which observable to use -- require 'plaq' as specific argument
+if len(sys.argv) > 4:
+  if str(sys.argv[4]) == 'plaq':
+    filetag = '/results/Wplaq-all-tau'
+  else:
+    print "Warning: Implicitly using clover observable"
+    filetag = '/results/Wflow-all-tau'
+else:
+  filetag = '/results/Wflow-all-tau'
 
 # Set c_index and err_index based on c_tag read in
 if c_tag == "0.2":
@@ -79,8 +90,7 @@ all_beta = []   # Will be list of all beta on each volume
 params = []     # Will be list of vectors
 covars = []     # Will be list of matrices
 for i in range(len(L)):
-  tofit = dirpat + str(L[i]) + str(L[i]) \
-                 + '/results/Wflow-all-tau' + tau + '.dat'
+  tofit = dirpat + str(L[i]) + str(L[i]) + filetag + tau + '.dat'
 
   # Make sure averaged data exist to be analyzed
   if not os.path.isfile(tofit):
