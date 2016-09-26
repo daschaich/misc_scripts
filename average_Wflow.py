@@ -24,8 +24,8 @@ block_size = int(sys.argv[3])
 tau = float(sys.argv[4])
 
 # Choose which observable to use -- require 'plaq' as specific argument
-if len(sys.argv) < 5:
-  if str(sys.argv[1]) == 'plaq':
+if len(sys.argv) > 5:
+  if str(sys.argv[5]) == 'plaq':
     col = 6
     outfilename = 'results/Wplaq-tau%g.%s' % (tau, tag)
   else:
