@@ -158,8 +158,10 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
     beta = optimize.fsolve(lambda x : func(params[i], x) - gSq, 6.0)
 
     # Make sure beta is within available range on large volume
+    # When we have an IRFP, we might as well just end the file here,
+    # so let's comment out the error message so it doesn't break anything
     if beta < all_beta[I].min() or beta > all_beta[I].max():
-      print "ERROR: beta = %.4g falls outside [%.4g, %.4g] for L=%d" \
+      print "# ERROR: beta = %.4g falls outside [%.4g, %.4g] for L=%d" \
             % (beta, all_beta[I].min(), all_beta[I].max(), L[I])
       sys.exit(1)
 
