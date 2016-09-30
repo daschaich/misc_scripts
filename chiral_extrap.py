@@ -58,7 +58,7 @@ out, cov = np.polyfit(m, dat, degree, full=False, w=weight, cov=True)
 # That is, the errors' overall scale doesn't affect the final uncertainty
 # For the record, gnuplot and Mathematica do the same thing...
 # We need to divide the full covariance matrix by chiSq_dof to correct this,
-# or equivalently divide the final error by chiSq,
+# or equivalently divide the final error by sqrt(chiSq_dof),
 # since the absolute scale of our uncertainties is meaningful
 # !!! The easy way to check this is to scale all the errors by (e.g.) 1000x
 # !!! and see whether the final uncertainty increases, as it should

@@ -124,8 +124,7 @@ for i in range(Nmeas):        # Jackknife samples
   # All fits for this jackknife sample
   # The least-squares fit returns alpha+1 as p_out[1]
   # The weight will be squared in the fit...
-  # Ignore the errors from the fit (in the covariance matrix)
-  # which would have to be scaled by chiSq_dof if they were considered
+  # Ignore the errors (covariance matrix) from the fit
   for la in range(Nfits):
     X = np.array([la_dat[j] for j in range(la, la + Npts)])
     to_fit = np.array([nu[j] for j in range(la, la + Npts)])

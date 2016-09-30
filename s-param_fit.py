@@ -216,7 +216,7 @@ print "# Total of %d measurements in %d block(s) of length %d" \
 # ------------------------------------------------------------------
 # If only one block, just do a single fit with propagated uncertainties
 # In this case only count is the total number of measurements
-# optimize.leastsq does not scale by chiSq_dof, which we desire
+# As we desire, optimize.leastsq does not scale by chiSq_dof
 if Nblocks == 1:
   Pi = np.array([dat[i][0] for i in range(Npts)])
   PiErr = np.empty(Npts, dtype = np.float)
