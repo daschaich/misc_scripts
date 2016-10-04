@@ -88,6 +88,12 @@ elif fit_form == 23:
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
   if c_tag == "0.2" or c_tag == "0.25":
     p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+elif fit_form == 33:
+  func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
+                    / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
+  p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+  if c_tag == "0.2" or c_tag == "0.25":
+    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 else:
   print "Error: only (2, 2) and (2, 3) rational functions set up,",
   print "while", str(fit_form), "was read in"
@@ -196,6 +202,9 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
       den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3
     elif fit_form == 23:
       den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
+    elif fit_form == 33:
+      num = 1 + p[0] * beta + p[1] * beta**2 + p[2] * beta**3
+      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
     deriv[0] = beta / den
     deriv[1] = beta**2 / den
     deriv[2] = -beta * num / den**2
@@ -203,6 +212,12 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
     deriv[4] = -beta**3 * num / den**2
     if fit_form == 23:
       deriv[5] = -beta**4 * num / den**2
+    elif fit_form == 33:
+      deriv[2] = beta**3 / den
+      deriv[3] = -beta * num / den**2
+      deriv[4] = -beta**2 * num / den**2
+      deriv[5] = -beta**3 * num / den**2
+      deriv[6] = -beta**4 * num / den**2
     covar = np.array(covars[i], dtype = np.float)
     u_err = np.sqrt(np.dot(deriv, np.dot(covar, deriv)))
   #  print "L=%d: %.6g %.4g" % (L[i], u, u_err)
@@ -214,6 +229,9 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
       den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3
     elif fit_form == 23:
       den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
+    elif fit_form == 33:
+      num = 1 + p[0] * beta + p[1] * beta**2 + p[2] * beta**3
+      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
     deriv[0] = beta / den
     deriv[1] = beta**2 / den
     deriv[2] = -beta * num / den**2
@@ -221,6 +239,12 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
     deriv[4] = -beta**3 * num / den**2
     if fit_form == 23:
       deriv[5] = -beta**4 * num / den**2
+    elif fit_form == 33:
+      deriv[2] = beta**3 / den
+      deriv[3] = -beta * num / den**2
+      deriv[4] = -beta**2 * num / den**2
+      deriv[5] = -beta**3 * num / den**2
+      deriv[6] = -beta**4 * num / den**2
     covar = np.array(covars[I], dtype = np.float)
     Sigma_err = np.sqrt(np.dot(deriv, np.dot(covar, deriv)))
   #  print "L=%d: %.6g %.4g" % (L[I], Sigma, Sigma_err)

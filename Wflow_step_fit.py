@@ -61,6 +61,12 @@ elif fit_form == 23:
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
   if c_tag == "0.2" or c_tag == "0.25":
     p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+elif fit_form == 33:
+  func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
+                    / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
+  p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+  if c_tag == "0.2" or c_tag == "0.25":
+    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 elif fit_form == 4:
   func = lambda p, x: p[0] + (p[1] + (p[2] + (p[3] + p[4] / x) / x) / x) / x
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
@@ -110,6 +116,10 @@ elif fit_form == 23:
   print "(1 + x*(%.6g + x*%.6g)) /" % (out[0], out[1]),
   print "(x*(%.6g + x*(%.6g + x*(%.6g + x*%.6g))))" \
         % (out[2], out[3], out[4], out[5]),
+elif fit_form == 33:
+  print "(1 + x*(%.6g + x*(%.6g + x*%.6g))) /" % (out[0], out[1], out[2]),
+  print "(x*(%.6g + x*(%.6g + x*(%.6g + x*%.6g))))" \
+        % (out[3], out[4], out[5], out[6]),
 elif fit_form == 4:
   print "%.6g + (%.6g + (%.6g + (%.6g + %.6g / x) / x) / x) / x" \
         % (out[0], out[1], out[2], out[3], out[4]),
