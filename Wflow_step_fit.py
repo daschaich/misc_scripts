@@ -54,13 +54,16 @@ if not os.path.isfile(infile):
 if fit_form == 22:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * p[4])))
-  p_in = [0.1, 0.1, 0.1, 0.1, 0.1]
+  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
 elif fit_form == 23:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * (p[4] + x * p[5]))))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
   if c_tag == "0.2" or c_tag == "0.25":
     p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+elif fit_form == 4:
+  func = lambda p, x: p[0] + (p[1] + (p[2] + (p[3] + p[4] / x) / x) / x) / x
+  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
 else:
   print "Error: only (2, 2) and (2, 3) rational functions set up,",
   print "while", str(fit_form), "was read in"
@@ -107,6 +110,9 @@ elif fit_form == 23:
   print "(1 + x*(%.6g + x*%.6g)) /" % (out[0], out[1]),
   print "(x*(%.6g + x*(%.6g + x*(%.6g + x*%.6g))))" \
         % (out[2], out[3], out[4], out[5]),
+elif fit_form == 4:
+  print "%.6g + (%.6g + (%.6g + (%.6g + %.6g / x) / x) / x) / x" \
+        % (out[0], out[1], out[2], out[3], out[4]),
 
 # Compute chiSq and confidence level of fit
 # The infodict returned by leastsq includes fvec = f(x) - y

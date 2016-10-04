@@ -81,7 +81,7 @@ else:
 if fit_form == 22:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * p[4])))
-  p_in = [0.1, 0.1, 0.1, 0.1, 0.1]
+  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
 elif fit_form == 23:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * (p[4] + x * p[5]))))
