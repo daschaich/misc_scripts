@@ -51,7 +51,10 @@ if not os.path.isfile(infile):
 
 # errfunc will be minimized via least-squares optimization
 # Small p_in seem to help the greedy algorithm find the right minimum
-if fit_form == 22:
+if fit_form == 11:
+  func = lambda p, x: (1.0 + x * p[0]) / (x * (p[2] + x * p[3]))
+  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
+elif fit_form == 22:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * p[4])))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
@@ -109,7 +112,10 @@ if success < 0 or success > 4:
   print "WARNING: Fit failed with the following error message:"
   print errmsg
 
-if fit_form == 22:
+if fit_form == 11:
+  print "(1 + x*%.6g) /" % (out[0]),
+  print "(x*(%.6g + x*%.6g))" % (out[2], out[3]),
+elif fit_form == 22:
   print "(1 + x*(%.6g + x*%.6g)) /" % (out[0], out[1]),
   print "(x*(%.6g + x*(%.6g + x*%.6g)))" % (out[2], out[3], out[4]),
 elif fit_form == 23:
