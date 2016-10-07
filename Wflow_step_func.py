@@ -95,7 +95,7 @@ elif fit_form == 33:
   if c_tag == "0.2" or c_tag == "0.25":
     p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 else:
-  print "Error: only (2, 2) and (2, 3) rational functions set up,",
+  print "Error: only (2, 2), (2, 3) and (3, 3) rational functions set up,",
   print "while", str(fit_form), "was read in"
   sys.exit(1)
 errfunc = lambda p, x, y, err: (func(p, x) - y) / err
@@ -155,6 +155,9 @@ for i in range(len(L)):
     print "ERROR: L=%d fit failed with the following error message:" % L[i]
     print errmsg
     sys.exit(1)
+  if abs(out[0]) > 1:
+    print "May be spurious pole for L=%d" % L[i]
+    sys.exit(1)
   params.append(out)
   covars.append(pcov)
 # ------------------------------------------------------------------
@@ -164,7 +167,7 @@ for i in range(len(L)):
 # ------------------------------------------------------------------
 # Compute step scaling function and its uncertainty at this beta_F
 # Linear extrapolation to (a / L)^2 --> 0
-# Recall s=1.5 is hard-coded
+# Scale change s set up above
 print "# Fitting for %.4g <= u <= %.4g" % (u_min, u_max)
 for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
   if gSq < u_min:

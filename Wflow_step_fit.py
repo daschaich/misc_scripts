@@ -68,8 +68,6 @@ elif fit_form == 33:
   func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
                     / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if c_tag == "0.2" or c_tag == "0.25":
-    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 elif fit_form == 4:
   func = lambda p, x: p[0] + (p[1] + (p[2] + (p[3] + p[4] / x) / x) / x) / x
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
@@ -135,6 +133,9 @@ elif fit_form == 4:
 chiSq = (infodict['fvec']**2).sum()
 CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 print "# %.4g %d --> %.4g" % (chiSq, dof, CL)
+
+if abs(out[0]) > 1:
+  print "Warning: may be spurious pole"
 
 #for i in range(len(x)):
 ##  print x[i], dat[i], err[i], func23(out, x[i])
