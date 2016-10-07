@@ -103,8 +103,8 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 
 # ------------------------------------------------------------------
 # Carry out fits and store results
-u_min = 100.0
-u_max = -100.0
+u_min = []
+u_max = []
 all_beta = []   # Will be list of all beta on each volume
 params = []     # Will be list of vectors
 covars = []     # Will be list of matrices
@@ -138,13 +138,10 @@ for i in range(len(L)):
     print "ERROR: Not enough data points to fit to rational function"
     sys.exit(1)
 
-  # Record available range of input gc^2=u
-  # Backward flow and differing beta_F points
-  # make it easiest to take global extrema
-  if dat.max() > u_max:
-    u_max = dat.max()
-  if dat.min() < u_min:
-    u_min = dat.min()
+  # Need to find max(min) and min(max)
+  # to determine available range of input gc^2=u
+  u_max.append(dat.max())
+  u_min.append(dat.min())
 
   # Save fit parameters and covariance matrix
   out, pcov, infodict, errmsg, success = \
@@ -168,9 +165,9 @@ for i in range(len(L)):
 # Compute step scaling function and its uncertainty at this beta_F
 # Linear extrapolation to (a / L)^2 --> 0
 # Scale change s set up above
-print "# Fitting for %.4g <= u <= %.4g" % (u_min, u_max)
-for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
-  if gSq < u_min:
+print "# Fitting for %.4g <= u <= %.4g" % (u_min.max(), u_max.min())
+for gSq in np.arange(0, u_max.min(), 0.01):    # Preserve uniform spacing
+  if gSq < u_min.max():
     continue
   xList = []
   datList = []
