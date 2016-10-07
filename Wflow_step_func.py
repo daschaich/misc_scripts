@@ -103,8 +103,8 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 
 # ------------------------------------------------------------------
 # Carry out fits and store results
-u_min = []
-u_max = []
+minList = []
+maxList = []
 all_beta = []   # Will be list of all beta on each volume
 params = []     # Will be list of vectors
 covars = []     # Will be list of matrices
@@ -140,8 +140,8 @@ for i in range(len(L)):
 
   # Need to find max(min) and min(max)
   # to determine available range of input gc^2=u
-  u_max.append(dat.max())
-  u_min.append(dat.min())
+  minList.append(dat.min())
+  maxList.append(dat.max())
 
   # Save fit parameters and covariance matrix
   out, pcov, infodict, errmsg, success = \
@@ -165,9 +165,11 @@ for i in range(len(L)):
 # Compute step scaling function and its uncertainty at this beta_F
 # Linear extrapolation to (a / L)^2 --> 0
 # Scale change s set up above
-print "# Fitting for %.4g <= u <= %.4g" % (max(u_min), min(u_max))
-for gSq in np.arange(0, min(u_max), 0.01):    # Preserve uniform spacing
-  if gSq < max(u_min):
+u_min = max(minList) + 0.01
+u_max = min(maxList) - 0.01
+print "# Fitting for %.4g <= u <= %.4g" % (u_min, u_max)
+for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
+  if gSq < u_min:
     continue
   xList = []
   datList = []
