@@ -42,7 +42,7 @@ else:
   filetag = '/results/Wflow-all-tau'
 
 # Set L based on s_tag read in
-# !!! Note order of L: decreasing small then large with fixed s=1.5
+# !!! Note order of L: decreasing small then large s*L
 if s_tag == "3/2":
   #L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
   L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
@@ -92,8 +92,6 @@ elif fit_form == 33:
   func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
                     / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if c_tag == "0.2" or c_tag == "0.25":
-    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 else:
   print "Error: only (2, 2), (2, 3) and (3, 3) rational functions set up,",
   print "while", str(fit_form), "was read in"
@@ -105,8 +103,8 @@ errfunc = lambda p, x, y, err: (func(p, x) - y) / err
 
 # ------------------------------------------------------------------
 # Carry out fits and store results
-u_min = -1
-u_max = -1
+u_min = 100.0
+u_max = -100.0
 all_beta = []   # Will be list of all beta on each volume
 params = []     # Will be list of vectors
 covars = []     # Will be list of matrices
@@ -141,9 +139,9 @@ for i in range(len(L)):
     sys.exit(1)
 
   # Record available range of input gc^2=u, from min(L_min) to max(L_max)
-  if L[i] == min(L):
+  if L[i] == min(L) and dat.max() > u_max:
     u_max = dat.max()
-  elif L[i] == max(L):
+  elif L[i] == max(L) and dat.min() < u_min:
     u_min = dat.min()
 
   # Save fit parameters and covariance matrix
