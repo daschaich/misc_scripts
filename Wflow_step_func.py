@@ -138,10 +138,12 @@ for i in range(len(L)):
     print "ERROR: Not enough data points to fit to rational function"
     sys.exit(1)
 
-  # Record available range of input gc^2=u, from min(L_min) to max(L_max)
-  if L[i] == min(L) and dat.max() > u_max:
+  # Record available range of input gc^2=u
+  # Backward flow and differing beta_F points
+  # make it easiest to take global extrema
+  if dat.max() > u_max:
     u_max = dat.max()
-  elif L[i] == max(L) and dat.min() < u_min:
+  if dat.min() < u_min:
     u_min = dat.min()
 
   # Save fit parameters and covariance matrix
