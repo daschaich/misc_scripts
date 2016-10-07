@@ -165,9 +165,9 @@ for i in range(len(L)):
 # Compute step scaling function and its uncertainty at this beta_F
 # Linear extrapolation to (a / L)^2 --> 0
 # Scale change s set up above
-print "# Fitting for %.4g <= u <= %.4g" % (u_min.max(), u_max.min())
-for gSq in np.arange(0, u_max.min(), 0.01):    # Preserve uniform spacing
-  if gSq < u_min.max():
+print "# Fitting for %.4g <= u <= %.4g" % (max(u_min), min(u_max))
+for gSq in np.arange(0, min(u_max), 0.01):    # Preserve uniform spacing
+  if gSq < max(u_min):
     continue
   xList = []
   datList = []
