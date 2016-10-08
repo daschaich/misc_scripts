@@ -92,6 +92,8 @@ elif fit_form == 33:
   func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
                     / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+  if 'L24' in infile or 'L32' in infile or 'L36' in infile:
+    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 else:
   print "Error: only (2, 2), (2, 3) and (3, 3) rational functions set up,",
   print "while", str(fit_form), "was read in"
@@ -146,15 +148,14 @@ for i in range(len(L)):
   # Save fit parameters and covariance matrix
   out, pcov, infodict, errmsg, success = \
                     optimize.leastsq(errfunc, p_in[:], args=(x, dat, err), \
-                                     full_output=1)
+                                     full_output=1, maxfev=10000)
 
   if success < 0 or success > 4:
     print "ERROR: L=%d fit failed with the following error message:" % L[i]
     print errmsg
     sys.exit(1)
-  if abs(out[0]) > 1:
-    print "May be spurious pole for L=%d" % L[i]
-    sys.exit(1)
+#  if abs(out[0]) > 1:          # Doesn't seem to be a problem
+#    print "I would prefer p[0] ~ O(-0.1)..."
   params.append(out)
   covars.append(pcov)
 # ------------------------------------------------------------------
@@ -165,8 +166,9 @@ for i in range(len(L)):
 # Compute step scaling function and its uncertainty at this beta_F
 # Linear extrapolation to (a / L)^2 --> 0
 # Scale change s set up above
+# Pad lower bound (imprecision in fsolve?) but fine to hit upper bound
 u_min = max(minList) + 0.01
-u_max = min(maxList) - 0.01
+u_max = min(maxList)
 print "# Fitting for %.4g <= u <= %.4g" % (u_min, u_max)
 for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
   if gSq < u_min:
