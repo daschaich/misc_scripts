@@ -67,14 +67,12 @@ elif fit_form == 23:
 elif fit_form == 33:
   func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
                     / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if 'L24' in infile or 'L32' in infile or 'L36' in infile:
-    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+  p_in = [1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]
 elif fit_form == 4:
   func = lambda p, x: p[0] + (p[1] + (p[2] + (p[3] + p[4] / x) / x) / x) / x
   p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
 else:
-  print "Error: only (2, 2) and (2, 3) rational functions set up,",
+  print "Error: only (2, 2), (2, 3) and (3, 3) rational functions set up,",
   print "while", str(fit_form), "was read in"
   sys.exit(1)
 errfunc = lambda p, x, y, err: (func(p, x) - y) / err
