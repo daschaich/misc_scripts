@@ -3,6 +3,7 @@ import os
 import sys
 import numpy as np
 from scipy import optimize
+from scipy import special
 # ------------------------------------------------------------------
 # Perform chiral extrapolation (e.g., for Z_A data)
 
@@ -19,7 +20,14 @@ if not os.path.isfile(filename):
 # errfunc will be minimized via least-squares optimization
 func = lambda p, x: p[1] + p[0] * x
 errfunc = lambda p, x, y, err: (func(p, x) - y) / err
-p_in = [0.1, 0.1]
+p_in = np.array([0.1, 0.1])
+
+# Define corresponding Jacobian matrix
+def jac(p, x, y, err):
+  J = np.empty((x.size, p.size))
+  J[:, 0] = x / err
+  J[:, 1] = 1.0 / err
+  return J
 # ------------------------------------------------------------------
 
 
@@ -47,18 +55,24 @@ if dof <= 0:
   print "ERROR: Not enough data points to fit to rational function"
   sys.exit(1)
 
-# Return fit parameters and covariance matrix
-out, pcov, infodict, errmsg, success = \
-                    optimize.leastsq(errfunc, p_in[:], args=(m, dat, err), \
-                                     full_output=1)
-if success < 0 or success > 4:
+# Return fit parameters
+# and covariance matrix (J^T J)^{-1} where J is jacobian matrix
+all_out = optimize.least_squares(errfunc, p_in, #bounds=(-10.0, 10.0),
+                                 jac=jac, method='lm', args=(m, dat, err))
+out = all_out.x
+tj = all_out.jac
+pcov = np.linalg.inv(np.dot(np.transpose(tj), tj))
+
+if all_out.success < 0 or all_out.success > 4:
   print "WARNING: Fit failed with the following error message:"
   print errmsg
 
 # Compute chiSq and print out intercept
-chiSq = (infodict['fvec']**2).sum()
+chiSq = ((errfunc(out, m, dat, err))**2).sum()
+CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 intercept = out[1]
-int_err = np.sqrt(pcov[1][1])    # Component of covar matrix
-print "0 %.6g %.4g # %.4g/%d = %.4g" % (intercept, int_err, chiSq, dof, chiSq / dof)
+int_err = np.sqrt(pcov[1][1])     # Component of covariance matrix
+print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g" \
+      % (intercept, int_err, chiSq, dof, chiSq / dof, CL)
 #print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
 # ------------------------------------------------------------------

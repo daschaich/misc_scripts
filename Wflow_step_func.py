@@ -6,19 +6,20 @@ import numpy as np
 from scipy import optimize
 from scipy import special
 # ------------------------------------------------------------------
-# Compute s=1.5 step scaling function for given g^2 and given tau
+# Compute step scaling function for given scale change (s), c and tau
 # More directly fit Wilson flow coupling as function of beta_F ("b"),
-# For now we have only (2, 2) and (2, 3) rational functions for interpolation
+# Consider either (2, 2) rational function interpolation
 #   1 / g_c^2 = (b / 12) * (c2 + c3*b + c4*b^2) / (1 + c0*b + c1*b^2)
 #   --> g_c^2 = (1 + c0*b + c1*b^2) / (c2*b + c3*b^2 + c4*b^3)
-# or
-#   --> g_c^2 = (1 + c0*b + c1*b^2) / (c2*b + c3*b^2 + c4*b^3 + c5*b^4)
+# or (motivated by 1503.01132)
+#   1 / g_c^2 = (b / 12) * (c0 + c1/b + c2/b^2 + c3/b^3 + c4/b^4)
+#   --> g_c^2 = 1 / (c0*b + c1 + c2/b + c3/b^2 + c4/b^3)
 # Data files contain c=0.2, 0.25, 0.3 and 0.35
 # We print (a/L)^2 SSF err, (a/L)^2-->0 linear extrapolation, and its slope
 
 # Parse arguments: the scale factor s, the Wilson flow parameter c,
 # the t-shift parameter tau (which will tell us what files to use),
-# and the form of the rational function
+# and the functional form for interpolation
 # Optional fifth  argument tells us to use the plaquette observable
 # The data files are produced by average_Wflow.py, which already includes
 # the perturbative finite-volume + zero-mode corrections
@@ -81,22 +82,59 @@ else:
 if fit_form == 22:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * p[4])))
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
-elif fit_form == 23:
-  func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
-                    / (x * (p[2] + x * (p[3] + x * (p[4] + x * p[5]))))
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if c_tag == "0.2" or c_tag == "0.25":
-    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-elif fit_form == 33:
-  func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
-                    / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
-  p_in = [1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]
+  p_in = np.array([0.01, 0.01, 0.01, 0.01, 0.01])
+elif fit_form == 5:
+  func = lambda p, x: 1.0 / (p[0] * x + p[1] + (p[2] + (p[3] + p[4] / x)/x)/x)
+  p_in = np.array([0.01, 0.01, 0.01, 0.01, 0.01])
 else:
-  print "Error: only (2, 2), (2, 3) and (3, 3) rational functions set up,",
+  print "Error: only (2, 2) rational function and 5th-order polynomial set up,",
   print "while", str(fit_form), "was read in"
   sys.exit(1)
 errfunc = lambda p, x, y, err: (func(p, x) - y) / err
+
+# Define corresponding Jacobian matrix
+def jac(p, x, y, err):
+  J = np.empty((x.size, p.size), dtype = np.float)
+  if fit_form == 22:
+    num = 1.0 + p[0] * x + p[1] * x**2
+    den = p[2] * x + p[3] * x**2 + p[4] * x**3
+    J[:, 0] = x / den
+    J[:, 1] = x**2 / den
+    J[:, 2] = -x * num / den**2
+    J[:, 3] = -x**2 * num / den**2
+    J[:, 4] = -x**3 * num / den**2
+    for i in range(p.size):
+      J[:, i] /= err
+  elif fit_form == 5:
+    den = p[0] * x + p[1] + (p[2] + (p[3] + p[4] / x) / x) / x
+    J[:, 0] = -x / den**2
+    J[:, 1] = -1.0 / den**2
+    J[:, 2] = -1.0 / (x * den**2)
+    J[:, 3] = -1.0 / (x**2 * den**2)
+    J[:, 4] = -1.0 / (x**3 * den**2)
+    for i in range(p.size):
+      J[:, i] /= err
+  return J
+
+# Derivatives for error propagation are similar
+def get_derivs(p):
+  deriv = np.empty(p.size, dtype = np.float)
+  if fit_form == 22:
+    num = 1 + p[0] * beta + p[1] * beta**2
+    den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3
+    deriv[0] = beta / den
+    deriv[1] = beta**2 / den
+    deriv[2] = -beta * num / den**2
+    deriv[3] = -beta**2 * num / den**2
+    deriv[4] = -beta**3 * num / den**2
+  elif fit_form == 5:
+    den = p[0] * beta + p[1] + (p[2] + (p[3] + p[4] / beta) / beta) / beta
+    deriv[0] = -beta / den**2
+    deriv[1] = -1.0 / den**2
+    deriv[2] = -1.0 / (beta * den**2)
+    deriv[3] = -1.0 / (beta**2 * den**2)
+    deriv[4] = -1.0 / (beta**3 * den**2)
+  return deriv
 # ------------------------------------------------------------------
 
 
@@ -143,17 +181,20 @@ for i in range(len(L)):
   minList.append(dat.min())
   maxList.append(dat.max())
 
-  # Save fit parameters and covariance matrix
-  out, pcov, infodict, errmsg, success = \
-                    optimize.leastsq(errfunc, p_in[:], args=(x, dat, err), \
-                                     full_output=1, maxfev=10000)
+  # Extract and save fit parameters
+  # and covariance matrix (J^T J)^{-1} where J is jacobian matrix
+  all_out = optimize.least_squares(errfunc, p_in, #bounds=(-10.0, 10.0),
+                                   jac=jac, method='lm', args=(x, dat, err))
+  out = all_out.x
+  tj = all_out.jac
+  pcov = np.linalg.inv(np.dot(np.transpose(tj), tj))
 
-  if success < 0 or success > 4:
+  if all_out.success < 0 or all_out.success > 4:
     print "ERROR: L=%d fit failed with the following error message:" % L[i]
     print errmsg
     sys.exit(1)
-#  if abs(out[0]) > 1:          # Doesn't seem to be a problem
-#    print "I would prefer p[0] ~ O(-0.1)..."
+  if fit_form == 22 and abs(out[0]) > 1:
+    print "WARNING: Fit may be unstable..."
   params.append(out)
   covars.append(pcov)
 # ------------------------------------------------------------------
@@ -195,65 +236,21 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
 
     # Now we need uncertainties
     # Error propagation involves the derivatives of func w.r.t. each p
-    deriv = np.empty(len(params[i]), dtype = np.float)
-
     # First get error on small volume
-    p = np.array(params[i])
-    num = 1 + p[0] * beta + p[1] * beta**2
-    if fit_form == 22:
-      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3
-    elif fit_form == 23:
-      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
-    elif fit_form == 33:
-      num = 1 + p[0] * beta + p[1] * beta**2 + p[2] * beta**3
-      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
-    deriv[0] = beta / den
-    deriv[1] = beta**2 / den
-    deriv[2] = -beta * num / den**2
-    deriv[3] = -beta**2 * num / den**2
-    deriv[4] = -beta**3 * num / den**2
-    if fit_form == 23:
-      deriv[5] = -beta**4 * num / den**2
-    elif fit_form == 33:
-      deriv[2] = beta**3 / den
-      deriv[3] = -beta * num / den**2
-      deriv[4] = -beta**2 * num / den**2
-      deriv[5] = -beta**3 * num / den**2
-      deriv[6] = -beta**4 * num / den**2
+    deriv = get_derivs(np.array(params[i]))
     covar = np.array(covars[i], dtype = np.float)
     u_err = np.sqrt(np.dot(deriv, np.dot(covar, deriv)))
-  #  print "L=%d: %.6g %.4g" % (L[i], u, u_err)
+#    print "L=%d: %.6g %.4g" % (L[i], u, u_err)
 
     # Now get error on large volume
-    p = np.array(params[I])
-    num = 1 + p[0] * beta + p[1] * beta**2
-    if fit_form == 22:
-      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3
-    elif fit_form == 23:
-      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
-    elif fit_form == 33:
-      num = 1 + p[0] * beta + p[1] * beta**2 + p[2] * beta**3
-      den = p[2] * beta + p[3] * beta**2 + p[4] * beta**3 + p[5] * beta**4
-    deriv[0] = beta / den
-    deriv[1] = beta**2 / den
-    deriv[2] = -beta * num / den**2
-    deriv[3] = -beta**2 * num / den**2
-    deriv[4] = -beta**3 * num / den**2
-    if fit_form == 23:
-      deriv[5] = -beta**4 * num / den**2
-    elif fit_form == 33:
-      deriv[2] = beta**3 / den
-      deriv[3] = -beta * num / den**2
-      deriv[4] = -beta**2 * num / den**2
-      deriv[5] = -beta**3 * num / den**2
-      deriv[6] = -beta**4 * num / den**2
+    deriv = get_derivs(np.array(params[I]))
     covar = np.array(covars[I], dtype = np.float)
     Sigma_err = np.sqrt(np.dot(deriv, np.dot(covar, deriv)))
-  #  print "L=%d: %.6g %.4g" % (L[I], Sigma, Sigma_err)
+#    print "L=%d: %.6g %.4g" % (L[I], Sigma, Sigma_err)
 
     # And just add them in quadrature
     err = np.sqrt(Sigma_err**2 + u_err**2)
-  #  print "%.4g %.6g %.4g" % (1.0 / float(L[i])**2, SSF, err)
+#    print "%.4g %.6g %.4g" % (1.0 / float(L[i])**2, SSF, err)
     xList.append(1.0 / float(L[i])**2)
     datList.append(SSF)
     wList.append(np.power(err, -1))    # Squared in fit...

@@ -9,8 +9,9 @@ from scipy import special
 # Fit Wilson flow coupling as function of beta_F ("b")
 #   1 / g_c^2 = (b / 12) * (c2 + c3*b + c4*b^2) / (1 + c0*b + c1*b^2)
 #   --> g_c^2 = (1 + c0*b + c1*b^2) / (c2*b + c3*b^2 + c4*b^3)
-# or
-#   --> g_c^2 = (1 + c0*b + c1*b^2) / (c2*b + c3*b^2 + c4*b^3 + c5*b^4)
+# or (motivated by 1503.01132)
+#   1 / g_c^2 = (b / 12) * (c0 + c1/b + c2/b^2 + c3/b^3 + c4/b^4)
+#   --> g_c^2 = 1 / (c0*b + c1 + c2/b + c3/b^2 + c4/b^3)
 # Data files contain c=0.2, 0.25, 0.3 and 0.35
 
 # Parse arguments: the Wilson flow parameter c,
@@ -51,31 +52,42 @@ if not os.path.isfile(infile):
 
 # errfunc will be minimized via least-squares optimization
 # Small p_in seem to help the greedy algorithm find the right minimum
-if fit_form == 11:
-  func = lambda p, x: (1.0 + x * p[0]) / (x * (p[2] + x * p[3]))
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
-elif fit_form == 22:
+if fit_form == 22:
   func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
                     / (x * (p[2] + x * (p[3] + x * p[4])))
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
-elif fit_form == 23:
-  func = lambda p, x: (1.0 + x * (p[0] + x * p[1])) \
-                    / (x * (p[2] + x * (p[3] + x * (p[4] + x * p[5]))))
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-  if c_tag == "0.2" or c_tag == "0.25":
-    p_in = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-elif fit_form == 33:
-  func = lambda p, x: (1.0 + x * (p[0] + x * (p[1] + x * p[2]))) \
-                    / (x * (p[3] + x * (p[4] + x * (p[5] + x * p[6]))))
-  p_in = [1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]
-elif fit_form == 4:
-  func = lambda p, x: p[0] + (p[1] + (p[2] + (p[3] + p[4] / x) / x) / x) / x
-  p_in = [0.01, 0.01, 0.01, 0.01, 0.01]
+  p_in = np.array([0.01, 0.01, 0.01, 0.01, 0.01])
+elif fit_form == 5:
+  func = lambda p, x: 1.0 / (p[0] * x + p[1] + (p[2] + (p[3] + p[4] / x)/x)/x)
+  p_in = np.array([0.01, 0.01, 0.01, 0.01, 0.01])
 else:
-  print "Error: only (2, 2), (2, 3) and (3, 3) rational functions set up,",
+  print "Error: only (2, 2) rational function and 5th-order polynomial set up,",
   print "while", str(fit_form), "was read in"
   sys.exit(1)
 errfunc = lambda p, x, y, err: (func(p, x) - y) / err
+
+# Define corresponding Jacobian matrix
+def jac(p, x, y, err):
+  J = np.empty((x.size, p.size), dtype = np.float)
+  if fit_form == 22:
+    num = 1.0 + p[0] * x + p[1] * x**2
+    den = p[2] * x + p[3] * x**2 + p[4] * x**3
+    J[:, 0] = x / den
+    J[:, 1] = x**2 / den
+    J[:, 2] = -x * num / den**2
+    J[:, 3] = -x**2 * num / den**2
+    J[:, 4] = -x**3 * num / den**2
+    for i in range(p.size):
+      J[:, i] /= err
+  elif fit_form == 5:
+    den = p[0] * x + p[1] + (p[2] + (p[3] + p[4] / x) / x) / x
+    J[:, 0] = -x / den**2
+    J[:, 1] = -1.0 / den**2
+    J[:, 2] = -1.0 / (x * den**2)
+    J[:, 3] = -1.0 / (x**2 * den**2)
+    J[:, 4] = -1.0 / (x**3 * den**2)
+    for i in range(p.size):
+      J[:, i] /= err
+  return J
 # ------------------------------------------------------------------
 
 
@@ -102,37 +114,27 @@ if dof <= 0:
   print "ERROR: Not enough data points to fit to rational function"
   sys.exit(1)
 
-# Return fit parameters and covariance matrix
-out, pcov, infodict, errmsg, success = \
-                    optimize.leastsq(errfunc, p_in[:], args=(x, dat, err), \
-                                     full_output=1, maxfev=10000)
-if success < 0 or success > 4:
-  print "WARNING: Fit failed with the following error message:"
-  print errmsg
-#if abs(out[0]) > 1:          # Doesn't seem to be a problem
-#  print "I would prefer p[0] ~ O(-0.1)..."
+# Extract fit parameters from output
+all_out = optimize.least_squares(errfunc, p_in, #bounds=(-10.0, 10.0),
+                                 jac=jac, method='lm', args=(x, dat, err))
+out = all_out.x
 
-if fit_form == 11:
-  print "(1 + x*%.6g) /" % (out[0]),
-  print "(x*(%.6g + x*%.6g))" % (out[2], out[3]),
-elif fit_form == 22:
+if all_out.success < 0 or all_out.success > 4:
+  print "WARNING: Fit failed with the following error message:"
+  print all_out.message
+if fit_form == 22 and abs(out[0]) > 1:
+  print "WARNING: Fit may be unstable..."
+
+if fit_form == 22:
   print "(1 + x*(%.6g + x*%.6g)) /" % (out[0], out[1]),
   print "(x*(%.6g + x*(%.6g + x*%.6g)))" % (out[2], out[3], out[4]),
-elif fit_form == 23:
-  print "(1 + x*(%.6g + x*%.6g)) /" % (out[0], out[1]),
-  print "(x*(%.6g + x*(%.6g + x*(%.6g + x*%.6g))))" \
-        % (out[2], out[3], out[4], out[5]),
-elif fit_form == 33:
-  print "(1 + x*(%.6g + x*(%.6g + x*%.6g))) /" % (out[0], out[1], out[2]),
-  print "(x*(%.6g + x*(%.6g + x*(%.6g + x*%.6g))))" \
-        % (out[3], out[4], out[5], out[6]),
-elif fit_form == 4:
-  print "%.6g + (%.6g + (%.6g + (%.6g + %.6g / x) / x) / x) / x" \
+elif fit_form == 5:
+  print "1 / (%.6g*x + %.6g + (%.6g + (%.6g + %.6g / x) / x) / x)" \
         % (out[0], out[1], out[2], out[3], out[4]),
 
 # Compute chiSq and confidence level of fit
 # The infodict returned by leastsq includes fvec = f(x) - y
-chiSq = (infodict['fvec']**2).sum()
+chiSq = ((errfunc(out, x, dat, err))**2).sum()
 CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 print "# %.4g %d --> %.4g" % (chiSq, dof, CL)
 

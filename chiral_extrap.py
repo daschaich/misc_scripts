@@ -2,6 +2,7 @@
 import os
 import sys
 import numpy as np
+from scipy import special
 # ------------------------------------------------------------------
 # Perform chiral extrapolation (e.g., for Z_A data)
 
@@ -67,9 +68,10 @@ chi = (dat - fit(m)) * weight
 chiSq = (chi**2).sum()
 chiSq_dof = chiSq / float(dof)
 cov /= chiSq_dof
+CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 intercept = out[degree]
 int_err = np.sqrt(cov[degree][degree])    # Component of covar matrix
-print "0 %.6g %.4g # %.4g/%d = %.4g" \
-      % (intercept, int_err, chiSq, dof, chiSq / dof)
+print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g" \
+      % (intercept, int_err, chiSq, dof, chiSq / dof, CL)
 #print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
 # ------------------------------------------------------------------
