@@ -192,7 +192,7 @@ for gSq in np.arange(0, u_max, 0.01):   # Preserve uniform spacing
     print "0.006944 %.4g NaN NaN" % gSq   # To match up lines
 
     # It may also be useful to monitor the slope when optimizing tau
-    print "Slope %.4g %.4g" % (gSq, out[0])
+    print "Slope %.4g %.4g" % (gSq, slope)
     continue
 
   # Print intercept from linear extrapolation, the last polynomial coefficient

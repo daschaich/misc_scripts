@@ -47,12 +47,15 @@ else:
 if s_tag == "3/2":
   #L = np.array([24, 20, 16, 12, 36, 30, 24, 18], dtype = np.int)
   L = np.array([24, 20, 16, 36, 30, 24], dtype = np.int)
+  #L = np.array([24, 20, 36, 30], dtype = np.int)
   div = np.log(9.0 / 4.0)
 elif s_tag == "2":
   L = np.array([18, 16, 12, 36, 32, 24], dtype = np.int)
+  #L = np.array([18, 16, 36, 32], dtype = np.int)
   div = np.log(4.0)
 elif s_tag == "4/3":
   L = np.array([24, 18, 12, 32, 24, 16], dtype = np.int)
+  #L = np.array([24, 18, 32, 24], dtype = np.int)
   div = np.log(16.0 / 9.0)
 else:
   print "Error: only s=3/2, 2 and 4/3 set up,",
@@ -265,16 +268,27 @@ for gSq in np.arange(0, u_max, 0.01):    # Preserve uniform spacing
   if dof == 0:
     # Central values
     out = np.polyfit(x, dat, 1, full=False, w=weight, cov=False)
+    slope = out[0]
     intercept = out[1]
-    # It may also be useful to monitor the slope when optimizing tau
-    print "Slope %.4g %.4g" % (gSq, out[0])
 
     # Shifted by uncertainties
     tofit = dat + 1.0 / weight
     out = np.polyfit(x, tofit, 1, full=False, w=weight, cov=False)
     err = out[1] - intercept
     print "%.4g %.6g %.4g # 0 dof" % (gSq, intercept, err)
-    sys.exit(0)
+
+    # Print data points themselves vs. (a / L)^2, in increasing order
+    # Include omitted volume to match up lines
+    for i in range(len(x)):
+      print "%.4g %.4g %.6g %.4g" % (x[i], gSq, dat[i], 1.0 / weight[i])
+    if s_tag == "3/2":
+      print "0.003906 %.4g NaN NaN" % gSq   # 1 / 16^2
+    else:
+      print "0.006944 %.4g NaN NaN" % gSq   # 1 / 12^2
+
+    # It may also be useful to monitor the slope when optimizing tau
+    print "Slope %.4g %.4g" % (gSq, slope)
+    continue
 
   # Print intercept from linear extrapolation, the last polynomial coefficient
   out, cov = np.polyfit(x, dat, 1, full=False, w=weight, cov=True)
