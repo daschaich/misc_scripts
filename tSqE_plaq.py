@@ -4,8 +4,8 @@ import numpy as np
 # ------------------------------------------------------------------
 # Compute tree-level finite-volume perturbative correction to t^2 E
 # from Eq. 6.2 of arXiv:1406.0827, given L and c=sqrt(8t)/L
-# Use clover discretization of E(t) (Eq. 3.6):
-#   Tr[S^e] = sum_mu [ptw^2 - ptw_mu**2] [cos(p_mu / 2)**2]
+# Use plaquette discretization of E(t) (Eq. 3.5 with c=0):
+#   Tr[S^e] = sum_mu [phat^2 - phat_mu**2]
 
 # Parse arguments: first is L, second in c
 if len(sys.argv) < 3:
@@ -33,17 +33,14 @@ for n1 in range(L):
         if n1 + n2 + n3 + n4 == 0:    # Zero-mode contribution is separate
           continue
 
-        # Define p, phat and ptwiddle
+        # Define p and phat
         n_mu = np.array([n1, n2, n3, n4], dtype = np.float)
         p_mu = twopiOvL * n_mu
         phat_mu = 2.0 * np.sin(p_mu / 2.0)
-        ptw_mu = np.sin(p_mu)
-
         phatSq = (phat_mu**2).sum()
-        ptwSq = (ptw_mu**2).sum()
 
-        # Tr[S^e] = sum_mu [ptw^2 - ptw_mu**2] [cos(p_mu / 2)**2]
-        TrS = ((ptwSq - ptw_mu**2) * (np.cos(p_mu / 2))**2).sum()
+        # Tr[S^e] = sum_mu [phat^2 - phat_mu**2]
+        TrS = (phatSq - phat_mu**2).sum()
 
         # Sum up exp(-2t phatSq) * TrS / phatSq
         tSqE += np.exp(-2.0 * t * phatSq) * TrS / phatSq

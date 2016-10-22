@@ -25,11 +25,13 @@ tau = float(sys.argv[4])
 
 # Choose which observable to use -- require 'plaq' as specific argument
 plaq = -1
+pert_file = "../scripts/Ct_pert_c" + str(magic_c[i])
 outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
 if len(sys.argv) > 5:
   if str(sys.argv[5]) == 'plaq':
     plaq = 1
     col = 6
+    pert_file = "../scripts/Ct_plaq_c" + str(magic_c[i])
     outfilename = 'results/Wplaq-tau%g.%s' % (tau, tag)
   else:
     print "Warning: Implicitly using clover observable"
@@ -171,7 +173,6 @@ if N <= 1:
 # Include perturbative finite-volume + zero-mode corrections
 gprop = np.zeros_like(magic_c)
 for i in range(len(magic_c)):
-  pert_file = "../scripts/Ct_pert_c" + str(magic_c[i])
   if not os.path.isfile(pert_file):
     print "WARNING:", pert_file, "not found"
     sys.exit(1)
