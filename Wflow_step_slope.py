@@ -6,13 +6,14 @@ from scipy import special
 # ------------------------------------------------------------------
 # Extract slope of given step-scaling function in given range of g^2
 
-# Parse arguments: first is the file to analyze
-# Second is how far from the zero to include in the fit
+# Parse arguments: first is the file to analyze, second is scale change s
+# Third is how far from the zero to include in the fit
 if len(sys.argv) < 3:
   print "Usage:", str(sys.argv[0]), "<file> <range_size>"
   sys.exit(1)
 filename = str(sys.argv[1])
-halfrange = float(sys.argv[2])
+s = float(sys.argv[2])
+halfrange = float(sys.argv[3])
 
 # Just do linear fit
 degree = 1
@@ -37,7 +38,7 @@ for line in open(filename):
   temp = line.split()
   max_gSq = float(temp[0])
   new_beta = float(temp[1])
-  if old_beta > 0 and new_beta < 0.0:
+  if old_beta > 0.0 and new_beta < 0.0:
     IRFP = max_gSq - 0.005
   old_beta = new_beta
 
@@ -96,7 +97,10 @@ cov /= chiSq_dof
 CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 slope = out[0]
 err = np.sqrt(cov[0][0])          # Component of covar matrix
-print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g" \
-      % (slope, err, chiSq, dof, chiSq / dof, CL)
-#print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
+print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g," \
+      % (slope, err, chiSq, dof, chiSq / dof, CL),
+
+# Convert to gamma_g^* = log(1 + |slope|) / log(s)
+gamma = np.log(1.0 - slope) / np.log(s)
+print "gamma_g^* = %.4g" % gamma
 # ------------------------------------------------------------------
