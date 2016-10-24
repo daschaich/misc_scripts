@@ -20,7 +20,7 @@ from scipy import special
 # Parse arguments: the scale factor s, the Wilson flow parameter c,
 # the t-shift parameter tau (which will tell us what files to use),
 # and the functional form for interpolation
-# Optional fifth  argument tells us to use the plaquette observable
+# Optional fifth argument tells us to use the plaquette observable
 # The data files are produced by average_Wflow.py, which already includes
 # the perturbative finite-volume + zero-mode corrections
 if len(sys.argv) < 5:
