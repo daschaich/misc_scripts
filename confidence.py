@@ -11,7 +11,7 @@ from scipy import special
 # Reproduces Numerical Recipes-based C code from Tom DeGrand
 
 # Parse arguments: first is chiSq, second is dof
-if len(sys.argv) < 2:
+if len(sys.argv) < 3:
   print "Usage:", str(sys.argv[0]), "<chiSq> <dof>"
   sys.exit(1)
 chiSq = float(sys.argv[1])

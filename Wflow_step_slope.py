@@ -8,8 +8,8 @@ from scipy import special
 
 # Parse arguments: first is the file to analyze, second is scale change s
 # Third is how far from the zero to include in the fit
-if len(sys.argv) < 3:
-  print "Usage:", str(sys.argv[0]), "<file> <range_size>"
+if len(sys.argv) < 4:
+  print "Usage:", str(sys.argv[0]), "<file> <s> <range_size>"
   sys.exit(1)
 filename = str(sys.argv[1])
 s = float(sys.argv[2])
@@ -100,7 +100,8 @@ err = np.sqrt(cov[0][0])          # Component of covar matrix
 print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g," \
       % (slope, err, chiSq, dof, chiSq / dof, CL),
 
-# Convert to gamma_g^* = log(1 + |slope|) / log(s)
-gamma = np.log(1.0 - slope) / np.log(s)
-print "gamma_g^* = %.4g" % gamma
+# Convert to gamma_g^* = log(1 + slope) / log(s)
+# Print positive value for convenience
+gamma = np.log(1.0 + 2.0 * slope * np.log(s)) / np.log(s)
+print "gamma_g^* = %.4g" % (-1.0 * gamma)
 # ------------------------------------------------------------------
