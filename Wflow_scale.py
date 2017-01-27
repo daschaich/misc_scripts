@@ -105,6 +105,11 @@ for line in open(outfilename):
     count = 1                     # Next block begins with this line
     ave = float(temp[1])
 
+# Check special case that the final file fills the last block
+if MDTU >= (begin + block_size - cfgs[-1] + cfgs[-2]):
+  datList.append(ave / float(count))
+  begin += block_size
+
 # Now print mean and standard error, requiring N>1
 if len(datList) < 2:
   print "ERROR: Need multiple blocks to average"
