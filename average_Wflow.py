@@ -30,7 +30,6 @@ outfilename = 'results/Wflow-tau%g.%s' % (tau, tag)
 if len(sys.argv) > 5:
   if str(sys.argv[5]) == 'plaq':
     plaq = 1
-    col = 6
     pert_base = "../scripts/Ct_plaq_c"
     outfilename = 'results/Wplaq-tau%g.%s' % (tau, tag)
   else:
@@ -108,7 +107,12 @@ for traj in open(keyfile):
         t = float(temp[1]) - tau    # Include t-shift
         for i in range(len(magic_c)):
           if t - dt + 1.0e-4 < magic_t[i] and t + 1.0e-4 >= magic_t[i]:
-            ave[i] += t**2 * float(temp[3])    # t**2 * E(t + tau)
+            if plaq < 0:
+              ave[i] += t**2 * float(temp[3])    # t**2 * E(t + tau)
+            else:
+              # Data is (t + tau)**2 * E(t + tau)...
+              rescale = t / float(temp[1])
+              ave[i] += rescale**2 * float(temp[6])
             count[i] += 1
 
   elif MDTU >= (begin + block_size):    # Move on to next block
@@ -140,7 +144,7 @@ for traj in open(keyfile):
             else:
               # Data is (t + tau)**2 * E(t + tau)...
               rescale = t / float(temp[1])
-              ave[i] += rescale**2 * float(temp[col])
+              ave[i] += rescale**2 * float(temp[6])
             count[i] += 1
 
 # The file_tag check in the loop above means that
