@@ -43,8 +43,8 @@ if not os.path.isfile(keyfile):
   print "ERROR:", keyfile, "does not exist"
   sys.exit(1)
 
-# Extract lattice volume from first Wilson flow file
-firstfile = 'Out/Wflow_' + tag + '.1'
+# Extract lattice volume from a Wilson flow file that should exist
+firstfile = 'Out/Wflow_' + tag + '.10'
 dt = 0.01
 lookup = []
 if not os.path.isfile(firstfile):
