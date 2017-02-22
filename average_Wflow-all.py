@@ -55,25 +55,28 @@ for line in open(firstfile):
     L = int((line.split())[1])
   elif line.startswith('nt '):
     Nt = int((line.split())[1])
+    # Set L to minimum of nx and nt
+    if Nt < L:
+      L = Nt
+    if L < 0 or Nt < 0:
+      print "ERROR: couldn't extract lattice size from", firstfile
+      sys.exit(1)
+    target = float(L**2) / 32.0
 
   # Count number of points of t >= tau
   # The perturbative correction brings in a factor of 1/(t - tau)^2
   # so we need non-zero (t - tau)...
+  # We also need to stop at target even if the file has more data
   elif line.startswith('WFLOW '):
     temp = line.split()
-    t = float(temp[1]) - tau                # Include t-shift
-    if t < 0.001:                           # Start when t > tau
+    t = float(temp[1])
+    if t > target:
+      break
+    t -= tau                    # Include t-shift
+    if t < 0.001:               # Start when t > tau
       continue
     lookup.append(t)
 Npt = len(lookup)
-
-# Set L to minimum of nx and nt
-if Nt < L:
-  L = Nt
-if L < 0 or Nt < 0:
-  print "ERROR: couldn't extract lattice size from", firstfile
-  sys.exit(1)
-target = float(L**2) / 32.0
 # ------------------------------------------------------------------
 
 
@@ -174,7 +177,10 @@ for traj in open(keyfile):
           sys.exit(1)
       elif line.startswith('WFLOW '):
         temp = line.split()
-        t = float(temp[1]) - tau                # Include t-shift
+        t = float(temp[1])
+        if t > target:
+          break
+        t -= tau                                # Include t-shift
         if t < 0.001:                           # Start when t > tau
           continue
         if plaq < 0:
@@ -220,7 +226,10 @@ for traj in open(keyfile):
           sys.exit(1)
       elif line.startswith('WFLOW '):
         temp = line.split()
-        t = float(temp[1]) - tau                # Include t-shift
+        t = float(temp[1])
+        if t > target:
+          break
+        t -= tau                                # Include t-shift
         if t < 0.001:                           # Start when t > tau
           continue
         if plaq < 0:
