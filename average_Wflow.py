@@ -104,11 +104,11 @@ for traj in open(keyfile):
         dt = float((line.split())[1])
       if line.startswith('WFLOW '):
         temp = line.split()
-        t = float(temp[1]) - tau    # Include t-shift
+        t = float(temp[1]) - tau                  # Include t-shift
         for i in range(len(magic_c)):
           if t - dt + 1.0e-4 < magic_t[i] and t + 1.0e-4 >= magic_t[i]:
             if plaq < 0:
-              ave[i] += t**2 * float(temp[3])    # t**2 * E(t + tau)
+              ave[i] += t**2 * float(temp[3])     # t**2 * E(t + tau)
             else:
               # Data is (t + tau)**2 * E(t + tau)...
               rescale = t / float(temp[1])
