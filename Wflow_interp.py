@@ -2,6 +2,7 @@
 import glob
 import os
 import sys
+import numpy as np
 # ------------------------------------------------------------------
 # Redo Wilson flow interpolations in the given output file
 # Print to terminal for redirection to new file
@@ -23,10 +24,10 @@ dt = 0.01
 # Cycle over lines in file
 check = -1
 toInterp = -1
-for line in open(filename):
+for line in open(toOpen):
   if line.startswith('RUNNING COMPLETED'):
     if check == 1:    # Check that we have one measurement per file
-      print filename, "reports two measurements"
+      print toOpen, "reports two measurements"
     check = 1
 
   # Print all the standard stuff
@@ -54,18 +55,18 @@ for line in open(filename):
         slope_check = (float(temp[6]) - check_old) / interval
         slope_topo = (float(temp[7]) - topo_old) / interval
         prev = tSqE_old
-        for i in np.arange(t_old + dt, t, dt, endpoint=False):
+        for i in np.arange(t_old + dt, t - 0.5 * dt, dt):
           delta = i - t_old
           tSqE = tSqE_old + delta * slope_tSqE
           E = tSqE / (i * i)
           der = i * (tSqE - prev) / dt
           prev = tSqE
 
-          check = check_old + delta * slope_tSqE
-          plaq = check / (12.0 * i * i)
+          check = check_old + delta * slope_check
+          plaq = 3.0 - check / (12.0 * i * i)
 
           topo = topo_old + delta * slope_topo
-          print "WFLOW %g %g %g %g %g %g %g\n" \
+          print "WFLOW %g %g %g %g %g %g %g (interp)" \
                 % (i, plaq, E, tSqE, der, check, topo);
 
         # Now we are caught up and can print the current line
@@ -79,6 +80,5 @@ for line in open(filename):
         topo_old = float(temp[7])
 
 if check == -1:
-  print filename, "did not complete"
-  continue
+  print toOpen, "did not complete"
 # ------------------------------------------------------------------

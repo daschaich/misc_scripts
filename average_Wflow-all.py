@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import sys
+import time
 import glob
 import numpy as np
 # ------------------------------------------------------------------
@@ -22,6 +23,7 @@ tag = str(sys.argv[1])
 cut = int(sys.argv[2])
 block_size = int(sys.argv[3])
 tau = float(sys.argv[4])
+runtime = -time.time()
 
 # Choose which observable to use -- require 'plaq' as specific argument
 plaq = -1
@@ -287,5 +289,8 @@ for i in range(Npt):
   ave = np.mean(dat, dtype = np.float64)
   err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1)
   print >> outfile, "%.4g %.8g %.4g" % (lookup[i], gprop * ave, gprop * err)
+
+runtime += time.time()
+print >> outfile, "# Runtime: %d seconds" % int(runtime)
 outfile.close()
 # ------------------------------------------------------------------
