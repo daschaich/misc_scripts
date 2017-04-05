@@ -120,8 +120,6 @@ def tree(Ns, Nt, t):
 
           tSqE += np.exp(-2.0 * t * phatSq) * TrS / phatSq
 
-  print twopiOvL, n_mu, p_mu # !!!TODO
-  sys.exit(0)
   tSqE += 2.0                           # Zero-mode contribution
   tSqE *= (64.0 * np.pi**2 * t**2) / (3.0 * float(Ns**3 * Nt))
   return tSqE
