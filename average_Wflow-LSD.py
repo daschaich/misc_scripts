@@ -21,11 +21,12 @@ if len(sys.argv) < 5:
   sys.exit(1)
 cut = int(sys.argv[1])
 block_size = int(sys.argv[2])
-tau = float(sys.argv[3])
-tag = str(sys.argv[4])
+tag = str(sys.argv[3])
+tau = float(sys.argv[4])
 runtime = -time.time()
 
 # Choose which observable to use -- require 'plaq' as specific argument
+# Will probably have tau=0, so don't include in output file name
 plaq = -1
 outfilename = 'results/Wflow_coupling.dat'
 if len(sys.argv) > 5:
