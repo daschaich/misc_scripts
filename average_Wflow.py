@@ -13,7 +13,7 @@ import numpy as np
 # Parse arguments: first is ensemble tag, second is thermalization cut,
 # third is block size (should be larger than auto-correlation time)
 # We discard any partial blocks at the end
-# Fourth argument is t-shift optimization parameter tau
+# Fourth argument is t-shift improvement parameter tau
 # Optional fifth argument tells us to use the plaquette observable
 if len(sys.argv) < 5:
   print "Usage:", str(sys.argv[0]), "<tag> <cut> <block> <tau> <obs>"
@@ -66,7 +66,7 @@ if L < 0 or Nt < 0:
   sys.exit(1)
 
 # Convert c=0.2, 0.25, 0.3 and 0.35 to corresponding t
-# This allows us to include the t-shift optimization
+# This allows us to include the t-shift improvement
 # Note that we need to include it here to keep c fixed!
 magic_c = np.array([0.2, 0.25, 0.3, 0.35], dtype = np.float)
 magic_t = (L * magic_c)**2 / 8.0
@@ -91,7 +91,7 @@ for traj in open(keyfile):
     continue
   keytemp = traj.split(',')
   MDTU = float(keytemp[0])
-  if MDTU <= cut or keytemp[1].rstrip() == file_tag:
+  if MDTU < cut or keytemp[1].rstrip() == file_tag:
     continue
   elif MDTU >= begin and MDTU < (begin + block_size):
     file_tag = keytemp[1].rstrip()

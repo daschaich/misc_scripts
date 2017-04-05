@@ -6,31 +6,35 @@ import glob
 import numpy as np
 # ------------------------------------------------------------------
 # Construct averages and standard errors of the gradient flow coupling
-# for given ensemble, processing all t <= L^2 / 32
-# specified by the given thermalization cut and block size
+# Process all t <= L^2 / 32
+# for given ensemble, processing 
+# specified by the given initial measurement and block size
 # Drop any partial blocks at the end
 
-# Parse arguments: first is thermalization cut,
-# second is block size (should be larger than auto-correlation time)
+# Parse arguments: first is initial measurement,
+# second is number of measurements per block
 # We discard any partial blocks at the end
 # Third is base name of files to analyze, including directory
-# Fourth argument is t-shift optimization parameter tau
-# Optional fifth argument tells us to use the plaquette observable
-if len(sys.argv) < 5:
-  print "Usage:", str(sys.argv[0]), "<cut> <block> <dir/tag> <tau> <obs>"
+# Fourth argument is t-shift improvement parameter tau
+# Fifth argument is maximum t to consider, at most L^2 / 32
+# Optional sixth argument tells us to use the plaquette observable
+if len(sys.argv) < 6:
+  print "Usage:", str(sys.argv[0]),
+  print "<first> <num> <dir/tag> <tau> <target> <obs>"
   sys.exit(1)
-cut = int(sys.argv[1])
-block_size = int(sys.argv[2])
+first = int(sys.argv[1])
+num = int(sys.argv[2])
 tag = str(sys.argv[3])
 tau = float(sys.argv[4])
+target = float(sys.argv[5])
 runtime = -time.time()
 
 # Choose which observable to use -- require 'plaq' as specific argument
 # Will probably have tau=0, so don't include in output file name
 plaq = -1
 outfilename = 'results/Wflow_coupling.dat'
-if len(sys.argv) > 5:
-  if str(sys.argv[5]) == 'plaq':
+if len(sys.argv) > 6:
+  if str(sys.argv[6]) == 'plaq':
     plaq = 1
     outfilename = 'results/Wplaq_coupling.dat'
   else:
@@ -73,7 +77,6 @@ for line in open(firstFile):
     if L < 0 or Nt < 0:
       print "ERROR: couldn't extract lattice size from", firstFile
       sys.exit(1)
-    target = float(L**2) / 32.0
 
   # Count number of points of t >= tau
   # The perturbative correction brings in a factor of 1/(t - tau)^2
@@ -82,13 +85,17 @@ for line in open(firstFile):
   elif line.startswith('WFLOW '):
     temp = line.split()
     t = float(temp[1])
-    if t > target:
+    if t > target:              # Target considers unshifted t
       break
     t -= tau                    # Include t-shift
     if t < 0.001:               # Start when t > tau
       continue
     lookup.append(t)
 Npt = len(lookup)
+
+if target > float(L**2) / 32.0:         # Sanity check
+  print "ERROR: can't reach target %.2g > %.2g" % (target, float(L**2) / 32.0)
+  sys.exit(1)
 # ------------------------------------------------------------------
 
 
@@ -164,12 +171,12 @@ ave = np.zeros(Npt, dtype = np.float)       # Accumulate within each block
 count = np.zeros(Npt, dtype = np.int)
 index = 0
 datList = [[] for x in range(Npt)]
-begin = cut       # Where each block begins, to be incremented
-for MDTU in cfgs:
-  if MDTU <= cut:
+begin = first     # Where each block begins, to be incremented
+for i in cfgs:
+  if i < first:
     continue
-  elif MDTU >= begin and MDTU < (begin + block_size):
-    WflowFile = tag + str(MDTU)
+  elif count[0] < num:
+    WflowFile = tag + str(i)
     if not os.path.isfile(WflowFile):
       print "WARNING:", WflowFile, "does not exist"
       continue
@@ -206,18 +213,18 @@ for MDTU in cfgs:
       print "ERROR: Only", index, "of", Npt, "points counted"
       sys.exit(1)
 
-  elif MDTU >= (begin + block_size):    # Move on to next block
-    for i in range(Npt):
-      if count[i] >= 1:
-        datList[i].append(ave[i] / float(count[i]))
-      if count[i] != count[0]:
-        print "WARNING: measurement mismatch %d vs %d for i=%d in block %d" \
-          % (count[i], count[0], i, len(datList[0]))
+  elif count[0] == num:                         # Move on to next block
+    for index in range(Npt):
+      if count[index] >= 1:
+        datList[index].append(ave[index] / float(count[index]))
+      if count[index] != count[0]:
+        print "WARNING: mismatch %d vs %d for index %d in block %d" \
+          % (count[index], count[0], index, len(datList[0]))
     ave = np.zeros(Npt, dtype = np.float)
     count = np.zeros(Npt, dtype = np.int)
-    begin += block_size
+    begin = i
 
-    WflowFile = tag + str(MDTU)
+    WflowFile = tag + str(i)
     if not os.path.isfile(WflowFile):
       print "WARNING:", WflowFile, "does not exist"
       continue
@@ -253,18 +260,20 @@ for MDTU in cfgs:
     if not index == Npt:
       print "ERROR: Only", index, "of", Npt, "points counted"
       sys.exit(1)
+  else: # count[0] > num:                       # Sanity check
+    print "ERROR: Something funny is going on..."
+    sys.exit(1)
 
 # The file_tag check in the loop above means that
 # full blocks aren't recorded until we reach the next file
 # Check special case that the final file fills the last block
-if MDTU >= (begin + block_size) and count[0] > 1:
-  for i in range(Npt):
-    if count[i] >= 1:
-      datList[i].append(ave[i] / float(count[i]))
-    if count[i] != count[0]:
-      print "WARNING: measurement mismatch %d vs %d for i=%d in block %d" \
-          % (count[i], count[0], i, len(datList[0]))
-  begin += block_size
+if count[0] == num:
+  for index in range(Npt):
+    if count[index] >= 1:
+      datList[index].append(ave[index] / float(count[index]))
+    if count[index] != count[0]:
+      print "WARNING: mismatch %d vs %d for index %d in block %d" \
+            % (count[index], count[0], index, len(datList[0]))
 # ------------------------------------------------------------------
 
 
@@ -272,10 +281,10 @@ if MDTU >= (begin + block_size) and count[0] > 1:
 # ------------------------------------------------------------------
 # Now print mean and standard error, requiring N>1
 N = float(len(datList[0]))
-for i in range(Npt):
-  if len(datList[i]) != len(datList[0]):
-    print "ERROR: measurement mismatch %d vs %d for i=%d" \
-          % (len(datList[i]), len(datList[0]), i)
+for index in range(Npt):
+  if len(datList[index]) != len(datList[0]):
+    print "ERROR: mismatch %d vs %d for index %d" \
+          % (len(datList[index]), len(datList[0]), index)
     sys.exit(1)
 if N <= 1:
   print "ERROR: Not enough blocks (%d) to average" % N
