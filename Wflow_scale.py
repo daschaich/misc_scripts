@@ -15,8 +15,9 @@ if not os.path.isdir('data'):
 
 # Parse arguments: first is thermalization cut,
 # second is block size (should be larger than auto-correlation time)
-# Third is base name of files to analyze, including directory
 # We discard any partial blocks at the end
+# Third is target <t^2E> for which we find the corresponding sqrt(8t0)
+# Fourth is base name of files to analyze, including directory
 if len(sys.argv) < 4:
   print "Usage:", str(sys.argv[0]), "<cut> <block> <target> <dir/tag>"
   sys.exit(1)
@@ -72,7 +73,7 @@ for i in cfgs:
         break             # Don't bother to check file for completion
     elif line.startswith('RUNNING COMPLETED'):
       if i > cut:
-        print "WARNING: Measurement %d never reached t=%.2g" % (i, target)
+        print "WARNING: Measurement %d never reached target %.2g" % (i, target)
       missing += 1
 outfile.close()
 
