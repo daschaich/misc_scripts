@@ -6,9 +6,8 @@ import glob
 import numpy as np
 # ------------------------------------------------------------------
 # Construct averages and standard errors of the gradient flow coupling
-# Process all t <= L^2 / 32
-# for given ensemble, processing 
-# specified by the given initial measurement and block size
+# Process all t up to given target <= L^2 / 32
+# Now constructing blocks based on number of measurements, not MDTU
 # Drop any partial blocks at the end
 
 # Parse arguments: first is initial measurement,
@@ -17,24 +16,26 @@ import numpy as np
 # Third is base name of files to analyze, including directory
 # Fourth argument is t-shift improvement parameter tau
 # Fifth argument is maximum t to consider, at most L^2 / 32
+# Sixth argument is file containing perturbative corrections
 # Optional sixth argument tells us to use the plaquette observable
-if len(sys.argv) < 6:
+if len(sys.argv) < 7:
   print "Usage:", str(sys.argv[0]),
-  print "<first> <num> <dir/tag> <tau> <target> <obs>"
+  print "<first> <num> <dir/tag> <tau> <target> <pert_file> <obs>"
   sys.exit(1)
 first = int(sys.argv[1])
 num = int(sys.argv[2])
 tag = str(sys.argv[3])
 tau = float(sys.argv[4])
 target = float(sys.argv[5])
+pertFile = str(sys.argv[6])
 runtime = -time.time()
 
 # Choose which observable to use -- require 'plaq' as specific argument
 # Will probably have tau=0, so don't include in output file name
 plaq = -1
 outfilename = 'results/Wflow_coupling.dat'
-if len(sys.argv) > 6:
-  if str(sys.argv[6]) == 'plaq':
+if len(sys.argv) > 7:
+  if str(sys.argv[7]) == 'plaq':
     plaq = 1
     outfilename = 'results/Wplaq_coupling.dat'
   else:
@@ -54,6 +55,9 @@ cfgs.sort()
 # Check to make sure the arguments are appropriate
 if len(cfgs) == 0:
   print "ERROR: no files named", temp
+  sys.exit(1)
+if not os.path.isfile(pertFile):
+  print "ERROR:", pertFile, "does not exist"
   sys.exit(1)
 
 # Extract lattice volume from first output file
@@ -96,71 +100,6 @@ Npt = len(lookup)
 if target > float(L**2) / 32.0:         # Sanity check
   print "ERROR: can't reach target %.2g > %.2g" % (target, float(L**2) / 32.0)
   sys.exit(1)
-# ------------------------------------------------------------------
-
-
-
-# ------------------------------------------------------------------
-# Compute tree-level finite-volume perturbative correction to t^2 E
-# Copied from tSqE_tree.py for clover (stripping most inline documentation)
-def tree(Ns, Nt, t):
-  one_ov_L = np.array([1.0 / float(Ns), 1.0 / float(Ns),
-                       1.0 / float(Ns), 1.0 / float(Nt)], dtype = np.float)
-  twopiOvL = 2.0 * np.pi * one_ov_L
-  tSqE = 0.0
-  for n1 in range(Ns):
-    for n2 in range(Ns):
-      for n3 in range(Ns):
-        for n4 in range(Nt):
-          if n1 + n2 + n3 + n4 == 0:    # Zero-mode contribution is separate
-            continue
-
-          n_mu = np.array([n1, n2, n3, n4], dtype = np.float)
-          p_mu = twopiOvL * n_mu
-          phat_mu = 2.0 * np.sin(p_mu / 2.0)
-          ptw_mu = np.sin(p_mu)
-
-          phatSq = (phat_mu**2).sum()
-          ptwSq = (ptw_mu**2).sum()
-
-          TrS = ((ptwSq - ptw_mu**2) * (np.cos(p_mu / 2))**2).sum()
-
-          tSqE += np.exp(-2.0 * t * phatSq) * TrS / phatSq
-
-  tSqE += 2.0                           # Zero-mode contribution
-  tSqE *= (64.0 * np.pi**2 * t**2) / (3.0 * float(Ns**3 * Nt))
-  return tSqE
-# ------------------------------------------------------------------
-
-
-
-# ------------------------------------------------------------------
-# Compute tree-level finite-volume perturbative correction to t^2 E
-# Copied from tSqE_plaq.py for plaq (stripping most inline documentation)
-def tree_plaq(Ns, Nt, t):
-  one_ov_L = np.array([1.0 / float(Ns), 1.0 / float(Ns),
-                       1.0 / float(Ns), 1.0 / float(Nt)], dtype = np.float)
-  twopiOvL = 2.0 * np.pi * one_ov_L
-  tSqE = 0.0
-  for n1 in range(Ns):
-    for n2 in range(Ns):
-      for n3 in range(Ns):
-        for n4 in range(Ns):
-          if n1 + n2 + n3 + n4 == 0:    # Zero-mode contribution is separate
-            continue
-
-          n_mu = np.array([n1, n2, n3, n4], dtype = np.float)
-          p_mu = twopiOvL * n_mu
-          phat_mu = 2.0 * np.sin(p_mu / 2.0)
-          phatSq = (phat_mu**2).sum()
-
-          TrS = (phatSq - phat_mu**2).sum()
-
-          tSqE += np.exp(-2.0 * t * phatSq) * TrS / phatSq
-
-  tSqE += 2.0                           # Zero-mode contribution
-  tSqE *= (64.0 * np.pi**2 * t**2) / (3.0 * float(Ns**3 * Nt))
-  return tSqE
 # ------------------------------------------------------------------
 
 
@@ -294,11 +233,16 @@ outfile = open(outfilename, 'w')
 print >> outfile, "# tau=%g with %d blocks" % (tau, int(N))
 
 # Include perturbative finite-volume + zero-mode corrections
+t, pert = np.loadtxt(pertFile, unpack=True)
 for i in range(Npt):
-  if plaq < 0:
-    pert_corr = tree(Ns, Nt, lookup[i])
-  else:
-    pert_corr = tree_plaq(Ns, Nt, lookup[i])
+  pert_corr = -9999
+  for j in range(len(t)):
+    if lookup[i] == t[j]:
+      pert_corr = pert[j]
+      break
+  if pert_corr == -9999:
+    print "ERROR: Desired t=%.2g not found in %s" % (lookup[i], pertFile)
+    sys.exit(1)
   gprop = 128.0 * 3.14159**2 / (24.0 * pert_corr)
 
   dat = np.array(datList[i])
