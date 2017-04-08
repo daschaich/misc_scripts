@@ -29,6 +29,7 @@ twopiOvL = 2.0 * np.pi * one_ov_L
 for t in np.arange(start, end, 0.01):
   if t <= 0:
     continue
+
   # Integrate over (n1, n2, n3, n4), each from 0 to L-1 or Nt-1,
   # except for (0, 0, 0, 0), which is treated separately
   # Be lazy and re-compute (almost) everything within the lowest-level loop

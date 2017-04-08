@@ -237,7 +237,7 @@ t, pert = np.loadtxt(pertFile, unpack=True)
 for i in range(Npt):
   pert_corr = -9999
   for j in range(len(t)):
-    if lookup[i] == t[j]:
+    if abs(lookup[i] - t[j]) < 0.0001:    # Floating-point comparison hack...
       pert_corr = pert[j]
       break
   if pert_corr == -9999:
