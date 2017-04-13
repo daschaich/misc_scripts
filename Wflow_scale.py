@@ -7,22 +7,23 @@ import numpy as np
 # ------------------------------------------------------------------
 # This script determines the Wilson flow scale t0,
 # defined as the t for which t^2 E(t) = target (traditionally 0.3)
+# Now constructing blocks based on number of measurements, not MDTU
 
 # First make sure directory for output file exists
 if not os.path.isdir('data'):
   print "ERROR: data/ does not exist"
   sys.exit(1)
 
-# Parse arguments: first is thermalization cut,
-# second is block size (should be larger than auto-correlation time)
+# Parse arguments: first is initial measurement,
+# second is number of measurements per block
 # We discard any partial blocks at the end
 # Third is target <t^2E> for which we find the corresponding sqrt(8t0)
 # Fourth is base name of files to analyze, including directory
 if len(sys.argv) < 4:
-  print "Usage:", str(sys.argv[0]), "<cut> <block> <target> <dir/tag>"
+  print "Usage:", str(sys.argv[0]), "<first> <num> <target> <dir/tag>"
   sys.exit(1)
-cut = int(sys.argv[1])
-block_size = int(sys.argv[2])
+first = int(sys.argv[1])
+num = int(sys.argv[2])
 target = float(sys.argv[3])
 tag = str(sys.argv[4])
 runtime = -time.time()
@@ -58,7 +59,7 @@ if L > Nt:
 # Find t0 in each file -- might as well save to data/ directory
 outfilename = 'data/scale.csv'
 outfile = open(outfilename, 'w')
-print >> outfile, "MDTU,sqrt(8t0)"
+print >> outfile, "meas,sqrt(8t0)"
 count = 0
 missing = 0
 for i in cfgs:
@@ -72,7 +73,7 @@ for i in cfgs:
         print >> outfile, "%d,%.8g" % (i, np.sqrt(8.0 * float(temp[1])))
         break             # Don't bother to check file for completion
     elif line.startswith('RUNNING COMPLETED'):
-      if i > cut:
+      if i > first:
         print "WARNING: Measurement %d never reached target %.2g" % (i, target)
       missing += 1
 outfile.close()
@@ -89,27 +90,29 @@ if not count == len(cfgs) - missing:
 count = 0
 ave = 0.0         # Accumulate within each block
 datList = []
-begin = cut       # Where each block begins, to be incremented
+begin = first     # Where each block begins, to be incremented
 for line in open(outfilename):
-  if line.startswith('MDTU'):
+  if line.startswith('meas'):
     continue
   temp = line.split(',')
-  MDTU = float(temp[0])
-  if MDTU < cut:
+  i = float(temp[0])
+  if i < first:
     continue
-  elif MDTU >= begin and float(temp[0]) < (begin + block_size):
+  elif count < num:
     ave += float(temp[1])
     count += 1
-  elif MDTU >= (begin + block_size):  # Move on to next block
+  elif count == num:                        # Move on to next block
     datList.append(ave / float(count))
-    begin += block_size
+    begin = i
     count = 1                     # Next block begins with this line
     ave = float(temp[1])
+  else: # count[0] > num:                       # Sanity check
+    print "ERROR: Something funny is going on..."
+    sys.exit(1)
 
 # Check special case that the final file fills the last block
-if MDTU >= (begin + block_size - cfgs[-1] + cfgs[-2]):
+if count == num:
   datList.append(ave / float(count))
-  begin += block_size
 
 # Now print mean and standard error, requiring N>1
 if len(datList) < 2:

@@ -8,7 +8,6 @@ import numpy as np
 # Construct averages and standard errors of the gradient flow coupling
 # Process all t up to given target <= L^2 / 32
 # Now constructing blocks based on number of measurements, not MDTU
-# Drop any partial blocks at the end
 
 # Parse arguments: first is initial measurement,
 # second is number of measurements per block
