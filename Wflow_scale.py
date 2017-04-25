@@ -57,6 +57,7 @@ if L > Nt:
 
 # ------------------------------------------------------------------
 # Find t0 in each file -- might as well save to data/ directory
+# Include bins with a few missing measurements, for consistent analyses
 outfilename = 'data/scale.csv'
 outfile = open(outfilename, 'w')
 print >> outfile, "meas,sqrt(8t0)"
@@ -75,6 +76,7 @@ for i in cfgs:
     elif line.startswith('RUNNING COMPLETED'):
       if i > first:
         print "WARNING: Measurement %d never reached target %.2g" % (i, target)
+      print >> outfile, "%d,null" % i
       missing += 1
 outfile.close()
 
@@ -87,6 +89,7 @@ if not count == len(cfgs) - missing:
 
 # ------------------------------------------------------------------
 # Now analyze newly-created data/t0 file
+missing = 0
 count = 0
 ave = 0.0         # Accumulate within each block
 datList = []
@@ -99,13 +102,25 @@ for line in open(outfilename):
   if i < first:
     continue
   elif count < num:
-    ave += float(temp[1])
+    if 'null' in line:
+      missing += 1
+    else:
+      ave += float(temp[1])
     count += 1
   elif count == num:                        # Move on to next block
-    datList.append(ave / float(count))
+    if count == missing:
+      print "ERROR: All measurements in this block don't reach target"
+      print "       Need to do something smarter..."
+      sys.exit(1)
+    datList.append(ave / float(count - missing))
     begin = i
+    missing = 0
     count = 1                     # Next block begins with this line
-    ave = float(temp[1])
+    if 'null' in line:
+      ave = 0.0
+      missing = 1
+    else:
+      ave = float(temp[1])
   else: # count[0] > num:                       # Sanity check
     print "ERROR: Something funny is going on..."
     sys.exit(1)
