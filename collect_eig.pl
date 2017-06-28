@@ -4,6 +4,7 @@ use warnings;
 use List::Util qw[min];
 # ------------------------------------------------------------------
 # This script accumulates and sorts eigenvalues from the given files
+# Since the files have DDdag eigenvalues, take square root
 # Cut off by minimum of last calculated eigenvalue
 # We ASSUME that all files print at least Nvec EIGENVALUE
 

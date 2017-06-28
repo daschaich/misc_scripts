@@ -7,7 +7,8 @@ import numpy as np
 # Use clover discretization of E(t) (Eq. 3.6):
 #   Tr[S^e] = sum_mu [ptw^2 - ptw_mu**2] [cos(p_mu / 2)**2]
 
-# Parse arguments: first is L, second is Nt, third is t
+# Parse arguments: first is L, second is Nt,
+# third and fourth define range of t to cover
 if len(sys.argv) < 5:
   print "Usage:", str(sys.argv[0]), "<L> <Nt> <t-start> <t-end>"
   sys.exit(1)

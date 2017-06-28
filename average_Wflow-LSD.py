@@ -15,26 +15,24 @@ import numpy as np
 # Third is base name of files to analyze, including directory
 # Fourth argument is t-shift improvement parameter tau
 # Fifth argument is maximum t to consider, at most L^2 / 32
-# Sixth argument is file containing perturbative corrections
 # Optional sixth argument tells us to use the plaquette observable
-if len(sys.argv) < 7:
+if len(sys.argv) < 6:
   print "Usage:", str(sys.argv[0]),
-  print "<first> <num> <dir/tag> <tau> <target> <pert_file> <obs>"
+  print "<first> <num> <dir/tag> <tau> <target> <obs>"
   sys.exit(1)
 first = int(sys.argv[1])
 num = int(sys.argv[2])
 tag = str(sys.argv[3])
 tau = float(sys.argv[4])
 target = float(sys.argv[5])
-pertFile = str(sys.argv[6])
 runtime = -time.time()
 
 # Choose which observable to use -- require 'plaq' as specific argument
 # Will probably have tau=0, so don't include in output file name
 plaq = -1
 outfilename = 'results/Wflow_coupling.dat'
-if len(sys.argv) > 7:
-  if str(sys.argv[7]) == 'plaq':
+if len(sys.argv) > 6:
+  if str(sys.argv[6]) == 'plaq':
     plaq = 1
     outfilename = 'results/Wplaq_coupling.dat'
   else:
@@ -55,9 +53,6 @@ cfgs.sort()
 if len(cfgs) == 0:
   print "ERROR: no files named", temp
   sys.exit(1)
-if not os.path.isfile(pertFile):
-  print "ERROR:", pertFile, "does not exist"
-  sys.exit(1)
 
 # Extract lattice volume from first output file
 # Generally will have Nt = 2L, but let's not assume this
@@ -69,20 +64,18 @@ if not os.path.isfile(firstFile):
   sys.exit(1)
 for line in open(firstFile):
   if line.startswith('nx '):
-    Ns = int((line.split())[1])
+    L = int((line.split())[1])
   elif line.startswith('nt '):
     Nt = int((line.split())[1])
     # Set L to minimum of nx and nt
-    if Nt < Ns:
+    if Nt < L:
       L = Nt
-    else:
-      L = Ns
     if L < 0 or Nt < 0:
       print "ERROR: couldn't extract lattice size from", firstFile
       sys.exit(1)
 
   # Count number of points of t >= tau
-  # The perturbative correction brings in a factor of 1/(t - tau)^2
+  # Perturbative correction would bring in a factor of 1/(t - tau)^2
   # so we need non-zero (t - tau)...
   # We also need to stop at target even if the file has more data
   elif line.startswith('WFLOW '):
@@ -231,18 +224,10 @@ if N <= 1:
 outfile = open(outfilename, 'w')
 print >> outfile, "# tau=%g with %d blocks" % (tau, int(N))
 
-# Include perturbative finite-volume + zero-mode corrections
-t, pert = np.loadtxt(pertFile, unpack=True)
+# Separately compute perturbative finite-volume + zero-mode corrections
+# and save to lookup table that can be `paste`d and `awk`d when plotting
 for i in range(Npt):
-  pert_corr = -9999
-  for j in range(len(t)):
-    if abs(lookup[i] - t[j]) < 0.0001:    # Floating-point comparison hack...
-      pert_corr = pert[j]
-      break
-  if pert_corr == -9999:
-    print "ERROR: Desired t=%.2g not found in %s" % (lookup[i], pertFile)
-    sys.exit(1)
-  gprop = 128.0 * 3.14159**2 / (24.0 * pert_corr)
+  gprop = 128.0 * 3.14159**2 / 24.0
 
   dat = np.array(datList[i])
   ave = np.mean(dat, dtype = np.float64)

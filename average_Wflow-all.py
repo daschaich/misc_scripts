@@ -46,13 +46,13 @@ if not os.path.isfile(keyfile):
   sys.exit(1)
 
 # Extract lattice volume from a Wilson flow file that should exist
-firstfile = 'Out/Wflow_' + tag + '.10'
+firstFile = 'Out/Wflow_' + tag + '.10'
 dt = 0.01
 lookup = []
-if not os.path.isfile(firstfile):
-  print "ERROR:", firstfile, "does not exist"
+if not os.path.isfile(firstFile):
+  print "ERROR:", firstFile, "does not exist"
   sys.exit(1)
-for line in open(firstfile):
+for line in open(firstFile):
   if line.startswith('nx '):
     L = int((line.split())[1])
   elif line.startswith('nt '):
@@ -61,7 +61,7 @@ for line in open(firstfile):
     if Nt < L:
       L = Nt
     if L < 0 or Nt < 0:
-      print "ERROR: couldn't extract lattice size from", firstfile
+      print "ERROR: couldn't extract lattice size from", firstFile
       sys.exit(1)
     target = float(L**2) / 32.0
 
@@ -161,20 +161,20 @@ for traj in open(keyfile):
     continue
   elif MDTU >= begin and MDTU < (begin + block_size):
     file_tag = keytemp[1].rstrip()
-    Wflowfile = 'Out/Wflow_' + tag + '.' + file_tag
-    if not os.path.isfile(Wflowfile):
-      print "WARNING:", Wflowfile, "does not exist"
+    WflowFile = 'Out/Wflow_' + tag + '.' + file_tag
+    if not os.path.isfile(WflowFile):
+      print "WARNING:", WflowFile, "does not exist"
       continue
     index = 0
-    for line in open(Wflowfile):
+    for line in open(WflowFile):
       if line.startswith('epsilon'):    # Check epsilon
         if not dt == float((line.split())[1]):
-          print "ERROR:", Wflowfile, "uses wrong epsilon",
+          print "ERROR:", WflowFile, "uses wrong epsilon",
           print (line.split())[1]
           sys.exit(1)
       elif line.startswith('tmax '):    # Check tmax
         if float((line.split())[1]) < target:
-          print "ERROR:", Wflowfile, "uses too-small tmax",
+          print "ERROR:", WflowFile, "uses too-small tmax",
           print (line.split())[1]
           sys.exit(1)
       elif line.startswith('WFLOW '):
@@ -210,20 +210,20 @@ for traj in open(keyfile):
     begin += block_size
 
     file_tag = keytemp[1].rstrip()
-    Wflowfile = 'Out/Wflow_' + tag + '.' + file_tag
-    if not os.path.isfile(Wflowfile):
-      print "WARNING:", Wflowfile, "does not exist"
+    WflowFile = 'Out/Wflow_' + tag + '.' + file_tag
+    if not os.path.isfile(WflowFile):
+      print "WARNING:", WflowFile, "does not exist"
       continue
     index = 0
-    for line in open(Wflowfile):
+    for line in open(WflowFile):
       if line.startswith('epsilon'):    # Check epsilon
         if not dt == float((line.split())[1]):
-          print "ERROR:", Wflowfile, "uses wrong epsilon",
+          print "ERROR:", WflowFile, "uses wrong epsilon",
           print (line.split())[1]
           sys.exit(1)
       elif line.startswith('tmax '):    # Check tmax
         if float((line.split())[1]) < target:
-          print "ERROR:", Wflowfile, "uses too-small tmax",
+          print "ERROR:", WflowFile, "uses too-small tmax",
           print (line.split())[1]
           sys.exit(1)
       elif line.startswith('WFLOW '):
