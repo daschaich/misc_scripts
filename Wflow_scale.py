@@ -84,7 +84,7 @@ for i in cfgs:
       temp = line.split()
       tSqE = np.fabs(float(temp[4]))    # fabs for 64nt128...
       deriv = np.fabs(float(temp[5]))
-      plaq = np.fabs(float(temp[6]))
+      plaq = float(temp[6])
       if done[0] == 0 and tSqE > target:
         out_t0 = np.sqrt(8.0 * float(temp[1]))
         done[0] = 1
