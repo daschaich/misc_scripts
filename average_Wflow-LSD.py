@@ -15,7 +15,7 @@ import numpy as np
 # Third is base name of files to analyze, including directory
 # Fourth argument is t-shift improvement parameter tau
 # Fifth argument is maximum t to consider, at most L^2 / 32
-# Optional sixth argument tells us to use the plaquette observable
+# Optional sixth argument tells us which observable to consider
 if len(sys.argv) < 6:
   print "Usage:", str(sys.argv[0]),
   print "<first> <num> <dir/tag> <tau> <target> <obs>"
@@ -29,12 +29,18 @@ runtime = -time.time()
 
 # Choose which observable to use -- require 'plaq' as specific argument
 # Will probably have tau=0, so don't include in output file name
+# TODO: Set up plaquette log-derivative
 plaq = -1
+deriv = -1
 outfilename = 'results/Wflow_coupling.dat'
 if len(sys.argv) > 6:
   if str(sys.argv[6]) == 'plaq':
     plaq = 1
     outfilename = 'results/Wplaq_coupling.dat'
+  elif str(sys.argv[6]) == 'deriv':
+    deriv = 1
+    outfilename = 'results/Wflow_deriv.dat'
+    print "Warning: Not yet sure about factors of (t + tau) in derivative"
   else:
     print "Warning: Implicitly using clover observable"
 # ------------------------------------------------------------------
@@ -123,6 +129,7 @@ for i in cfgs:
           print "ERROR:", WflowFile, "uses too-small tmax",
           print (line.split())[1]
           sys.exit(1)
+      # Format: WFLOW t plaq E t^2*E t*d(t^2*E)/dt 12t^2*(3-plaq) top.charge
       elif line.startswith('WFLOW '):
         temp = line.split()
         t = float(temp[1])
@@ -131,12 +138,16 @@ for i in cfgs:
         t -= tau                                # Include t-shift
         if t < 0.001:                           # Start when t > tau
           continue
-        if plaq < 0:
+        if plaq < 0 and deriv < 0:
           ave[index] += t**2 * float(temp[3])   # t**2 * E(t + tau)
-        else:
+        elif plaq > 0:
           # Data is (t + tau)**2 * E(t + tau)...
           rescale = t / float(temp[1])
           ave[index] += rescale**2 * float(temp[6])
+        elif deriv > 0:
+          # Data is (t + tau) * d[(t + tau)**2 E(t + tau)]/d[t + tau]...
+          rescale = t / float(temp[1])
+          ave[index] += rescale * float(temp[5])
         count[index] += 1
         index += 1
     # Check that correct number of points were read
@@ -181,10 +192,14 @@ for i in cfgs:
           continue
         if plaq < 0:
           ave[index] += t**2 * float(temp[3])   # t**2 * E(t + tau)
-        else:
+        elif plaq > 0:
           # Data is (t + tau)**2 * E(t + tau)...
           rescale = t / float(temp[1])
           ave[index] += rescale**2 * float(temp[6])
+        elif deriv > 0:
+          # Data is (t + tau) * d[(t + tau)**2 E(t + tau)]/d[t + tau]...
+          rescale = t / float(temp[1])
+          ave[index] += rescale * float(temp[5])
         count[index] += 1
         index += 1
     # Check that correct number of points were read
@@ -226,9 +241,11 @@ print >> outfile, "# tau=%g with %d blocks" % (tau, int(N))
 
 # Separately compute perturbative finite-volume + zero-mode corrections
 # and save to lookup table that can be `paste`d and `awk`d when plotting
-for i in range(Npt):
+if deriv > 0:
+  gprop = 1.0
+else:
   gprop = 128.0 * 3.14159**2 / 24.0
-
+for i in range(Npt):
   dat = np.array(datList[i])
   ave = np.mean(dat, dtype = np.float64)
   err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1)
