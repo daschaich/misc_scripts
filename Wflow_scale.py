@@ -64,7 +64,8 @@ if L > Nt:
 # Include bins with a few missing measurements, for consistent analyses
 outfilename = 'data/scale.csv'
 outfile = open(outfilename, 'w')
-print >> outfile, "meas,sqrt(8t0),sqrt(8plaq),w0"
+print >> outfile, "# t^2 E = %g" % target
+print >> outfile, "# meas,sqrt(8t0),sqrt(8plaq),w0"
 count = 0
 missing = 0
 for i in cfgs:
@@ -96,15 +97,17 @@ for i in cfgs:
     elif line.startswith('RUNNING COMPLETED'):
       if i > first:
         print "WARNING: Measurement %d never reached target %.2g" % (i, target)
-      print >> outfile, i,
+      # TODO: This inserts extraneous spaces
+      # May need to import print() from future to fix
+      print >> outfile, "%d," % i,
       if done[0] == 0:
-        print >> outfile, ",null,"
+        print >> outfile, "null,",
       else:
-        print >> outfile, ",%.8g," % out_t0
+        print >> outfile, "%.8g," % out_t0,
       if done[1] == 0:
-        print >> outfile, "null,"
+        print >> outfile, "null,",
       else:
-        print >> outfile, "%.8g," % out_plaq
+        print >> outfile, "%.8g," % out_plaq,
       if done[2] == 0:
         print >> outfile, "null"
       else:
@@ -121,6 +124,11 @@ if not count == len(cfgs) - missing:
 
 # ------------------------------------------------------------------
 # Now analyze newly-created data/t0 file
+# Print each jackknife bin for correlated fitting
+binfilename = 'data/scale_bins.csv'
+binfile = open(binfilename, 'w')
+print >> binfile, "# t^2 E = %g" % target
+print >> binfile, "# bin,start,stop,sqrt(8t0),sqrt(8plaq),w0"
 missing = 0
 count = 0
 ave_t0 = 0.0         # Accumulate within each block
@@ -131,7 +139,7 @@ plaqList = []
 w0List = []
 begin = first     # Where each block begins, to be incremented
 for line in open(outfilename):
-  if line.startswith('meas'):
+  if line.startswith('#'):
     continue
   temp = line.split(',')
   i = float(temp[0])
@@ -153,6 +161,9 @@ for line in open(outfilename):
     t0List.append(ave_t0 / float(count - missing))
     plaqList.append(ave_plaq / float(count - missing))
     w0List.append(ave_w0 / float(count - missing))
+    print >> binfile, "%d,%d,%d,%.8g,%.8g,%.8g" \
+                      % (len(t0List), begin, previous, \
+                         t0List[-1], plaqList[-1], w0List[-1])
     begin = i
     missing = 0
     count = 1                     # Next block begins with this line
@@ -168,12 +179,17 @@ for line in open(outfilename):
   else: # count[0] > num:                       # Sanity check
     print "ERROR: Something funny is going on..."
     sys.exit(1)
+  previous = i
 
 # Check special case that the final file fills the last block
 if count == num:
   t0List.append(ave_t0 / float(count - missing))
   plaqList.append(ave_plaq / float(count - missing))
   w0List.append(ave_w0 / float(count - missing))
+  print >> binfile, "%d,%d,%d,%.8g,%.8g,%.8g" \
+                    % (len(t0List), begin, previous, \
+                       t0List[-1], plaqList[-1], w0List[-1])
+binfile.close()
 
 # Now print mean and standard error, requiring N>1
 if len(t0List) < 2:
