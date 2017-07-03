@@ -192,8 +192,8 @@ for i in cfgs:
         t -= tau                                # Include t-shift
         if t < 0.001:                           # Start when t > tau
           continue
-        if plaq < 0:
-          ave[index] += t**2 * float(temp[3])   # t**2 * E(t + tau)
+        if plaq < 0 and deriv < 0:              # t**2 * E(t + tau)
+          ave[index] += t**2 * np.fabs(float(temp[3]))   # fabs for 64nt128...
         elif plaq > 0:
           # Data is (t + tau)**2 * E(t + tau)...
           rescale = t / float(temp[1])
@@ -201,6 +201,8 @@ for i in cfgs:
         elif deriv > 0:
           # Data is (t + tau) * d[(t + tau)**2 E(t + tau)]/d[t + tau]...
           rescale = t / float(temp[1])
+          if float(temp[3]) < 0:
+            rescale *= -1.0                     # For 64nt128...
           ave[index] += rescale * float(temp[5])
         count[index] += 1
         index += 1
