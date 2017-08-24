@@ -246,7 +246,6 @@ echo '  <div style="width:880px; height:330px;">' >> $out
 echo '    <table>' >> $out
 echo '      <tr><th>g<sup>2</sup> from Wilson flow ('$label')</th><th>Topological charge ('$label')</th></tr>' >> $out
 echo '      <tr>' >> $out
-
 echo '        <td style="width:400px; height:300px;">' >> $out
 echo '          <div id="Wflow'$tag'"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
@@ -474,7 +473,7 @@ echo '  <h1><a name="evol"></a>Evolution observables</h1>' >> $out
 echo '  <hr><br>' >> $out
 echo '  <div style="width:880px; height:330px;">' >> $out
 echo '    <table>' >> $out
-echo '      <tr><th>HMC acceptance ('$label')</th><th>e(-delta S) ('$label')</th></tr>' >> $out
+echo '      <tr><th>HMC acceptance ('$label')</th><th>exp(-delta S) ('$label')</th></tr>' >> $out
 echo '      <tr>' >> $out
 echo '        <td style="width:400px; height:300px;">' >> $out
 echo '          <div id="accP'$tag'"></div>' >> $out
