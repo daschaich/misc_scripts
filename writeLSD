@@ -162,7 +162,7 @@ echo '    </table>' >> $out
 echo '  </div>' >> $out
 echo '  <br><br>' >> $out
 
-len=`wc -l data/plaqB.$tag.csv | awk '{print $1}'`
+len=`wc -l data/plaqB.csv | awk '{print $1}'`
 if [ $len -gt 1 ]; then  # Only include if we actually have something to show
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
@@ -308,7 +308,7 @@ echo '    </table>' >> $out
 echo '  </div>' >> $out
 echo '  <br><br>' >> $out
 
-len=`wc -l data/eig.$tag.csv | awk '{print $1}'`
+len=`wc -l data/eig.csv | awk '{print $1}'`
 if [ $len -gt 1 ]; then  # Only include if we actually have something to show
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
