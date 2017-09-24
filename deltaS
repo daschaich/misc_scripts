@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ "X$1" == "X" ]; then
+  echo "Usage: $0 <file>"
+  exit 1
+fi
+
+file=$1
+fn=~/deltaStemp.txt
+grep "delta S" $file | grep -v CHECK
+grep "delta S" $file | grep -v CHECK | awk '{print 1*$5}' > $fn
+average $fn
+Accept $file
+grep "delta S" $file | grep -v CHECK | awk '{print $5**2}' > $fn
+echo -ne "RMS deltaS: "
+average $fn | awk '{print sqrt($3)}'
+rm -f $fn

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ "X$1" == "X" ]; then
+  echo "Usage: $0 <file>"
+  exit 1
+fi
+
+file=$1
+A=$[`grep ACCEPT $file | wc -l`]
+R=$[`grep REJECT $file | wc -l`]
+tot=$[`grep delta $file | grep -v CHECK | wc -l`]
+accept=$( bc <<< "scale=1; $A / $tot")
+reject=$( bc <<< "scale=1; $R / $tot")
+
+echo "Accept $accept (check reject $reject)" 
