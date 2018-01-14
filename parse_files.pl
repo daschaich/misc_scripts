@@ -158,7 +158,7 @@ my $check = -1;           # Check that file is present or completed
 my @toCheck, my $temp;    # List of matching eigenvalue output files
 my $Nvecs, my @all_Nvecs; # More stuff for eigenvalue output files
 my $walltime = -1;        # Check that file completed successfully
-my $v7 = 0;               # Track version (and output file format)
+my $v7 = 1;               # Track version (and output file format)
 my $level = 0;            # Track inner vs. outer level for step size
 my $force_counter = 0;    # Track how many forces we have seen
 my $oldfile = 0;          # Check if any files are missing
@@ -225,8 +225,8 @@ FILE: for my $file (@files) {
   my $Nt = -1;
   my $vol = -1;
   LINE: for my $line (@in) {
-    if ($line =~ /^MIMD version 7/) {
-      $v7 = 1;
+    if ($line =~ /^MIMD version 6/) {
+      $v7 = 0;
     }
     elsif ($line =~/^PLACEHOLDER/) {
       # Placeholder file -- error has been addressed as well as possible,
