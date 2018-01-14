@@ -224,6 +224,7 @@ FILE: for my $file (@files) {
   my $L = -1;
   my $Nt = -1;
   my $vol = -1;
+  my $Nsrc = 5;   # Common default for m>0
   LINE: for my $line (@in) {
     if ($line =~ /^MIMD version 6/) {
       $v7 = 0;
@@ -236,7 +237,6 @@ FILE: for my $file (@files) {
     elsif ($line =~ /^trajecs /) {
       ($junk, $traj_per_file) = split /\s+/, $line;
       $endtraj = $traj + $traj_per_file;
-      last LINE;   # Don't go through whole file yet
     }
     elsif ($line =~ /^nx /) {
       ($junk, $L) = split /\s+/, $line;
@@ -248,6 +248,13 @@ FILE: for my $file (@files) {
       if ($Nt < $L) {
         $L = $Nt;
       }
+    }
+
+    # !!!Could be problems with malformed input...
+    elsif ($line =~ /^npbp /) {
+      ($junk, $Nsrc) = split /\s+/, $line;
+      print "Nsrc=$Nsrc\n";
+      last LINE;   # Don't go through whole file yet
     }
   }
   if ($traj_per_file == -1) {
@@ -450,12 +457,11 @@ FILE: for my $file (@files) {
         $pbp_r += $r_e + $r_o;
         $pbp_i += $i_e + $i_o;
 
-        # !!!Hard-code Nsrc=5 to avoid fatal errors from malformed input
+        # !!!Could be problems with malformed input...
         $pbp_iter++;
-        my $Nsrc = 5;
         if ($pbp_iter == $Nsrc) {  # Average, print and reset
-          $pbp_r /= (2 * $Nsrc);
-          $pbp_i /= (2 * $Nsrc);
+          $pbp_r /= (2.0 * $Nsrc);
+          $pbp_i /= (2.0 * $Nsrc);
 #          print PBP "$MDTU,$pbp_r,$pbp_i\n"
           print PBP "$MDTU,$pbp_r\n";
           $pbp_r = 0;
