@@ -253,7 +253,6 @@ FILE: for my $file (@files) {
     # !!!Could be problems with malformed input...
     elsif ($line =~ /^npbp /) {
       ($junk, $Nsrc) = split /\s+/, $line;
-      print "Nsrc=$Nsrc\n";
       last LINE;   # Don't go through whole file yet
     }
   }
