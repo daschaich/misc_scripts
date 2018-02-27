@@ -94,9 +94,9 @@ else:
 
 
 # ------------------------------------------------------------------
-# Plaquette is special -- two data (to be averaged) per line
+# Plaquette is special -- average two data per line
 count = 0
-ave = 0.          # Accumulate within each block
+ave = 0.0         # Accumulate within each block
 datList = []
 begin = cut       # Where each block begins, to be incremented
 plaqfile = 'data/plaq.' + tag + '.csv'
@@ -137,7 +137,7 @@ outfile.close()
 # Chiral condensate is also special
 # It needs to be halved to be normalized per continuum flavor
 count = 0
-ave = 0.          # Accumulate within each block
+ave = 0.0         # Accumulate within each block
 datList = []
 begin = cut       # Where each block begins, to be incremented
 pbpfile = 'data/pbp.' + tag + '.csv'
@@ -197,7 +197,7 @@ else:
   polyObs = ['poly_r']
 for obs in polyObs:
   count = 0
-  ave = 0.          # Accumulate within each block
+  ave = 0.0         # Accumulate within each block
   datList = []
   begin = cut       # Where each block begins, to be incremented
   obsfile = 'data/' + obs + '.' + tag + '.csv'
@@ -235,6 +235,52 @@ for obs in polyObs:
 
 
 # ------------------------------------------------------------------
+# For algorithmic/cost quantities
+# we're again interested in the first datum on each line
+# Note using trajectories as if they were MDTU...
+for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
+  count = 0
+  ave = 0.0         # Accumulate within each block
+  datList = []
+  begin = cut       # Where each block begins, to be incremented
+  obsfile = 'data/' + obs + '.' + tag + '.csv'
+  for line in open(obsfile):
+    if line.startswith('M') or line.startswith('t'):
+      continue
+    temp = line.split(',')
+    traj = float(temp[0])
+    if traj < cut:
+      continue
+    elif traj >= begin and traj < (begin + block_size):
+      ave += float(temp[1])
+      count += 1
+    elif traj >= (begin + block_size):  # Move on to next block
+      datList.append(ave / float(count))
+      begin += block_size
+      count = 1                     # Next block begins with this line
+      ave = float(temp[1])
+
+  if len(datList) == 0:
+    continue
+
+  # Now print mean and standard error, assuming N>1
+  dat = np.array(datList)
+  N = np.size(dat)
+  ave = np.mean(dat, dtype = np.float64)
+  err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1)
+  outfilename = 'results/' + obs + '_m' + str(mass) + '.' + start
+  outfile = open(outfilename, 'a')
+  print >> outfile, "%.8g %.8g %.4g # %d" % (beta, ave, err, N)
+  outfile.close()
+  outfilename = 'results/' + obs + '_b' + str(beta) + '.' + start
+  outfile = open(outfilename, 'a')
+  print >> outfile, "%.8g %.8g %.4g # %d" % (mass, ave, err, N)
+  outfile.close()
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
 # Blocked data files have blMax + 1 data per line (including unblocked)
 # We already got the "+ 1" above, but include it here as well, to check
 # Just look at real parts for now (not mod, arg or imaginary parts)
@@ -247,7 +293,7 @@ else:
 mcrgObs = []
 for obs in mcrgObs:
   count = 0
-  ave = [0. for x in range(blMax + 1)] # Accumulate within each block
+  ave = [0.0 for x in range(blMax + 1)] # Accumulate within each block
   datList = [[] for x in range(blMax + 1)]
   begin = cut       # Where each block begins, to be incremented
   obsfile = 'data/' + obs + '.' + tag + '.csv'
@@ -297,7 +343,7 @@ for obs in mcrgObs:
 # Also need to normalize the link differences by (half) the volume
 for obs in ['plaq_diff', 'link_diff']:
   count = 0
-  ave = 0.          # Accumulate within each block
+  ave = 0.0         # Accumulate within each block
   datList = []
   begin = cut       # Where each block begins, to be incremented
   obsfile = 'data/' + obs + '.' + tag + '.csv'
