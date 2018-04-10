@@ -29,11 +29,15 @@ block_size = int(sys.argv[2])
 start = int(sys.argv[3])
 
 # First extract lattice volume from path
-# For now assume L and Nt are both two-digit numbers
+# For now handle only one- or two-digit L and Nt
 path = os.getcwd()
 temp = path.split('nt')
-L = int(temp[0][-2:])    # Last two digits before 'nt'
-Nt = int(temp[1][:2])    # First two digits after 'nt'
+if '/' in temp[0][-2:]:
+  L = int(temp[0][-1:])    # Last digit before 'nt'
+  Nt = int(temp[1][:1])    # First digit after 'nt'
+else:
+  L = int(temp[0][-2:])    # Last two digits before 'nt'
+  Nt = int(temp[1][:2])    # First two digits after 'nt'
 vol = L**3 * Nt
 
 # Set the maximum number of RG blockings
