@@ -6,8 +6,16 @@ if [ $# != 0 ]; then
 fi
 
 temp=`pwd`
-dir=${temp##*FA/}   # Strip everything up to and including "FA/"
-path=/data/lsd/KS_nHYP_FA/$dir
+if [[ $temp == *"KS_nHYP_FA"* ]] ; then
+  dir=${temp##*FA/}   # Strip everything up to and including "FA/"
+  path=/data/lsd/KS_nHYP_FA/$dir
+elif [[ $temp == *"SU4"* ]] ; then
+  dir=${temp##*4f/}   # Strip everything up to and including "4f/"
+  path=/data/lsd/SU4/4f/$dir
+else
+  echo "ERROR: Unrecognized path $temp"
+  exit 1
+fi
 # ------------------------------------------------------------------
 
 

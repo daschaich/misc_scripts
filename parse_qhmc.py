@@ -11,8 +11,19 @@ import math
 if not os.path.isdir('Out'):
   print "ERROR: Out/ does not exist"
   sys.exit(1)
-if not '8f' in os.getcwd():
-  print "ERROR: force extraction assumes Nf=8"
+
+# Try to deal with the forces
+# First Nf/4 (counting from 01) are for outer lattice fields
+# Next Nf/4 are for Hasenbusch lattice fields
+temp = os.getcwd()
+if '4f' in temp:
+  Nc=4.0
+  Ftag = 'FF[02]'
+elif '8f' in temp:
+  Nc=3.0
+  Ftag = 'FF[03]'
+else:
+  print "ERROR: Force extraction can only handle Nf=4 or Nf=8"
   sys.exit(1)
 
 ERRFILE = open('ERRORS', 'w')
@@ -178,6 +189,7 @@ for temp_tag in open('list.txt'):
 
   # ----------------------------------------------------------------
   # Cycle through lines in the "out" file
+  start_traj = 0      # In case we started from a unit configuration
   oldcfg = int(cfg)
   for line in open(infile):
     if line.startswith('traj_length'):
@@ -236,7 +248,7 @@ for temp_tag in open('list.txt'):
       Nstep_gauge = int((line.split())[5])
       stepsize_gauge = tlength / float(Nstep_gauge)
       force_gauge = float((line.split())[11])
-    elif line.startswith('FF[01]'):
+    elif line.startswith('FF[01]'):   # Robust to Nf
       Nstep = int((line.split())[5])
       stepsize = tlength / float(Nstep)
       force0 = float((line.split())[11])
@@ -247,7 +259,7 @@ for temp_tag in open('list.txt'):
       print >> NSTEP, "%d,%d,%d,%d" % (traj, Nstep, Nstep1, Nstep_gauge)
       print >> STEPSIZE, "%d,%g,%g,%g" \
                          % (traj, stepsize, stepsize1, stepsize_gauge)
-    elif line.startswith('FF[03]'):   # Requires Nf=8
+    elif line.startswith(Ftag):       # Nf-dependent Ftag set above
       force1 = float((line.split())[11])
 
     # Could split CG iterations into inner and outer steps
@@ -261,8 +273,8 @@ for temp_tag in open('list.txt'):
     # Now extract physical observables and wrap up "out" file
     # Use consistent normalization for plaquette and pbp
     elif line.startswith('MEASplaq'):
-      plaq_ss = 3.0 * float((line.split())[2])
-      plaq_st = 3.0 * float((line.split())[4])
+      plaq_ss = Nc * float((line.split())[2])
+      plaq_st = Nc * float((line.split())[4])
       print >> PLAQ, "%g,%g,%g" % (MDTU, plaq_ss, plaq_st)
     elif line.startswith('MEASploop'):
       poly_r = float((line.split())[5])
@@ -318,7 +330,7 @@ for temp_tag in open('list.txt'):
       # Try to check plaquette...
       if line.startswith('CHECK PLAQ: '):
         order_check = float((line.split())[2]) + float((line.split())[3])
-        out_check = 2.0 * 3.0 * float((oldstamp.split())[-1])
+        out_check = 2.0 * Nc * float((oldstamp.split())[-1])
         diff = abs(order_check - out_check)
         if diff > 1e-5:
           print infile, "starting plaquette doesn't match saved:",

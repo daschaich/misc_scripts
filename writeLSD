@@ -8,7 +8,14 @@ fi
 tag=$1
 date=$2
 
-out="/data/lsd/KS_nHYP_FA/$tag/index.html"
+if [ -d "/data/lsd/KS_nHYP_FA/$tag" ] ; then
+  out="/data/lsd/KS_nHYP_FA/$tag/index.html"
+elif [ -d "/data/lsd/SU4/4f/$tag" ] ; then
+  out="/data/lsd/SU4/4f/$tag/index.html"
+else
+  echo "ERROR: Can't find appropriate $tag directory"
+  exit 1
+fi
 #echo "Writing $out"
 
 echo '<html><head>' > $out
