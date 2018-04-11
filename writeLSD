@@ -8,10 +8,13 @@ fi
 tag=$1
 date=$2
 
+# Turn Wilson line scatter plots off/on depending on level of statistics
 if [ -d "/data/lsd/KS_nHYP_FA/$tag" ] ; then
   out="/data/lsd/KS_nHYP_FA/$tag/index.html"
+  scatter=0
 elif [ -d "/data/lsd/SU4/4f/$tag" ] ; then
   out="/data/lsd/SU4/4f/$tag/index.html"
+  scatter=1
 else
   echo "ERROR: Can't find appropriate $tag directory"
   exit 1
@@ -79,7 +82,7 @@ echo '    </table>' >> $out
 echo '  </div>' >> $out
 echo '  <br><br>' >> $out
 
-if [ 0 -gt 1 ]; then  # Turn off for now---scatter plots become slow to load with a lot of data
+if [ $scatter -gt 0 ]; then  # scatter set above depending on directory path
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
   echo '      <tr><th>Polyakov loop ('$tag')</th><th>Spatial loop ('$tag')</th></tr>' >> $out
@@ -93,6 +96,8 @@ if [ 0 -gt 1 ]; then  # Turn off for now---scatter plots become slow to load wit
   echo '                              drawPoints: true,' >> $out
   echo '                              strokeWidth: 0,' >> $out
   echo '                              showLabelsOnHighlight: false,' >> $out
+  echo '                              valueRange: [-1.01, 1.01],' >> $out
+  echo '                              dateWindow: [-1.01, 1.01],' >> $out
   echo '                              xValueFormatter: function(x) {' >> $out
   echo '                                var shift = Math.pow(10, 4)' >> $out
   echo '                                return Math.round(x * shift) / shift' >> $out
@@ -113,6 +118,8 @@ if [ 0 -gt 1 ]; then  # Turn off for now---scatter plots become slow to load wit
   echo '                              drawPoints: true,' >> $out
   echo '                              strokeWidth: 0,' >> $out
   echo '                              showLabelsOnHighlight: false,' >> $out
+  echo '                              valueRange: [-1.01, 1.01],' >> $out
+  echo '                              dateWindow: [-1.01, 1.01],' >> $out
   echo '                              xValueFormatter: function(x) {' >> $out
   echo '                                var shift = Math.pow(10, 4)' >> $out
   echo '                                return Math.round(x * shift) / shift' >> $out
