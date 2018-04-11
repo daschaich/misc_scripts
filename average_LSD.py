@@ -34,11 +34,22 @@ path = os.getcwd()
 temp = path.split('nt')
 if '/' in temp[0][-2:]:
   L = int(temp[0][-1:])    # Last digit before 'nt'
-  Nt = int(temp[1][:1])    # First digit after 'nt'
 else:
   L = int(temp[0][-2:])    # Last two digits before 'nt'
+if '/' in temp[0][:2]:
+  Nt = int(temp[1][:1])    # First digit after 'nt'
+else:
   Nt = int(temp[1][:2])    # First two digits after 'nt'
 vol = L**3 * Nt
+
+# Extract number of flavors for pbp normalization
+if '4f' in path:
+  pbp_norm = 1.0
+elif '8f' in path:
+  pbp_norm = 2.0
+else:
+  print "ERROR: So far only 4f and 8f set up"
+  sys.exit(1)
 
 # Set the maximum number of RG blockings
 blMax = 0
@@ -108,7 +119,7 @@ for line in open(pbpfile):
     ave += float(temp[1])
     count += 1
   elif MDTU >= (begin + block_size):  # Move on to next block
-    datList.append(ave / float(2. * count))
+    datList.append(ave / float(pbp_norm * count))
     begin += block_size
     count = 1                     # Next block begins with this line
     ave = float(temp[1])
