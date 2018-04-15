@@ -67,7 +67,7 @@ echo '          <div id="pbp"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("pbp"),' >> $out
 echo '                            "data/pbp.csv",' >> $out
-echo '                            { rollPeriod: 5,' >> $out
+echo '                            { rollPeriod: 50,' >> $out
 echo '                              colors: ["blue", "orange"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              yValueFormatter: function(x) {' >> $out

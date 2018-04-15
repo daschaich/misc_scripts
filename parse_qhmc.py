@@ -247,15 +247,16 @@ for temp_tag in open('list.txt'):
     elif line.startswith('GF'):
       Nstep_gauge = int((line.split())[5])
       stepsize_gauge = tlength / float(Nstep_gauge)
-      force_gauge = float((line.split())[11])
+      force_gauge = float((line.split())[11]) * stepsize_gauge
     elif line.startswith('FF[01]'):   # Robust to Nf
       Nstep = int((line.split())[5])
       stepsize = tlength / float(Nstep)
-      force0 = float((line.split())[11])
+      force0 = float((line.split())[11]) * stepsize
     elif line.startswith('FFtot'):    # Robust to Nf
       Nstep1 = int((line.split())[5]) - Nstep
       stepsize1 = tlength / float(Nstep1)
-      print >> FORCE, "%d,%g,%g,%g" % (traj, force0, force1, force_gauge)
+      print >> FORCE, "%d,%g,%g,%g" \
+                      % (traj, force0, force1 * stepsize1, force_gauge)
       print >> NSTEP, "%d,%d,%d,%d" % (traj, Nstep, Nstep1, Nstep_gauge)
       print >> STEPSIZE, "%d,%g,%g,%g" \
                          % (traj, stepsize, stepsize1, stepsize_gauge)
