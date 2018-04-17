@@ -63,7 +63,7 @@ for(( i="$count" ; $i<=$last ; i++ )); do
   echo "ny $L" >> temp
   echo "nz $L" >> temp
   echo "nt $Nt" >> temp
-  echo "iseed ${last}41$i" >> temp
+  echo "iseed ${last}${beta/\./41}${L}$i" >> temp
 
   echo "warms 0" >> temp
   echo "trajecs $Ntraj" >> temp
