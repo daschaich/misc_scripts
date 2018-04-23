@@ -60,6 +60,28 @@ else:
 while temp % 2 == 0 and temp > 2:
   temp /= 2
   blMax += 1
+
+# Check that we actually have data to average
+# and convert thermalization cut from MDTU to trajectory number
+# (Note unit-length trajectories let us reuse block_size for t_block)
+MDTUfile = 'data/TU.csv'
+sav = 0
+good = -1
+for line in open(MDTUfile):
+  if line.startswith('t'):
+    continue
+  temp = line.split(',')
+  if float(temp[1]) > cut:
+    good = 1
+    t_cut = sav
+    break
+  sav = float(temp[0])
+
+final_MDTU = float(temp[1])
+if good == -1:
+  print "Error: no data to analyze",
+  print "since cut=%d but we only have %d MDTU" % (cut, final_MDTU)
+  sys.exit(1)
 # ------------------------------------------------------------------
 
 
@@ -173,6 +195,56 @@ for obs in ['poly_r', 'xpoly_r']:
   print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
   outfile.close()
 # ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# For algorithmic/cost quantities
+# we're interested in the first datum on each line
+# Need to work in terms of trajectories rather than MDTU
+for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
+  skip = -1
+  count = 0
+  ave = 0.0         # Accumulate within each block
+  datList = []
+  begin = t_cut     # Where each block begins, to be incremented
+  obsfile = 'data/' + obs + '.csv'
+  for line in open(obsfile):
+    if line.startswith('M') or line.startswith('t'):
+      continue
+    temp = line.split(',')
+    traj = float(temp[0])
+    if traj <= t_cut:
+      continue
+    elif traj > begin and traj < (begin + block_size):
+      ave += float(temp[1])
+      count += 1
+    elif traj >= (begin + block_size):      # Move on to next block
+      if count == 0:
+        print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
+        skip = 1
+        break
+      datList.append(ave / count)
+      begin += block_size
+      count = 1                             # Next block begins here
+      ave = float(temp[1])
+
+  if len(datList) == 0:
+    skip = 1
+  if skip > 0:
+    continue
+
+  # Now print mean and standard error, assuming N>1
+  dat = np.array(datList)
+  N = np.size(dat)
+  ave = np.mean(dat, dtype = np.float64)
+  err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.0)
+  outfilename = 'results/' + obs + '.dat'
+  outfile = open(outfilename, 'w')
+  print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
+  outfile.close()
+# ------------------------------------------------------------------
+
 
 
 
