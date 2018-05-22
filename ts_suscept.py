@@ -94,7 +94,10 @@ for obs in ['plaq', 'poly_mod', 'pbp']:
       sqList.append(aveSq / count)
       begin += block_size
       count = 1                         # Next block begins here
-      tr = float(temp[3])
+      if obs == 'plaq':
+        tr = 0.5*(float(temp[1]) + float(temp[2]))
+      else:
+        tr = float(temp[1])
       ave = tr
       aveSq = tr * tr
 
