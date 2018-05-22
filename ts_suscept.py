@@ -61,7 +61,7 @@ if good == -1:
 # For plaquette, average two data per line
 # Otherwise just grab since number after MDTU label
 # This is the z-direction modulus (following those for x and y)
-for obs in ['plaq', 'poly_mod', 'pbp']:
+for obs in ['plaq', 'poly_r', 'pbp']:
   skip = -1
   count = 0
   ave = 0.0         # Accumulate within each block
