@@ -58,7 +58,8 @@ if good == -1:
 
 
 # ------------------------------------------------------------------
-# We're interested in the third datum on each line
+# For plaquette, average two data per line
+# Otherwise just grab since number after MDTU label
 # This is the z-direction modulus (following those for x and y)
 for obs in ['plaq', 'poly_mod', 'pbp']:
   skip = -1
@@ -77,7 +78,10 @@ for obs in ['plaq', 'poly_mod', 'pbp']:
     if MDTU <= cut:
       continue
     elif MDTU > begin and MDTU < (begin + block_size):
-      tr = float(temp[3])
+      if obs == 'plaq':
+        tr = 0.5*(float(temp[1]) + float(temp[2]))
+      else:
+        tr = float(temp[1])
       ave += tr
       aveSq += tr * tr
       count += 1
