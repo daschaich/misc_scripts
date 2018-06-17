@@ -1,0 +1,122 @@
+#!/bin/bash
+
+if [ $# -lt 7 ]; then
+  echo "Usage: $0 <first> <last> <MH> nsteps nsteps2 ngsteps <time> [dependency (optional)]"
+  exit 1
+fi
+
+# Input parameters
+first=$1
+last=$2
+MH=$3
+nsteps=$4
+nsteps2=$5
+ngsteps=$6
+time=$7
+
+# Adjustable parameters
+node=32
+cpus=512
+Nf=4
+L=24
+Nt=12
+mass=0.2
+beta=24.0
+start=high
+ntraj=10
+traj_length=1
+skip=10   # !!! Should be a way to figure out skip=ntraj*traj_length
+
+# Common parameters for all jobs
+tag=b${beta}_${start}_m$mass
+temp=submit_$tag
+echo "#!/bin/bash" > $temp
+echo "#MSUB -A latticgc" >> $temp
+echo "#MSUB -l partition=cab" >> $temp
+echo "#MSUB -l nodes=$node" >> $temp
+echo "#MSUB -q pbatch" >> $temp
+echo "#MSUB -l walltime=$time" >> $temp
+echo "#MSUB -N HMC${L}nt${Nt}_b$beta" >> $temp
+echo "#MSUB -l gres=lscratchh" >> $temp
+echo "#MSUB -j oe" >> $temp
+echo "#MSUB -o out.HMC.%j" >> $temp
+echo "#MSUB -m ae" >> $temp
+echo "#MSUB -M daschaich@gmail.com" >> $temp
+
+dir=/p/lscratchh/schaich2/SU4/${Nf}f/${L}nt${Nt}/b${beta}_${start}_m$mass
+
+# Check that we're not going to break anything
+lat=$dir/Configs/config.$first.lime
+if [ ! -f $lat ]; then
+  echo "WARNING: LATTICE $lat NOT FOUND"
+  # Allow job to be submitted with warning,
+  # so it can accumulate priority while the starting config is generated
+fi
+for(( i=$first ; $i<$last ; i+=$skip )); do
+  out=$dir/Out/out.$i-$next
+  lat=$dir/Configs/config.$[$i+$skip].lime
+  if [ -f $out ]; then
+    echo "ERROR: OUTPUT FILE $out EXISTS, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+  if [ -f $lat ]; then
+    echo "ERROR: LATTICE $lat EXISTS, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+done
+
+# Diagnostic information
+echo "echo '=====================JOB DIAGNOTICS========================'" >> $temp
+echo "date" >> $temp
+echo "echo -n 'This machine is ';hostname" >> $temp
+echo "echo -n 'My jobid is '; echo \$SLURM_JOBID" >> $temp
+echo "echo 'My path is:' " >> $temp
+echo "echo \$PATH" >> $temp
+echo "echo 'My job info:'" >> $temp
+echo "squeue -j \$SLURM_JOBID" >> $temp
+echo "echo 'Machine info'" >> $temp
+echo "sinfo -s" >> $temp
+
+# Write all evolution tasks to run in a single job
+iter=0
+for(( i=$first ; $i<$last ; i+=$skip )); do
+  iter=$[$iter + 1]
+  next=$[$i + $skip]
+  out=$dir/Out/out.$i-$next
+  lat=$dir/Configs/config
+
+  # Set up run script for this task
+  awk -v X=$mass '{sub("massGoesHere",X);print}' ../template.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$beta '{sub(/betaGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$MH '{sub(/mass2GoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$ntraj '{sub(/ntrajGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$i '{sub(/trajGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$nsteps '{sub(/nstepsGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$nsteps2 '{sub(/nsteps2GoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$ngsteps '{sub(/ngstepsGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$lat.%i.lime '{sub(/latpatGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=${last}${beta/\./41}${L}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+
+  echo "echo \"Job HMC${L}nt${Nt}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
+  echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
+  echo "echo \"srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc RUN$i.lua\" >> $out" >> $temp
+  echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc RUN$i.lua >> $out" >> $temp
+
+  echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> $temp
+  echo "" >> $temp
+done
+
+if [ $# -gt 7 ]; then
+  msub -l depend=$8 $temp
+else
+  msub $temp
+fi
+rm -f $temp
+
+echo "Requested $time to run $iter jobs ($first--$last by $ntraj)"
+echo -ne "  The latest file in this ensemble is "
+ls -tr Out/out.* | tail -n 1
+echo     "The first file this job will write is Out/out.$first-$[$first+$ntraj]"
+echo "Cancel the job if this doesn't look right"

@@ -29,7 +29,6 @@ if not os.path.isdir('data'):
 # Check that we actually have data to average
 # and convert thermalization cut from MDTU to trajectory number
 MDTUfile = 'data/TU.csv'
-sav = 0
 good = -1
 for line in open(MDTUfile):
   if line.startswith('t'):
@@ -37,16 +36,7 @@ for line in open(MDTUfile):
   temp = line.split(',')
   if float(temp[1]) > cut:
     good = 1
-    t_cut = sav
     break
-  sav = float(temp[0])
-
-# Guess whether we should also convert the block size
-# from MDTU to trajectory number
-# They differ when tau=2 trajectories are used...
-t_block = block_size
-if t_cut < float(cut) / 1.5:
-  t_block /= 2
 
 final_MDTU = float(temp[1])
 if good == -1:
@@ -59,8 +49,7 @@ if good == -1:
 
 # ------------------------------------------------------------------
 # For plaquette, average two data per line
-# Otherwise just grab since number after MDTU label
-# This is the z-direction modulus (following those for x and y)
+# Otherwise just grab number after MDTU label
 for obs in ['plaq', 'poly_r', 'pbp']:
   skip = -1
   count = 0
@@ -79,7 +68,7 @@ for obs in ['plaq', 'poly_r', 'pbp']:
       continue
     elif MDTU > begin and MDTU < (begin + block_size):
       if obs == 'plaq':
-        tr = 0.5*(float(temp[1]) + float(temp[2]))
+        tr = 0.5 * (float(temp[1]) + float(temp[2]))
       else:
         tr = float(temp[1])
       ave += tr
@@ -95,7 +84,7 @@ for obs in ['plaq', 'poly_r', 'pbp']:
       begin += block_size
       count = 1                         # Next block begins here
       if obs == 'plaq':
-        tr = 0.5*(float(temp[1]) + float(temp[2]))
+        tr = 0.5 * (float(temp[1]) + float(temp[2]))
       else:
         tr = float(temp[1])
       ave = tr
@@ -108,7 +97,7 @@ for obs in ['plaq', 'poly_r', 'pbp']:
     sys.exit(1)
 
   # Now construct jackknife samples through single-block elimination
-  #   chi = <WL^2> - <WL>^2
+  #   chi = <obs^2> - <obs>^2
   dat = np.array(datList)
   tot = sum(dat)
   sq = np.array(sqList)
