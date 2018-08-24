@@ -17,8 +17,8 @@ gauge=$8
 time=$9
 
 # Adjustable parameters
-node=32
-cpus=1024
+node=26
+cpus=512
 Nf=12
 L=48
 mass=0.0
@@ -30,25 +30,27 @@ Ntraj=10
 tag=b${beta}
 echo "#!/bin/sh" > temp
 echo "#SBATCH --nodes=$node" >> temp
-echo "#SBATCH --ntasks-per-node=32" >> temp
+echo "#SBATCH --ntasks-per-node=20" >> temp
+echo "#SBATCH --mem-per-cpu=1G" >> temp
 echo "#SBATCH --time=$time" >> temp
-echo "#SBATCH -A latticesusy" >> temp
-echo "#SBATCH --partition ds" >> temp
-echo "#SBATCH --qos fifo" >> temp
-echo "#SBATCH -J HMC${L}_$tag" >> temp
-echo "#SBATCH -o hmc.%j.out" >> temp
+echo "#SBATCH --partition all" >> temp
+echo "#SBATCH --exclusive" >> temp
+echo "#SBATCH --job-name HMC${L}_$tag" >> temp
+echo "#SBATCH --output hmc.%j.out" >> temp
 echo "#SBATCH --error hmc.%j.err" >> temp
 echo "#SBATCH --mail-user=daschaich@gmail.com" >> temp
-echo "#SBATCH --mail-type=ALL" >> temp
+echo "#SBATCH --mail-type=all" >> temp
 if [ $# -gt 9 ]; then
   echo "#SBATCH -d afterok:${10}" >> temp
 fi
 
-dir=/lqcdproj/nHYPBSM/KS_nHYP_FA/Run_APBC${Nf}_${L}$L
-bin=/lqcdproj/nHYPBSM/bins/su3_hmc_APBC
+dir=/home/ubelix/itp/schaich/KS_nHYP_FA/Run_APBC${Nf}_${L}$L
+bin=/home/ubelix/itp/schaich/bins/su3_hmc_APBC
 cd $dir
 echo "cd $dir" >> temp
-echo "newgrp nHYPBSM" >> temp
+
+# Load Intel MPI module
+module load impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
 
 # Check that we're not going to break anything
 lat=$dir/Configs/gauge_${L}${L}_${beta}_${ratio}_${mass}_$start.$first
@@ -82,8 +84,8 @@ for(( i=$first ; $i<=$last ; i++ )); do
 
   echo "echo \"Job \$SLURM_JOB_NAME started \"\`date\`\" jobid \$SLURM_JOB_ID\" >> $out" >> temp
   echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> temp
-  echo "echo \"srun -n $cpus $bin\" >> $out" >> temp
-  echo "srun -n $cpus $bin << EOF >> $out" >> temp
+  echo "echo \"mpirun -np $cpus $bin\" >> $out" >> temp
+  echo "mpirun -np $cpus $bin << EOF >> $out" >> temp
   echo "prompt 0" >> temp
   echo "nflavors $Nf" >> temp
   echo "nx $L" >> temp
