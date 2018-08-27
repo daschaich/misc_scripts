@@ -63,6 +63,12 @@ TOPO = open('data/topo.csv', 'w')
 print >> TOPO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
 WPOLY = open('data/Wpoly.csv', 'w')
 print >> WPOLY, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+WFLOW_SS = open('data/Wflow_ss.csv', 'w')
+print >> WFLOW_SS, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+WFLOW_ST = open('data/Wflow_st.csv', 'w')
+print >> WFLOW_ST, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+WFLOW_ANISO = open('data/Wflow_aniso.csv', 'w')
+print >> WFLOW_ANISO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
 
 # Blocked observables
 PLAQB = open('data/plaqB.csv', 'w')
@@ -404,11 +410,14 @@ for temp_tag in open('list.txt'):
   else:
     FNAL = -1
     check = -1
-    c = -1.0    # sqrt(8t) / L
+    c = -1.0      # sqrt(8t) / L
     cOld = 1.0
     gSq = []
-    topo = []   # Topological charge
-    poly = []   # Wilson-flowed Polyakov loop
+    topo = []     # Topological charge
+    poly = []     # Wilson-flowed Polyakov loop
+    Wflow_ss = [] # t^2 * E_ss
+    Wflow_st = [] # t^2 * E_st
+    aniso = []    # Anisotropy E_ss / E_st
 
     # RG-blocked observables
     plaq_blocked = -1     # Check to see how much to print
@@ -442,25 +451,41 @@ for temp_tag in open('list.txt'):
       elif line.startswith('WFLOW '):
         c = math.sqrt(8.0 * float((line.split())[1])) / L
         if cOld < 0.2 and c >= 0.2:
-          gSq.append(gprop * float((line.split())[4]))
-          topo.append(float((line.split())[7]))
+          temp = line.split()
+          gSq.append(gprop * float(temp[4]))
+          topo.append(float(temp[7]))
+          Wflow_ss.append(float(temp[8]))
+          Wflow_st.append(float(temp[9]))
+          aniso.append(float(temp[8]) / float(temp[9]))
         elif cOld < 0.25 and c >= 0.25:
           gSq.append(gprop * float((line.split())[4]))
         elif cOld < 0.3 and c >= 0.30:
-          gSq.append(gprop * float((line.split())[4]))
-          topo.append(float((line.split())[7]))
+          temp = line.split()
+          gSq.append(gprop * float(temp[4]))
+          topo.append(float(temp[7]))
+          Wflow_ss.append(float(temp[8]))
+          Wflow_st.append(float(temp[9]))
+          aniso.append(float(temp[8]) / float(temp[9]))
         elif cOld < 0.35 and c >= 0.35:
           gSq.append(gprop * float((line.split())[4]))
         elif cOld < 0.4 and c >= 0.40:
-          topo.append(float((line.split())[7]))
+          temp = line.split()
+          topo.append(float(temp[7]))
+          Wflow_ss.append(float(temp[8]))
+          Wflow_st.append(float(temp[9]))
+          aniso.append(float(temp[8]) / float(temp[9]))
         elif cOld < 0.5 and c >= 0.50:
-          topo.append(float((line.split())[7]))
+          temp = line.split()
+          topo.append(float(temp[7]))
+          Wflow_ss.append(float(temp[8]))
+          Wflow_st.append(float(temp[9]))
+          aniso.append(float(temp[8]) / float(temp[9]))
         cOld = c
 
       # Wilson-flowed Polyakov loop
       elif line.startswith('POLYA ORIG '):
         temp = line.split()
-        cp = math.sqrt(8.0 * float((line.split())[2])) / L
+        cp = math.sqrt(8.0 * float(temp[2])) / L
         if cp == 0.0:
           p_r[0] = float(temp[3])
           p_i[0] = float(temp[4])
@@ -506,6 +531,13 @@ for temp_tag in open('list.txt'):
     if len(poly) == 4:
       print >> WPOLY, "%g,%g,%g,%g,%g" \
                       % (MDTU, poly[0], poly[1], poly[2], poly[3])
+    if len(aniso) == 4:
+      print >> WFLOW_SS, "%g,%g,%g,%g,%g" \
+               % (MDTU, Wflow_ss[0], Wflow_ss[1], Wflow_ss[2], Wflow_ss[3])
+      print >> WFLOW_ST, "%g,%g,%g,%g,%g" \
+               % (MDTU, Wflow_st[0], Wflow_st[1], Wflow_st[2], Wflow_st[3])
+      print >> ANISO, "%g,%g,%g,%g,%g" \
+               % (MDTU, aniso[0], aniso[1], aniso[2], aniso[3])
 
     # Lots of RG-blocked stuff to print
     if plaq_blocked > 0:
@@ -584,6 +616,9 @@ EIG.close()
 WFLOW.close()
 TOPO.close()
 WPOLY.close()
+WFLOW_SS.close()
+WFLOW_ST.close()
+WFLOW_ANISO.close()
 PLAQB.close()
 POLYB.close()
 XPOLYB.close()
