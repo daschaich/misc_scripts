@@ -55,6 +55,9 @@ open EIG, "> $path/data/eig.csv" or die "Error opening $path/data/eig.csv ($!)\n
 open WFLOW, "> $path/data/Wflow.csv" or die "Error opening $path/data/Wflow.csv ($!)\n";
 open TOPO, "> $path/data/topo.csv" or die "Error opening $path/data/topo.csv ($!)\n";
 open WPOLY, "> $path/data/Wpoly.csv" or die "Error opening $path/data/Wpoly.csv ($!)\n";
+open WFLOW_SS, "> $path/data/Wflow_ss.csv" or die "Error opening $path/data/Wflow_ss.csv ($!)\n";
+open WFLOW_ST, "> $path/data/Wflow_st.csv" or die "Error opening $path/data/Wflow_st.csv ($!)\n";
+open WFLOW_ANISO, "> $path/data/Wflow_aniso.csv" or die "Error opening $path/data/Wflow_aniso.csv ($!)\n";
 
 print KEY "t,file\n";
 print STEPSIZE "t,eps0,eps1,eps_gauge\n";
@@ -95,6 +98,9 @@ print EIG "MDTU,1,2,3,4,5,6,7,8,9,10,11,12\n";
 print WFLOW "MDTU,c=0.2,c=0.25,c=0.3,c=0.35\n";
 print TOPO "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 print WPOLY "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
+print WFLOW_SS "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
+print WFLOW_ST "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
+print WFLOW_ANISO "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 # ------------------------------------------------------------------
 
 
@@ -617,6 +623,8 @@ WFLOW:
   # We have a file, so let's cycle over its lines
   $check = -1;              # Check whether file completed successfully
   my $Wflow_t = -1;         # Flow time
+  my $E_ss = -1;            # Space--space t^2*E
+  my $E_st = -1;            # Space--time t^2*E
   my $tSqE = -1;            # To check, related to coupling
   my $c = -1;               # sqrt(8t) / L
   my $cOld = 1;             # To see where we pass thresholds
@@ -624,6 +632,9 @@ WFLOW:
   my @gSq = ("null", "null", "null", "null");
   my @topo = ("null", "null", "null", "null");  # Topological charge
   my @poly = ("null", "null", "null", "null");  # Wilson-flowed Polyakov loop
+  my @Wflow_ss = ("null", "null", "null", "null");  # t^2 * E_ss
+  my @Wflow_st = ("null", "null", "null", "null");  # t^2 * E_st
+  my @aniso = ("null", "null", "null", "null");  # Anisotropy E_ss / E_st
 
   # RG-blocked observables
   my $loop;                   # Which loop is this (plaquette is zero)
@@ -656,11 +667,14 @@ WFLOW:
       }
     }
     elsif ($line =~ /^WFLOW /) { # Save tSqE in case we want to look at that
-      ($junk, $Wflow_t, $junk, $junk, $tSqE, $junk, $junk, $temp) = split /\s+/, $line;
+      ($junk, $Wflow_t, $junk, $junk, $tSqE, $junk, $junk, $temp, $E_ss, $E_st) = split /\s+/, $line;
       $c = sqrt(8*$Wflow_t) / $L;
       if ($cOld < 0.2 && $c >= 0.2) {
         $gSq[0] = $gprop * $tSqE;
         $topo[0] = $temp;
+        $Wflow_ss[0] = $E_ss;
+        $Wflow_st[0] = $E_st;
+        $aniso[0] = $E_ss / $E_st;
       }
       elsif ($cOld < 0.25 && $c >= 0.25) {
         $gSq[1] = $gprop * $tSqE;
@@ -668,15 +682,24 @@ WFLOW:
       elsif ($cOld < 0.3 && $c >= 0.3) {
         $gSq[2] = $gprop * $tSqE;
         $topo[1] = $temp;
+        $Wflow_ss[1] = $E_ss;
+        $Wflow_st[1] = $E_st;
+        $aniso[1] = $E_ss / $E_st;
       }
       elsif ($cOld < 0.35 && $c >= 0.35) {
         $gSq[3] = $gprop * $tSqE;
       }
       elsif ($cOld < 0.4 && $c >= 0.4) {
         $topo[2] = $temp;
+        $Wflow_ss[2] = $E_ss;
+        $Wflow_st[2] = $E_st;
+        $aniso[2] = $E_ss / $E_st;
       }
       elsif ($cOld < 0.5 && $c >= 0.5) {
         $topo[3] = $temp;
+        $Wflow_ss[3] = $E_ss;
+        $Wflow_st[3] = $E_st;
+        $aniso[3] = $E_ss / $E_st;
       }
       $cOld = $c;
     }
@@ -735,6 +758,9 @@ WFLOW:
   print WFLOW "$MDTU,$gSq[0],$gSq[1],$gSq[2],$gSq[3]\n";
   print TOPO "$MDTU,null,null,null,$topo[3]\n";
   print WPOLY "$MDTU,$poly[0],$poly[1],$poly[2],$poly[3]\n";
+  print WFLOW_SS "$MDTU,$wflow_ss[0],$wflow_ss[1],$wflow_ss[2],$wflow_ss[3],\n";
+  print WFLOW_ST "$MDTU,$wflow_st[0],$wflow_st[1],$wflow_st[2],$wflow_st[3],\n";
+  print WFLOW_ANISO "$MDTU,$aniso[0],$aniso[1],$aniso[2],$aniso[3],\n";
 
   # Lots of RG-blocked stuff to print
   # Print plaquettes
@@ -821,5 +847,8 @@ close EIG;
 close WFLOW;
 close TOPO;
 close WPOLY;
+close WFLOW_SS;
+close WFLOW_ST;
+close WFLOW_ANISO;
 exit(0);
 # ------------------------------------------------------------------

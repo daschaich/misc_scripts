@@ -247,7 +247,6 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
 
 
 
-
 # ------------------------------------------------------------------
 # Blocked data files have blMax + 1 data per line (including unblocked)
 # We already got the "+ 1" above, but include it here as well, to check
@@ -376,12 +375,17 @@ outfile.close()
 
 
 # ----------------------------------------------------------------
-# For the Wilson-flowed Polyakov loop, let's print out both c=0.2 and 0.3
+# For the Wilson-flowed Polyakov loop,
+# let's print out all four of c=0.2, 0.3, 0.4 and 0.5
 count = 0
 ave2 = 0.0        # Accumulate within each block
 ave3 = 0.0
+ave4 = 0.0
+ave5 = 0.0
 datList2 = []
 datList3 = []
+datList4 = []
+datList5 = []
 begin = cut       # Where each block begins, to be incremented
 flowfile = 'data/Wpoly.csv'
 for line in open(flowfile):
@@ -394,6 +398,8 @@ for line in open(flowfile):
   elif MDTU >= begin and MDTU < (begin + block_size):
     ave2 += float(temp[1])
     ave3 += float(temp[2])
+    ave4 += float(temp[3])
+    ave5 += float(temp[4])
     count += 1
   elif MDTU >= (begin + block_size):  # Move on to next bloc
     datList2.append(ave2 / float(count))
@@ -402,19 +408,89 @@ for line in open(flowfile):
     count = 1                     # Next block begins with this line
     ave2 = float(temp[1])
     ave3 = float(temp[2])
+    ave4 = float(temp[3])
+    ave5 = float(temp[4])
 
 # Now print mean and standard error, assuming N>1
 dat2 = np.array(datList2)
 dat3 = np.array(datList3)
+dat4 = np.array(datList4)
+dat5 = np.array(datList5)
 N = np.size(dat2)
 ave2 = np.mean(dat2, dtype = np.float64)
 err2 = np.std(dat2, dtype = np.float64) / np.sqrt(N - 1.)
 ave3 = np.mean(dat3, dtype = np.float64)
 err3 = np.std(dat3, dtype = np.float64) / np.sqrt(N - 1.)
+ave4 = np.mean(dat4, dtype = np.float64)
+err4 = np.std(dat4, dtype = np.float64) / np.sqrt(N - 1.)
+ave5 = np.mean(dat5, dtype = np.float64)
+err5 = np.std(dat5, dtype = np.float64) / np.sqrt(N - 1.)
 outfilename = 'results/Wpoly.dat'
 outfile = open(outfilename, 'w')
-print >> outfile, "# c=0.2 err c=0.3 err # Nblocks"
-print >> outfile, "%.8g %.4g %.8g %.4g # %d" % (ave2, err2, ave3, err3, N)
+print >> outfile, "# c=0.2 err c=0.3 err c=0.4 err c=0.5 err # Nblocks"
+print >> outfile, "%.8g %.4g %.8g %.4g" % (ave2, err2, ave3, err3),
+print >> outfile, "%.8g %.4g %.8g %.4g # %d" % (ave4, err4, ave5, err5, N)
+outfile.close()
+# ------------------------------------------------------------------
+
+
+
+# ----------------------------------------------------------------
+# For the Wilson flow anisotropy E_ss / E_st,
+# again print out all four of c=0.2, 0.3, 0.4 and 0.5
+count = 0
+ave2 = 0.0        # Accumulate within each block
+ave3 = 0.0
+ave4 = 0.0
+ave5 = 0.0
+datList2 = []
+datList3 = []
+datList4 = []
+datList5 = []
+begin = cut       # Where each block begins, to be incremented
+flowfile = 'data/Wflow_aniso.csv'
+for line in open(flowfile):
+  if line.startswith('M'):
+    continue
+  temp = line.split(',')
+  MDTU = float(temp[0]) + start
+  if MDTU <= cut:
+    continue
+  elif MDTU >= begin and MDTU < (begin + block_size):
+    ave2 += float(temp[1])
+    ave3 += float(temp[2])
+    ave4 += float(temp[3])
+    ave5 += float(temp[4])
+    count += 1
+  elif MDTU >= (begin + block_size):  # Move on to next bloc
+    datList2.append(ave2 / float(count))
+    datList3.append(ave3 / float(count))
+    begin += block_size
+    count = 1                     # Next block begins with this line
+    ave2 = float(temp[1])
+    ave3 = float(temp[2])
+    ave4 = float(temp[3])
+    ave5 = float(temp[4])
+
+# Now print mean and standard error, assuming N>1
+dat2 = np.array(datList2)
+dat3 = np.array(datList3)
+dat4 = np.array(datList4)
+dat5 = np.array(datList5)
+N = np.size(dat2)
+ave2 = np.mean(dat2, dtype = np.float64)
+err2 = np.std(dat2, dtype = np.float64) / np.sqrt(N - 1.)
+ave3 = np.mean(dat3, dtype = np.float64)
+err3 = np.std(dat3, dtype = np.float64) / np.sqrt(N - 1.)
+ave4 = np.mean(dat4, dtype = np.float64)
+err4 = np.std(dat4, dtype = np.float64) / np.sqrt(N - 1.)
+ave5 = np.mean(dat5, dtype = np.float64)
+err5 = np.std(dat5, dtype = np.float64) / np.sqrt(N - 1.)
+outfilename = 'results/Wflow_aniso.dat'
+outfile = open(outfilename, 'w')
+print >> outfile, "# c=0.2 err c=0.3 err c=0.4 err c=0.5 err # Nblocks"
+print >> outfile, "%.8g %.4g %.8g %.4g" % (ave2, err2, ave3, err3),
+print >> outfile, "%.8g %.4g %.8g %.4g # %d" % (ave4, err4, ave5, err5, N)
 outfile.close()
 # ------------------------------------------------------------------
 
