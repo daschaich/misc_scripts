@@ -404,6 +404,8 @@ for line in open(flowfile):
   elif MDTU >= (begin + block_size):  # Move on to next bloc
     datList2.append(ave2 / float(count))
     datList3.append(ave3 / float(count))
+    datList4.append(ave4 / float(count))
+    datList5.append(ave5 / float(count))
     begin += block_size
     count = 1                     # Next block begins with this line
     ave2 = float(temp[1])
@@ -465,6 +467,8 @@ for line in open(flowfile):
   elif MDTU >= (begin + block_size):  # Move on to next bloc
     datList2.append(ave2 / float(count))
     datList3.append(ave3 / float(count))
+    datList4.append(ave4 / float(count))
+    datList5.append(ave5 / float(count))
     begin += block_size
     count = 1                     # Next block begins with this line
     ave2 = float(temp[1])
