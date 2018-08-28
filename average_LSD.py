@@ -180,7 +180,7 @@ for obs in ['poly_r', 'xpoly_r']:
       ave += float(temp[1])
       count += 1
     elif MDTU >= (begin + block_size):  # Move on to next block
-      datList.append(ave / count)
+      datList.append(ave / float(count))
       begin += block_size
       count = 1                     # Next block begins with this line
       ave = float(temp[1])
@@ -224,7 +224,7 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
         print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
         skip = 1
         break
-      datList.append(ave / count)
+      datList.append(ave / float(count))
       begin += block_size
       count = 1                             # Next block begins here
       ave = float(temp[1])
@@ -252,6 +252,7 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
 # We already got the "+ 1" above, but include it here as well, to check
 # Just look at real parts for now (not mod, arg or imaginary parts)
 for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
+  skip = -1
   count = 0
   ave = [0.0 for x in range(blMax + 1)] # Accumulate within each block
   datList = [[] for x in range(blMax + 1)]
@@ -269,11 +270,20 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
         ave[i] += float(temp[i + 1])
       count += 1
     elif MDTU >= (begin + block_size):  # Move on to next block
+      if count == 0:
+        print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
+        skip = 1
+        break
       for i in range(0, blMax + 1):
         datList[i].append(ave[i] / float(count))
         ave[i] = float(temp[i + 1])
       begin += block_size
       count = 1                     # Next block begins with this line
+
+  if len(datList) == 0:
+    skip = 1
+  if skip > 0:
+    continue
 
   # Now print mean and standard error, assuming N>1
   outfilename = 'results/' + obs +  '.dat'
@@ -295,6 +305,7 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
 # is the euclidean norm I'm interested in for now
 # Also need to normalize the link differences by (half) the volume
 for obs in ['plaq_diff', 'link_diff']:
+  skip = -1
   count = 0
   ave = 0.          # Accumulate within each block
   datList = []
@@ -314,6 +325,10 @@ for obs in ['plaq_diff', 'link_diff']:
         ave += float(temp[5]) * 2. / float(vol)
       count += 1
     elif MDTU >= (begin + block_size):  # Move on to next block
+      if count == 0:
+        print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
+        skip = 1
+        break
       datList.append(ave / float(count))
       begin += block_size
       count = 1                     # Next block begins with this line
@@ -321,6 +336,11 @@ for obs in ['plaq_diff', 'link_diff']:
         ave = float(temp[5])
       elif obs == 'link_diff':
         ave = float(temp[5]) * 2.0 / float(vol)
+
+  if len(datList) == 0:
+    skip = 1
+  if skip > 0:
+    continue
 
   # Now print mean and standard error, assuming N>1
   dat = np.array(datList)
