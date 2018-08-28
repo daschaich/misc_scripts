@@ -439,14 +439,14 @@ for temp_tag in open('list.txt'):
         FNAL = 1
       # Try to check plaquette...
       elif line.startswith('CHECK PLAQ: '):
-        order_check = float((line.split())[2]) + float((line.split())[3])
-        out_check = 2.0 * 3.0 * float((oldstamp.split())[-1])
-        diff = abs(order_check - out_check)
+        Wflow_check = float((line.split())[2]) + float((line.split())[3])
+        out_check = 2.0 * Nc * float((oldstamp.split())[-1])
+        diff = abs(Wflow_check - out_check)
         if diff > 1e-5:
           print infile, "starting plaquette doesn't match saved:",
-          print "|%g - %g| = %g" % (order_check, out_check, diff)
+          print "|%g - %g| = %g" % (Wflow_check, out_check, diff)
           print >> ERRFILE, infile, "starting plaquette doesn't match saved:",
-          print >> ERRFILE, "|%g - %g| = %g" % (order_check, out_check, diff)
+          print >> ERRFILE, "|%g - %g| = %g" % (Wflow_check, out_check, diff)
 
       elif line.startswith('WFLOW '):
         c = math.sqrt(8.0 * float((line.split())[1])) / L
@@ -536,7 +536,7 @@ for temp_tag in open('list.txt'):
                % (MDTU, Wflow_ss[0], Wflow_ss[1], Wflow_ss[2], Wflow_ss[3])
       print >> WFLOW_ST, "%g,%g,%g,%g,%g" \
                % (MDTU, Wflow_st[0], Wflow_st[1], Wflow_st[2], Wflow_st[3])
-      print >> ANISO, "%g,%g,%g,%g,%g" \
+      print >> WFLOW_ANISO, "%g,%g,%g,%g,%g" \
                % (MDTU, aniso[0], aniso[1], aniso[2], aniso[3])
 
     # Lots of RG-blocked stuff to print
