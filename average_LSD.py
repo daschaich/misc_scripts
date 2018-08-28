@@ -280,7 +280,7 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
       begin += block_size
       count = 1                     # Next block begins with this line
 
-  if len(datList) == 0:
+  if len(datList[0]) == 0:
     skip = 1
   if skip > 0:
     continue
@@ -292,7 +292,7 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
     dat = np.array(datList[i])
     N = np.size(dat)
     ave = np.mean(dat, dtype = np.float64)
-    err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1)
+    err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.0)
     print >> outfile, "%.8g %.4g" % (ave, err),
   print >> outfile, "# %d" % N
   outfile.close()
