@@ -482,7 +482,7 @@ for temp_tag in open('list.txt'):
           aniso.append(float(temp[8]) / float(temp[9]))
         cOld = c
 
-      # Wilson-flowed Polyakov loop
+      # Wilson-flowed Polyakov loop (focus on real part, not magnitude)
       elif line.startswith('POLYA ORIG '):
         temp = line.split()
         cp = math.sqrt(8.0 * float(temp[2])) / L
