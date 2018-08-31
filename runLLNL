@@ -30,7 +30,6 @@ Ntraj=10
 tag=b${beta}
 echo "#!/bin/bash" > temp
 echo "#MSUB -A latticgc" >> temp
-echo "#MSUB -l partition=cab" >> temp
 echo "#MSUB -l nodes=$node" >> temp
 echo "#MSUB -q pbatch" >> temp
 echo "#MSUB -l walltime=$time" >> temp

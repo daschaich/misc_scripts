@@ -15,13 +15,13 @@ ngsteps=$6
 time=$7
 
 # Adjustable parameters
-node=32
-cpus=512
+node=8
+cpus=288
 Nf=4
 L=24
 Nt=12
-mass=0.2
-beta=24.0
+mass=0.1
+beta=16.0
 start=high
 ntraj=10
 traj_length=1
@@ -32,7 +32,6 @@ tag=b${beta}_${start}_m$mass
 temp=submit_$tag
 echo "#!/bin/bash" > $temp
 echo "#MSUB -A latticgc" >> $temp
-echo "#MSUB -l partition=cab" >> $temp
 echo "#MSUB -l nodes=$node" >> $temp
 echo "#MSUB -q pbatch" >> $temp
 echo "#MSUB -l walltime=$time" >> $temp
