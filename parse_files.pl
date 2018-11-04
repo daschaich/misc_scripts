@@ -943,6 +943,8 @@ EIGEN:
   print EIG "$MDTU,$eig[0],$eig[1],$eig[2],$eig[3],$eig[4],$eig[5]\n";
   # ------------------------------------------------------------------
 
+
+
   # ----------------------------------------------------------------
 WFLOW:
   # Check out Wilson flow, printing gSq for c=0.2, 0.25, 0.3 and 0.35
@@ -963,6 +965,7 @@ WFLOW:
 
   # We have a file, so let's cycle over its lines
   $check = -1;              # Check whether file completed successfully
+  my $norm = 1;             # Annoying normalization issue on different sites...
   my $Wflow_t = -1;         # Flow time
   my $tSqE = -1;            # To check, related to coupling
   my $c = -1;               # sqrt(8t) / L
@@ -971,7 +974,10 @@ WFLOW:
   my @topo = ("null", "null", "null", "null");  # Topological charge
   $Wflow_stamp = "start";   # Check loading/saving configuration
   for my $line (@Wflow_in) {
-    if ($line =~ /^Time stamp /) {
+    if ($line =~ /fnal.gov/) {      # Annoying normalization issue on different sites...
+      $norm = $vol * 0.02533029591058444286**2;  # 1/4pi^2
+    }
+    elsif ($line =~ /^Time stamp /) {
       if ($Wflow_stamp eq "start") {  # Loading the configuration
         chomp ($line);                # Remove linebreak from end of line
         $Wflow_stamp = join ' ', split ' ', $line;    # Replace multiple spaces with single spaces
@@ -989,23 +995,23 @@ WFLOW:
       $c = sqrt(8*$Wflow_t) / $L;
       if ($cOld < 0.2 && $c >= 0.2) {
         $gSq[0] = $gprop * $tSqE;
-        $topo[0] = $temp * $vol * 0.02533029591058444286**2;   # 1/4pi^2
+        $topo[0] = $temp * $norm;
       }
       elsif ($cOld < 0.25 && $c >= 0.25) {
         $gSq[1] = $gprop * $tSqE;
       }
       elsif ($cOld < 0.3 && $c >= 0.3) {
         $gSq[2] = $gprop * $tSqE;
-        $topo[1] = $temp * $vol * 0.02533029591058444286**2;   # 1/4pi^2
+        $topo[1] = $temp * $norm;
       }
       elsif ($cOld < 0.35 && $c >= 0.35) {
         $gSq[3] = $gprop * $tSqE;
       }
       elsif ($cOld < 0.4 && $c >= 0.4) {
-        $topo[2] = $temp * $vol * 0.02533029591058444286**2;   # 1/4pi^2
+        $topo[2] = $temp * $norm;
       }
       elsif ($cOld < 0.5 && $c >= 0.5) {
-        $topo[3] = $temp * $vol * 0.02533029591058444286**2;   # 1/4pi^2
+        $topo[3] = $temp * $norm;
       }
       $cOld = $c;
     }
@@ -1020,6 +1026,8 @@ WFLOW:
   print WFLOW "$MDTU,$gSq[0],$gSq[1],$gSq[2],$gSq[3]\n";
   print TOPO "$MDTU,null,null,null,$topo[3]\n";
   # ----------------------------------------------------------------
+
+
 
   # ----------------------------------------------------------------
 WPOLY:
