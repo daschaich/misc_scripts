@@ -34,7 +34,6 @@ echo "#MSUB -l nodes=$node" >> temp
 echo "#MSUB -q pbatch" >> temp
 echo "#MSUB -l walltime=$time" >> temp
 echo "#MSUB -N HMC${L}_$tag" >> temp
-echo "#MSUB -l gres=lscratchh" >> temp
 echo "#MSUB -j oe" >> temp
 echo "#MSUB -o out.HMC.%j" >> temp
 echo "#MSUB -m ae" >> temp

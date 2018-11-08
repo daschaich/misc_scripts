@@ -100,6 +100,7 @@ for obs in ['plaq', 'Wpoly', 'pbp']:
     sys.exit(1)
 
   # Now construct jackknife samples through single-block elimination
+  # Do normalization offline, so here just have
   #   chi = <obs^2> - <obs>^2
   dat = np.array(datList)
   tot = sum(dat)

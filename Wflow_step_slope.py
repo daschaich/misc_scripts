@@ -100,7 +100,7 @@ err = np.sqrt(cov[0][0])          # Component of covar matrix
 print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g," \
       % (slope, err, chiSq, dof, chiSq / dof, CL),
 
-# Convert to gamma_g^* = log(1 + slope) / log(s)
+# Convert to gamma_g^* = log(1 + slope * log(s^2)) / log(s)
 # Print positive value for convenience
 gamma = np.log(1.0 + 2.0 * slope * np.log(s)) / np.log(s)
 print "gamma_g^* = %.4g" % (-1.0 * gamma)

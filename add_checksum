@@ -32,7 +32,6 @@ echo "#MSUB -l nodes=$node" >> $temp
 echo "#MSUB -q pbatch" >> $temp
 echo "#MSUB -l walltime=$time" >> $temp
 echo "#MSUB -N add_checksum$config" >> $temp
-echo "#MSUB -l gres=lscratchh" >> $temp
 echo "#MSUB -j oe" >> $temp
 echo "#MSUB -o out.add_checksum.%j" >> $temp
 #echo "#MSUB -m ae" >> $temp
