@@ -204,6 +204,8 @@ for obs in ['poly_r', 'xpoly_r']:
 # we're interested in the first datum on each line
 # Need to work in terms of trajectories rather than MDTU
 for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
+  if '0f' in path and obs == 'cg_iters':
+    continue        # No CG iterations for pure-gauge runs
   skip = -1
   count = 0
   ave = 0.0         # Accumulate within each block
