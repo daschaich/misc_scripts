@@ -43,7 +43,8 @@ else:
 vol = L**3 * Nt
 
 # Extract number of flavors for pbp normalization
-if '4f' in path:
+# For quenched "valence pbp" we want the 4f normalization
+if '4f' in path or '0f' in path:
   pbp_norm = 1.0
 elif '8f' in path:
   pbp_norm = 2.0

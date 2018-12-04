@@ -52,7 +52,8 @@ pbp[1].mass = mass
 pbp[1].resid = 1e-6
 pbp[1].opts = { restart=5000, max_restarts=1, max_iter=5000 }
 
--- Comment out next line to start from unit configuration
+-- To start from unit configuration,
+-- comment out next line and uncomment the version near the end
 local latpat = 'latpatGoesHere'
 
 --- end of parameters
