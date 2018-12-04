@@ -5,7 +5,7 @@ import glob
 import numpy as np
 # ------------------------------------------------------------------
 # Parse dygraph time-series data file to compute susceptibility
-# for the plaquette, (unflowed) Polyakov loop and chiral condensate
+# for the plaquette, (Wilson-flowed) Polyakov loop and chiral condensate
 # (Other targets may be added in the future)
 
 # Parse arguments: first is thermalization cut,
