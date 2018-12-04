@@ -12,8 +12,8 @@ date=$2
 if [ -d "/data/lsd/KS_nHYP_FA/$tag" ] ; then
   out="/data/lsd/KS_nHYP_FA/$tag/index.html"
   scatter=0
-elif [ -d "/data/lsd/SU4/4f/$tag" ] ; then
-  out="/data/lsd/SU4/4f/$tag/index.html"
+elif [ -d "/data/lsd/SU4/$tag" ] ; then
+  out="/data/lsd/SU4/$tag/index.html"
   scatter=1
 else
   echo "ERROR: Can't find appropriate $tag directory"

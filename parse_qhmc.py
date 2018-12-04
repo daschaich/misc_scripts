@@ -18,12 +18,18 @@ if not os.path.isdir('Out'):
 temp = os.getcwd()
 if '4f' in temp:
   Nc=4.0
+  Nf=4
   Ftag = 'FF[02]'
 elif '8f' in temp:
   Nc=3.0
+  Nf=8
   Ftag = 'FF[03]'
+elif '0f' in temp:
+  Nc=4.0
+  Nf=0
+  Ftag = 'FF[02]' # Will never be encountered
 else:
-  print "ERROR: Force extraction can only handle Nf=4 or Nf=8"
+  print "ERROR: Force extraction can only handle Nf=0, 4 or 8"
   sys.exit(1)
 
 ERRFILE = open('ERRORS', 'w')
@@ -100,9 +106,6 @@ print >> DELTAS, "t,deltaS"
 ABS_DS = open('data/abs_dS.csv', 'w')
 print >> ABS_DS, "t,|deltaS|"
 FORCE = open('data/force.csv', 'w')
-print >> FORCE, "t,F0,F1,Fgauge"
-CG_ITERS = open('data/cg_iters.csv', 'w')
-print >> CG_ITERS, "t,cg_iters"
 WALLTIME = open('data/walltime.csv', 'w')
 print >> WALLTIME, "t,walltime"
 WALLTU = open('data/wallTU.csv', 'w')
@@ -110,17 +113,27 @@ print >> WALLTU, "t,cost"
 
 # Run parameters
 NSTEP = open('data/Nstep.csv', 'w')
-print >> NSTEP, "t,N0,N1,Ngauge"
 STEPSIZE = open('data/stepsize.csv', 'w')
-print >> STEPSIZE, "t,eps0,eps1,eps_gauge"
-MH = open('data/MH.csv', 'w')
-print >> MH, "t,MH"
 TLENGTH = open('data/tlength.csv', 'w')
 print >> TLENGTH, "t,L"
 KEY = open('data/key.csv', 'w')
 print >> KEY, "t,file"
 TU = open('data/TU.csv', 'w')
 print >> TU, "t,MDTU"
+
+# Nf dependence in some output
+if Nf > 0:
+  print >> FORCE, "t,F0,F1,Fgauge"
+  CG_ITERS = open('data/cg_iters.csv', 'w')
+  print >> CG_ITERS, "t,cg_iters"
+  print >> NSTEP, "t,N0,N1,Ngauge"
+  print >> STEPSIZE, "t,eps0,eps1,eps_gauge"
+  MH = open('data/MH.csv', 'w')
+  print >> MH, "t,MH"
+else:
+  print >> FORCE, "t,Fgauge"
+  print >> NSTEP, "t,Ngauge"
+  print >> STEPSIZE, "t,eps_gauge"
 
 # Status checks and running sums for the ensemble as a whole
 oldcfg = 0
@@ -205,7 +218,7 @@ for temp_tag in open('list.txt'):
       cpus = 1
       for i in range(-4, 0):    # range doesn't include last
         cpus *= int((line.split())[i])
-    elif line.startswith('Hasenbusch_mass'):
+    elif line.startswith('Hasenbusch_mass') and Nf > 0:
       print >> MH, "%d,%g" % (endtraj, float((line.split())[1]))
 
     # Check that the file loaded the appropriate configuration
@@ -249,16 +262,20 @@ for temp_tag in open('list.txt'):
         print >> ERRFILE, "%d vs %d" % (traj, temp)
 
     # Forces and nsteps -- monitor maxima rather than rms...
-    # Annoying dependence on Nf...
+    # Ftag handles dependence on Nf when Nf > 0...
     elif line.startswith('GF'):
       Nstep_gauge = int((line.split())[5])
       stepsize_gauge = tlength / float(Nstep_gauge)
       force_gauge = float((line.split())[11]) * stepsize_gauge
-    elif line.startswith('FF[01]'):   # Robust to Nf
+      if Nf == 0:   # Pure-gauge calculations
+        print >> FORCE, "%d,%g" % (traj, force_gauge)
+        print >> NSTEP, "%d,%d" % (traj, Nstep_gauge)
+        print >> STEPSIZE, "%d,%g" % (traj, stepsize_gauge)
+    elif line.startswith('FF[01]') and Nf > 0:
       Nstep = int((line.split())[5])
       stepsize = tlength / float(Nstep)
       force0 = float((line.split())[11]) * stepsize
-    elif line.startswith('FFtot'):    # Robust to Nf
+    elif line.startswith('FFtot') and Nf > 0:
       Nstep1 = int((line.split())[5]) - Nstep
       stepsize1 = tlength / float(Nstep1)
       print >> FORCE, "%d,%g,%g,%g" \
@@ -271,7 +288,7 @@ for temp_tag in open('list.txt'):
 
     # Could split CG iterations into inner and outer steps
     # but just grab total for now
-    elif line.startswith('CGtot'):
+    elif line.startswith('CGtot') and Nf > 0:
       iters = int((line.split())[5]) * int((line.split())[9])
       print >> CG_ITERS, "%d,%d" % (traj, iters)
     # ------------------------------------------------------------
@@ -633,13 +650,14 @@ EXP_DS.close()
 DELTAS.close()
 ABS_DS.close()
 FORCE.close()
-CG_ITERS.close()
 WALLTIME.close()
 WALLTU.close()
 NSTEP.close()
 STEPSIZE.close()
-MH.close()
 TLENGTH.close()
 KEY.close()
 TU.close()
+if Nf > 0:
+  CG_ITERS.close()
+  MH.close()
 # ------------------------------------------------------------------

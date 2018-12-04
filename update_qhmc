@@ -10,8 +10,8 @@ if [[ $temp == *"KS_nHYP_FA"* ]] ; then
   dir=${temp##*FA/}   # Strip everything up to and including "FA/"
   path=/data/lsd/KS_nHYP_FA/$dir
 elif [[ $temp == *"SU4"* ]] ; then
-  dir=${temp##*4f/}   # Strip everything up to and including "4f/"
-  path=/data/lsd/SU4/4f/$dir
+  dir=${temp##*SU4/}   # Strip everything up to and including "SU4/"
+  path=/data/lsd/SU4/$dir
 else
   echo "ERROR: Unrecognized path $temp"
   exit 1
