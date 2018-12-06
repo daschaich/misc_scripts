@@ -88,6 +88,8 @@ for obs in ['plaq', 'Wpoly', 'pbp']:
       count = 1                         # Next block begins here
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
+      elif obs == 'Wpoly':
+        tr = float(temp[-1])
       else:
         tr = float(temp[1])
       ave = tr
@@ -111,6 +113,9 @@ for obs in ['plaq', 'Wpoly', 'pbp']:
     vev = (tot - dat[i]) / (N - 1.0)
     sq_vev = (totSq - sq[i]) / (N - 1.0)
     chi[i] = sq_vev - vev * vev
+
+  # Sanity check -- compare against averages computed separately
+#  print obs, "ave = %.8g" % np.mean(dat, dtype = np.float64)
 
   # Now we can average over jackknife samples and print out results
   ave = np.mean(chi, dtype = np.float64)
