@@ -5,8 +5,8 @@ import numpy as np
 from scipy.optimize import least_squares
 from scipy.special import gammainc
 # ------------------------------------------------------------------
-# Fit susceptibility data to power law
-# Unlike power_fit.py, allow non-zero intercept, C + A * L**B
+# Fit susceptibility data to power law, A * x**B
+# May make power_fit.py a bit redundant
 # TODO: May eventually compute and print out error band for gnuplotting
 #       But ignoring that for now
 
@@ -22,16 +22,16 @@ if not os.path.isfile(filename):
 
 # errfunc will be minimized via least-squares optimization
 # p_in are order-of-magnitude initial guesses
-expfunc = lambda p, x: p[0] + p[1] * np.power(x, p[2])
+expfunc = lambda p, x: p[0] * np.power(x, p[1])
 errfunc = lambda p, x, y, err: (expfunc(p, x) - y) / err
-p_in = np.array([0.01, 1.0, 1.0])
+p_in = np.array([1.0, 1.0])
 
 # Define corresponding Jacobian matrix
+# Recall x^p = exp(p * log x)
 def jac(p, x, y, err):
   J = np.empty((x.size, p.size), dtype = np.float)
-  J[:, 0] = 1.0
-  J[:, 1] = x ** p[2]
-  J[:, 2] = p[1] * p[2] * np.power(x, p[2] - 1.0)
+  J[:, 0] = np.power(x, p[1])
+  J[:, 1] = p[0] * np.log(x) * np.power(x, p[1])
   for i in range(p.size):
     J[:, i] /= err
   return J
@@ -76,7 +76,7 @@ if all_out.success < 0 or all_out.success > 4:
   print(errmsg)
   sys.exit(1)
 
-print("Power: %.6g %.4g" % (p_out[2], np.sqrt(cov[2][2])))
+print("Power: %.6g %.4g" % (p_out[1], np.sqrt(cov[1][1])))
 
 # Compute chiSq and confidence level of fit
 chiSq = ((errfunc(p_out, L, dat, err))**2).sum()
@@ -86,7 +86,7 @@ print("chiSq/dof = %.4g/%d = %.4g --> CL = %.4g" \
 
 # Format to copy+paste into gnuplot: fit and error function
 # TODO: Ignore error bands for now
-print("Fit: %.4g + %.4g * x**%.4g" % (p_out[0], p_out[1], p_out[2]))
+print("Fit: %.4g * x**%.4g" % (p_out[0], p_out[1]))
 #print("Err: sqrt(%.4g - %.4g * x + %.4g * x**2)" \
 #      % (cov[0][0], -1.0 * (cov[1][0] + cov[0][1]), cov[1][1]))
 # ------------------------------------------------------------------

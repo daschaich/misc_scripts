@@ -83,7 +83,7 @@ if power == 999:
 #  gamma = (4.0 - x) / x      # Power = 4 / (1 + gamma_m)
 #  ga_err = 4.0 * x_err / x**2
   # For Konishi and SUGRA correlators C(x) ~ x^{-2Delta)
-#  gamma = -0.5 * x       # Power = 1 / (1 + gamma_m)
+#  gamma = -0.5 * x           # Power = 1 / (1 + gamma_m)
 #  ga_err = 0.5 * x_err
   print "power %.6g %.4g --> %.6g %.4g" \
         % (x, x_err, gamma, ga_err)
