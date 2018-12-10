@@ -69,6 +69,8 @@ TOPO = open('data/topo.csv', 'w')
 print >> TOPO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
 WPOLY = open('data/Wpoly.csv', 'w')
 print >> WPOLY, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+WPOLY_MOD = open('data/Wpoly_mod.csv', 'w')
+print >> WPOLY_MOD, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
 WFLOW_SS = open('data/Wflow_ss.csv', 'w')
 print >> WFLOW_SS, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
 WFLOW_ST = open('data/Wflow_st.csv', 'w')
@@ -431,7 +433,8 @@ for temp_tag in open('list.txt'):
     cOld = 1.0
     gSq = []
     topo = []     # Topological charge
-    poly = []     # Wilson-flowed Polyakov loop
+    poly = []     # Wilson-flowed Polyakov loop real part
+    mod = []      # Wilson-flowed Polyakov loop modulus
     Wflow_ss = [] # t^2 * E_ss
     Wflow_st = [] # t^2 * E_st
     aniso = []    # Anisotropy E_ss / E_st
@@ -510,7 +513,10 @@ for temp_tag in open('list.txt'):
           x_i[0] = float(temp[6])
         # Should pick up cp=0.2, 0.3, 0.4 and 0.5 in that order
         elif 0.19 < cp:
-          poly.append(float(temp[3]))
+          real = float(temp[3])
+          imag = float(temp[4])
+          poly.append(real)
+          mod.append(math.sqrt(real**2 + imag**2))
 
       # RG-blocked observables (with no Wilson flow)
       elif line.startswith('LOOPS 0 '):
@@ -548,6 +554,8 @@ for temp_tag in open('list.txt'):
     if len(poly) == 4:
       print >> WPOLY, "%g,%g,%g,%g,%g" \
                       % (MDTU, poly[0], poly[1], poly[2], poly[3])
+      print >> WPOLY_MOD, "%g,%g,%g,%g,%g" \
+                          % (MDTU, mod[0], mod[1], mod[2], mod[3])
     if len(aniso) == 4:
       print >> WFLOW_SS, "%g,%g,%g,%g,%g" \
                % (MDTU, Wflow_ss[0], Wflow_ss[1], Wflow_ss[2], Wflow_ss[3])
@@ -633,6 +641,7 @@ EIG.close()
 WFLOW.close()
 TOPO.close()
 WPOLY.close()
+WPOLY_MOD.close()
 WFLOW_SS.close()
 WFLOW_ST.close()
 WFLOW_ANISO.close()
