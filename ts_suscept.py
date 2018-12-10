@@ -51,7 +51,7 @@ if good == -1:
 # For plaquette, average two data per line
 # For Wpoly, grab the last (fourth) number for c=0.5
 # For pbp, just grab the single number after the MDTU label
-for obs in ['plaq', 'Wpoly', 'pbp']:
+for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'pbp']:
   skip = -1
   count = 0
   ave = 0.0         # Accumulate within each block
