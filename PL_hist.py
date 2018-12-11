@@ -17,6 +17,10 @@ if len(sys.argv) < 3:
 cut = int(sys.argv[1])
 nbins = int(sys.argv[2])
 
+# TODO: Should be able to determine Nc automatically from path...
+Nc = 4.0
+bin_width = Nc / float(sys.argv[2])
+
 # First make sure we're calling this from the right place
 if not os.path.isdir('data'):
   print "ERROR: data/ does not exist"
@@ -29,7 +33,7 @@ tag = (cwd.split('/'))[-1]
 # Extract c=0.5 modulus as last (fourth) datum on each line of data file
 # (Format: MDTU,c=0.2,0.3,0.4,0.5)
 dat = []
-for line in open('data/WPoly_mod.csv'):
+for line in open('data/Wpoly_mod.csv'):
   if line.startswith('M'):
     continue
   temp = line.split(',')
@@ -42,13 +46,12 @@ for line in open('data/WPoly_mod.csv'):
 print "%d measurements for %s" % (len(dat), tag)
 
 # Create histogram
-# TODO: The '4.0' below should really be Nc...
 plt.figure(figsize=(6.40, 3.84))    # Gnuplot default
-plt.hist(dat, bins=np.arange(0.0, 4.0, 0.05),
-         log=False, normed=False, align='mid',
+plt.hist(dat, bins=np.arange(0.0, Nc, bin_width),
+         log=False, density=False, align='mid',
          edgecolor='blue', label=tag, histtype='step', hatch='//')
 
-plt.xlim([0.0, 1.0])
+plt.xlim([0.0, Nc])
 plt.grid(False)
 
 plt.xlabel('|PL_W|')
@@ -56,6 +59,6 @@ plt.ylabel('Count')
 plt.legend()
 
 # Save a pdf
-outfile = 'WPoly_hist_' + tag + '.pdf'
+outfile = 'Wpoly_hist_' + tag + '.pdf'
 plt.savefig(outfile, bbox_inches='tight')   # Reduce surrounding whitespace
 # ------------------------------------------------------------------
