@@ -49,7 +49,7 @@ if good == -1:
 
 # ------------------------------------------------------------------
 # For plaquette, average two data per line
-# For Wpoly, grab the last (fourth) number for c=0.5
+# For Wpoly(_mod), grab the last (fourth) number for c=0.5
 # For pbp, just grab the single number after the MDTU label
 for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'pbp']:
   skip = -1
@@ -70,7 +70,7 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'pbp']:
     elif MDTU > begin and MDTU < (begin + block_size):
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
-      elif obs == 'Wpoly':
+      elif obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
       else:
         tr = float(temp[1])
@@ -88,7 +88,7 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'pbp']:
       count = 1                         # Next block begins here
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
-      elif obs == 'Wpoly':
+      elif obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
       else:
         tr = float(temp[1])
