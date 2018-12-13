@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 from scipy.stats import norm
-from scipy.optimize import curve_fit
+#from scipy.optimize import curve_fit
 # ------------------------------------------------------------------
 # Plot topological charge time series and histogram
 # Fit histogram to gaussian and plot that as well

@@ -223,6 +223,7 @@ if Nblocks == 1:
   for i in range(Npts):
     err = datSq[i][0] - dat[i][0]**2
     PiErr[i] = np.sqrt(err / (float(count) - 1.))
+  # TODO: Replace leastsq --> least_squares and add bounds...
   all_out = optimize.leastsq(errfunc, p_in[:], args=(QSq, Pi, PiErr),
                              full_output = 1)
   p_out = all_out[0]

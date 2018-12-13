@@ -55,6 +55,7 @@ open EIG, "> $path/data/eig.csv" or die "Error opening $path/data/eig.csv ($!)\n
 open WFLOW, "> $path/data/Wflow.csv" or die "Error opening $path/data/Wflow.csv ($!)\n";
 open TOPO, "> $path/data/topo.csv" or die "Error opening $path/data/topo.csv ($!)\n";
 open WPOLY, "> $path/data/Wpoly.csv" or die "Error opening $path/data/Wpoly.csv ($!)\n";
+open WPOLY_MOD, "> $path/data/Wpoly_mod.csv" or die "Error opening $path/data/Wpoly_mod.csv ($!)\n";
 open WFLOW_SS, "> $path/data/Wflow_ss.csv" or die "Error opening $path/data/Wflow_ss.csv ($!)\n";
 open WFLOW_ST, "> $path/data/Wflow_st.csv" or die "Error opening $path/data/Wflow_st.csv ($!)\n";
 open WFLOW_ANISO, "> $path/data/Wflow_aniso.csv" or die "Error opening $path/data/Wflow_aniso.csv ($!)\n";
@@ -98,6 +99,7 @@ print EIG "MDTU,1,2,3,4,5,6,7,8,9,10,11,12\n";
 print WFLOW "MDTU,c=0.2,c=0.25,c=0.3,c=0.35\n";
 print TOPO "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 print WPOLY "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
+print WPOLY_MOD "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 print WFLOW_SS "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 print WFLOW_ST "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 print WFLOW_ANISO "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
@@ -631,7 +633,8 @@ WFLOW:
   my $cp = -1;              # sqrt(8t) / L
   my @gSq = ("null", "null", "null", "null");
   my @topo = ("null", "null", "null", "null");  # Topological charge
-  my @poly = ("null", "null", "null", "null");  # Wilson-flowed Polyakov loop
+  my @poly = ("null", "null", "null", "null");  # Wilson-flowed Polyakov loop real part
+  my @mod = ("null", "null", "null", "null");   # Wilson-flowed Polyakov loop modulus
   my @Wflow_ss = ("null", "null", "null", "null");  # t^2 * E_ss
   my @Wflow_st = ("null", "null", "null", "null");  # t^2 * E_st
   my @aniso = ("null", "null", "null", "null");  # Anisotropy E_ss / E_st
@@ -706,7 +709,7 @@ WFLOW:
     # Wilson-flowed Polyakov loop
     elsif ($line =~ /^POLYA ORIG /) {
       ($junk, $junk, $Wflow_t, $Wploop_r, $Wploop_i, $xloop_r, $xloop_i) = split /\s+/, $line;
-      $cp = sqrt(8*$Wflow_t) / $L;
+      $cp = sqrt(8.0 * $Wflow_t) / $L;
       if ($cp == 0) {
         $ploop_r[0] = $Wploop_r;
         $ploop_i[0] = $Wploop_i;
@@ -715,15 +718,19 @@ WFLOW:
       }
       if (0.19 < $cp && $cp < 0.21) {
         $poly[0] = $Wploop_r;
+        $mod[0] = sqrt($Wploop_r**2 + $Wploop_i**2);
       }
       elsif (0.29 < $cp && $cp < 0.31) {
         $poly[1] = $Wploop_r;
+        $mod[1] = sqrt($Wploop_r**2 + $Wploop_i**2);
       }
       elsif (0.39 < $cp && $cp < 0.41) {
         $poly[2] = $Wploop_r;
+        $mod[2] = sqrt($Wploop_r**2 + $Wploop_i**2);
       }
       elsif (0.49 < $cp && $cp < 0.51) {
         $poly[3] = $Wploop_r;
+        $mod[3] = sqrt($Wploop_r**2 + $Wploop_i**2);
       }
     }
 
@@ -758,6 +765,7 @@ WFLOW:
   print WFLOW "$MDTU,$gSq[0],$gSq[1],$gSq[2],$gSq[3]\n";
   print TOPO "$MDTU,null,null,null,$topo[3]\n";
   print WPOLY "$MDTU,$poly[0],$poly[1],$poly[2],$poly[3]\n";
+  print WPOLY_MOD "$MDTU,$mod[0],$mod[1],$mod[2],$mod[3]\n";
   print WFLOW_SS "$MDTU,$wflow_ss[0],$wflow_ss[1],$wflow_ss[2],$wflow_ss[3],\n";
   print WFLOW_ST "$MDTU,$wflow_st[0],$wflow_st[1],$wflow_st[2],$wflow_st[3],\n";
   print WFLOW_ANISO "$MDTU,$aniso[0],$aniso[1],$aniso[2],$aniso[3],\n";
@@ -847,6 +855,7 @@ close EIG;
 close WFLOW;
 close TOPO;
 close WPOLY;
+close WPOLY_MOD;
 close WFLOW_SS;
 close WFLOW_ST;
 close WFLOW_ANISO;
