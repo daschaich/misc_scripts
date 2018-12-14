@@ -17,31 +17,34 @@ time=$7
 # Adjustable parameters
 node=8
 cpus=288
-Nf=4
-L=24
-Nt=12
-mass=0.1
-beta=16.0
-start=high
 ntraj=10
 traj_length=1
 skip=10   # !!! Should be a way to figure out skip=ntraj*traj_length
 
+# Parameters fixed by the path
+temp=`pwd`
+path=${temp##*SU4/}   # Strip everything up to and including "SU4/"
+mass=${path##*_m}     # Strip everything up to and including "_m"
+temp=${path##*f/}     # Strip everything up to and including "f/"
+vol=${temp%%/b*}      # Strip everything after and including "/b"
+tag=${temp##*/}       # Strip everything up to and including "/"
+temp=${tag%%_*}       # Strip everything after and including first "_"
+beta=${temp##b}       # Strip b from front of temp
+
 # Common parameters for all jobs
-tag=b${beta}_${start}_m$mass
 temp=submit_$tag
 echo "#!/bin/bash" > $temp
 echo "#MSUB -A latticgc" >> $temp
 echo "#MSUB -l nodes=$node" >> $temp
 echo "#MSUB -q pbatch" >> $temp
 echo "#MSUB -l walltime=$time" >> $temp
-echo "#MSUB -N HMC${L}nt${Nt}_b$beta" >> $temp
+echo "#MSUB -N HMC${vol}_$tag" >> $temp
 echo "#MSUB -j oe" >> $temp
 echo "#MSUB -o out.HMC.%j" >> $temp
 echo "#MSUB -m ae" >> $temp
 echo "#MSUB -M daschaich@gmail.com" >> $temp
 
-dir=/p/lscratchh/schaich2/SU4/${Nf}f/${L}nt${Nt}/b${beta}_${start}_m$mass
+dir=/p/lustre1/schaich2/SU4/$path
 
 # Check that we're not going to break anything
 lat=$dir/Configs/config.$first.lime
@@ -95,9 +98,9 @@ for(( i=$first ; $i<$last ; i+=$skip )); do
   awk -v X=$nsteps2 '{sub(/nsteps2GoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
   awk -v X=$ngsteps '{sub(/ngstepsGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
   awk -v X=$lat.%i.lime '{sub(/latpatGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
-  awk -v X=${last}${beta/\./41}${L}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=${last}${beta/\./41}${vol%%nt*}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
 
-  echo "echo \"Job HMC${L}nt${Nt}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
+  echo "echo \"Job HMC${vol}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
   echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
   echo "echo \"srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc RUN$i.lua\" >> $out" >> $temp
   echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc RUN$i.lua >> $out" >> $temp
