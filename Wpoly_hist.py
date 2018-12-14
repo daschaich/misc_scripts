@@ -40,7 +40,7 @@ for line in open('data/Wpoly_mod.csv'):
   MDTU = float(temp[0])
   if MDTU <= cut:
     continue
-  dat.append(float(temp[3]))
+  dat.append(float(temp[4]))
 
 # Print number of measurements to allow offline checks
 print "%d measurements for %s" % (len(dat), tag)
