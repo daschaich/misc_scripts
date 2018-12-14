@@ -3,6 +3,7 @@ import os
 import sys
 import glob
 import numpy as np
+import acor         # Uses "the Kubo formula" to compute autocorrelation time
 # ------------------------------------------------------------------
 # Parse dygraph data files to construct averages and standard errors
 # with given thermalization cut and block size
@@ -17,8 +18,8 @@ MAX = 99    # Hard code number of eigenvalues to extract
 
 
 # ------------------------------------------------------------------
-# Parse arguments: first is thermalization cut,
-# second is block size (should be larger than auto-correlation time)
+# Parse arguments: first is thermalization cut, second is block size
+# Will check block size is larger than Wpoly_mod auto-correlation time
 # We discard any partial blocks at the end
 # I also need to specify where I took over the run
 if len(sys.argv) < 4:
@@ -82,6 +83,37 @@ final_MDTU = float(temp[1])
 if good == -1:
   print "Error: no data to analyze",
   print "since cut=%d but we only have %d MDTU" % (cut, final_MDTU)
+  sys.exit(1)
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# Check that block size is larger than Wpoly_mod auto-correlation time
+# Check that 
+# (Format: MDTU,c=0.2,0.3,0.4,0.5)
+dat = []
+sep = 10
+prev = start
+for line in open('data/Wpoly_mod.csv'):
+  if line.startswith('M'):
+    continue
+  temp = line.split(',')
+  MDTU = int(temp[0])
+  if MDTU <= cut:
+    continue
+  if not MDTU - prev == 10:
+    print "Error: Wpoly_mod meas at %d and %d not separated by %d" \
+          % (prev, MDTU, sep)
+    sys.exit(1)
+  dat.append(float(temp[4]))
+  prev = MDTU
+
+# Discard this mean and sigma -- we'll recompute it later
+tau, mean, sigma = acor.acor(np.array(dat))
+if tau * sep > block_size:
+  print "Error: Wpoly_mod autocorrelation time %d" % tau,
+  print "is larger than block size %d" % block_size
   sys.exit(1)
 # ------------------------------------------------------------------
 
