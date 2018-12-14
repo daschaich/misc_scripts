@@ -100,14 +100,17 @@ for line in open('data/Wpoly_mod.csv'):
     continue
   temp = line.split(',')
   MDTU = int(temp[0])
-  if MDTU <= cut:
-    continue
-  if not MDTU - prev == 10:
+
+  # Need to check separation and update prev before skipping to therm cut
+  if not MDTU - prev == sep:
     print "Error: Wpoly_mod meas at %d and %d not separated by %d" \
           % (prev, MDTU, sep)
     sys.exit(1)
-  dat.append(float(temp[4]))
   prev = MDTU
+
+  if MDTU <= cut:
+    continue
+  dat.append(float(temp[4]))
 
 # Discard this mean and sigma -- we'll recompute it later
 tau, mean, sigma = acor.acor(np.array(dat))
