@@ -114,11 +114,20 @@ for line in open('data/Wpoly_mod.csv'):
 
 # Discard this mean and sigma -- we'll recompute it later
 tau, mean, sigma = acor.acor(np.array(dat))
-if tau * sep > block_size:
-  print "Error: Wpoly_mod autocorrelation time %d" % (tau * sep),
+tau *= sep
+if tau > block_size:
+  print "Error: Wpoly_mod autocorrelation time %d" % tau,
   print "is larger than block size %d" % block_size,
   print "in %s" % path
   sys.exit(1)
+
+# Record Wpoly_mod auto-correlation time for future reference
+# Include average and effective number of independent measurements
+eff_stat = np.floor(len(dat) * sep / tau)
+outfilename = 'results/Wpoly_mod.autocorr'
+outfile = open(outfilename, 'w')
+print >> outfile, "%d --> %.8g %.4g # %d" % (tau, mean, sigma, eff_stat)
+outfile.close()
 # ------------------------------------------------------------------
 
 
