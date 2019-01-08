@@ -480,7 +480,7 @@ echo '          <div id="accP'$tag'"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("accP'$tag'"),' >> $out
 echo '                            "data/accP.'$tag'.csv",' >> $out
-echo '                            { rollPeriod: 50,' >> $out
+echo '                            { rollPeriod: 250,' >> $out
 echo '                              colors: ["red"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              valueRange: [0, 1.01],' >> $out
@@ -521,7 +521,7 @@ echo '          <div id="deltaS'$tag'"></div>' >> $out
 echo '          <script type="text/javascript">' >> $out
 echo '            g = new Dygraph(document.getElementById("deltaS'$tag'"),' >> $out
 echo '                            "data/deltaS.'$tag'.csv",' >> $out
-echo '                            { rollPeriod: 5,' >> $out
+echo '                            { rollPeriod: 1,' >> $out
 echo '                              colors: ["red"],' >> $out
 echo '                              showRoller: true,' >> $out
 echo '                              valueRange: [-2.5, 2.51],' >> $out
