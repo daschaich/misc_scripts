@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # Save resulting plot as ./[W]poly_hist.pdf
 
 # Parse arguments: First whether we're considering poly or Wpoly
-# Then Nt, beta, mass to specify the ensembles 
+# Then Nt, beta, mass to specify the ensembles to consider,
 # the six corresponding thermalization cuts, high then low for each L,
 # following by the title for the plot
 # the upper bound for the y-axis,
@@ -68,7 +68,8 @@ else:
   sys.exit(1)
 
 # Prepare data to plot, combining high and low starts
-# Normalize both to be out of Nc rather than 1
+# Normalize both poly and Wpoly to be out of Nc rather than 1
+# (Wingate and Ohta seem to do this despite their Eq. 1)
 # Keep track of maximum to set horizontal axis size
 # poly format: MDTU,poly_mod              (normalized to 1)
 # Wpoly format: MDTU,c=0.2,0.3,0.4,0.5    (normalized to Nc)
