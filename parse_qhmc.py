@@ -298,6 +298,7 @@ for temp_tag in open('list.txt'):
     # ------------------------------------------------------------
     # Now extract physical observables and wrap up "out" file
     # Use consistent normalization for plaquette and pbp
+    # Checked that Wilson lines remain normalized to 1...
     elif line.startswith('MEASplaq'):
       plaq_ss = Nc * float((line.split())[2])
       plaq_st = Nc * float((line.split())[4])
@@ -503,6 +504,7 @@ for temp_tag in open('list.txt'):
         cOld = c
 
       # Wilson-flowed Polyakov loop (focus on real part, not magnitude)
+      # Normalized to Nc, unlike QHMC's MEASploop (checked)
       elif line.startswith('POLYA ORIG '):
         temp = line.split()
         cp = math.sqrt(8.0 * float(temp[2])) / L

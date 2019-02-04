@@ -31,7 +31,7 @@ cwd = os.getcwd()
 tag = (cwd.split('/'))[-1]
 
 # Extract c=0.5 modulus as last (fourth) datum on each line of data file
-# (Format: MDTU,c=0.2,0.3,0.4,0.5)
+# Format: MDTU,c=0.2,0.3,0.4,0.5
 dat = []
 for line in open('data/Wpoly_mod.csv'):
   if line.startswith('M'):
