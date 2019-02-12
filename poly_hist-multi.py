@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # ------------------------------------------------------------------
 # Plot histogram of Polyakov loop magnitudes from dygraph data files
-# Superimpose multiple ensembles specified by input arguments,
+# Superimpose multiple ensembles specified by input arguments
 # Combine both high and low starts for aspect ratios alpha=2, 3 and 4
 # Save resulting plot as ./[W]poly_hist.pdf
 

@@ -90,7 +90,6 @@ if good == -1:
 
 # ------------------------------------------------------------------
 # Check that block size is larger than Wpoly_mod auto-correlation time
-# Check that 
 # (Format: MDTU,c=0.2,0.3,0.4,0.5)
 dat = []
 sep = 10
