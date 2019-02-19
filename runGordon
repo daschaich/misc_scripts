@@ -94,7 +94,7 @@ for(( i="$count" ; $i<=$last ; i++ )); do
   # Extract order parameter building blocks at runtime
   Sout=$dir/Out/Sout_${start}_${L}${Nt}_${beta}_${ratio}_$mass.$next
   echo "/oasis/scratch/dschaich/temp_project/extract_params $out $Sout" >> temp
-  echo "chmod 666 $out $Sout $lat.$i* $lat.$next*" >> temp
+  echo "chmod 664 $out $Sout $lat.$i* $lat.$next*" >> temp
   echo "" >> temp
 done
 

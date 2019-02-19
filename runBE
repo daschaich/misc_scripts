@@ -124,7 +124,7 @@ for(( i=$first ; $i<=$last ; i++ )); do
   # Extract order parameter building blocks at runtime
   Sout=$dir/Out/Sout_${start}_${L}${L}_${beta}_${ratio}_$mass.$next
   echo "/lqcdproj/nHYPBSM/extract_params $out $Sout" >> temp
-  echo "chmod 666 $out $Sout $lat.$i* $lat.$next*" >> temp
+  echo "chmod 664 $out $Sout $lat.$i* $lat.$next*" >> temp
   echo "" >> temp
 done
 
