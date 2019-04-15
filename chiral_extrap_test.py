@@ -74,5 +74,5 @@ intercept = out[1]
 int_err = np.sqrt(pcov[1][1])     # Component of covariance matrix
 print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g" \
       % (intercept, int_err, chiSq, dof, chiSq / dof, CL)
-#print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
+#print "%.6g %.4g" % (out[0], np.sqrt(pcov[0][0]))
 # ------------------------------------------------------------------
