@@ -32,9 +32,9 @@ echo "#MSUB -A latticgc" >> $temp
 echo "#MSUB -l nodes=$node" >> $temp
 echo "#MSUB -q pbatch" >> $temp
 echo "#MSUB -l walltime=$time" >> $temp
-echo "#MSUB -N HMC${vol}_$tag" >> $temp
+echo "#MSUB -N spect${vol}_$tag" >> $temp
 echo "#MSUB -j oe" >> $temp
-echo "#MSUB -o out.HMC.%j" >> $temp
+echo "#MSUB -o out.spectrum.%j" >> $temp
 echo "#MSUB -m ae" >> $temp
 echo "#MSUB -M daschaich@gmail.com" >> $temp
 
@@ -76,7 +76,7 @@ for(( i=$first ; $i<=$last ; i+=$skip )); do
   lat=$dir/Configs/config
 
   # Set up run script for this task
-  awk -v X=$mass '{sub("massGoesHere",X);print}' ../template.lua > TEMP && mv TEMP SPECT$i.lua
+  awk -v X=$mass '{sub("massGoesHere",X);print}' ../template_spectrum.lua > TEMP && mv TEMP SPECT$i.lua
   awk -v X=$lat.%i.lime '{sub(/inlatGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
   awk -v X=${last}${beta/\./41}${vol%%nt*}$i '{sub(/seedGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
 
