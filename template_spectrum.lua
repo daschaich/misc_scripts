@@ -18,15 +18,15 @@ local mass = massGoesHere
 local src_start = 2       -- Time-slice of the first source
 local src_num = 6         -- Nt/8 sources for Nt=48
 local cg_prec = 1e-6      -- Max residual of CG
-local cg_max = 4000       -- Maximum number of CG steps
+local cg_max = 5000       -- Maximum number of CG steps
 
 -- Gauge fixing stuff
 local gfix_prec = 1e-7    -- Max residual
-local gfix_max = 4000     -- Max gauge fixing steps
+local gfix_max = 5000     -- Max gauge fixing steps
 local gfix_or = 1.75      -- Over-relaxation param for gauge fixing
 
 -- Configuration to analyze
-local inlat = 'latpatGoesHere'
+local inlat = 'inlatGoesHere'
 printf("inlat = %s\n", inlat)
 
 -- Use default mixed-precision inverter

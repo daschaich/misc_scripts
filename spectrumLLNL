@@ -1,0 +1,95 @@
+#!/bin/bash
+
+if [ $# -lt 3 ]; then
+  echo "Usage: $0 <first> <last> <time>"
+  exit 1
+fi
+
+# Input parameters
+first=$1
+last=$2
+time=$3
+
+# Adjustable parameters
+node=12
+cpus=432
+skip=10
+
+# Parameters fixed by the path
+temp=`pwd`
+path=${temp##*SU4/}   # Strip everything up to and including "SU4/"
+mass=${path##*_m}     # Strip everything up to and including "_m"
+temp=${path##*f/}     # Strip everything up to and including "f/"
+vol=${temp%%/b*}      # Strip everything after and including "/b"
+tag=${temp##*/}       # Strip everything up to and including "/"
+temp=${tag%%_*}       # Strip everything after and including first "_"
+beta=${temp##b}       # Strip b from front of temp
+
+# Common parameters for all jobs
+temp=submit_$tag
+echo "#!/bin/bash" > $temp
+echo "#MSUB -A latticgc" >> $temp
+echo "#MSUB -l nodes=$node" >> $temp
+echo "#MSUB -q pbatch" >> $temp
+echo "#MSUB -l walltime=$time" >> $temp
+echo "#MSUB -N HMC${vol}_$tag" >> $temp
+echo "#MSUB -j oe" >> $temp
+echo "#MSUB -o out.HMC.%j" >> $temp
+echo "#MSUB -m ae" >> $temp
+echo "#MSUB -M daschaich@gmail.com" >> $temp
+
+dir=/p/lustre1/schaich2/SU4/$path
+
+# Check that we're not going to break anything
+for(( i=$first ; $i<$last ; i+=$skip )); do
+  out=$dir/Out/spectrum.$i
+  lat=$dir/Configs/config.$i.lime
+  if [ -f $out ]; then
+    echo "ERROR: OUTPUT FILE $out EXISTS, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+  if [ ! -f $lat ]; then
+    echo "ERROR: LATTICE $lat NOT FOUND, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+done
+
+# Diagnostic information
+echo "echo '=====================JOB DIAGNOTICS========================'" >> $temp
+echo "date" >> $temp
+echo "echo -n 'This machine is ';hostname" >> $temp
+echo "echo -n 'My jobid is '; echo \$SLURM_JOBID" >> $temp
+echo "echo 'My path is:' " >> $temp
+echo "echo \$PATH" >> $temp
+echo "echo 'My job info:'" >> $temp
+echo "squeue -j \$SLURM_JOBID" >> $temp
+echo "echo 'Machine info'" >> $temp
+echo "sinfo -s" >> $temp
+
+# Write all evolution tasks to run in a single job
+iter=0
+for(( i=$first ; $i<=$last ; i+=$skip )); do
+  iter=$[$iter + 1]
+  out=$dir/Out/spectrum.$i
+  lat=$dir/Configs/config
+
+  # Set up run script for this task
+  awk -v X=$mass '{sub("massGoesHere",X);print}' ../template.lua > TEMP && mv TEMP SPECT$i.lua
+  awk -v X=$lat.%i.lime '{sub(/inlatGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
+  awk -v X=${last}${beta/\./41}${vol%%nt*}$i '{sub(/seedGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
+
+  echo "echo \"Job spect${vol}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
+  echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
+  echo "echo \"srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc SPECT$i.lua\" >> $out" >> $temp
+  echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc SPECT$i.lua >> $out" >> $temp
+
+  echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> $temp
+  echo "" >> $temp
+done
+
+msub $temp
+rm -f $temp
+
+echo "Requested $time to run $iter jobs ($first--$last by $skip)"
