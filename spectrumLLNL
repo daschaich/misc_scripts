@@ -11,8 +11,8 @@ last=$2
 time=$3
 
 # Adjustable parameters
-node=12
-cpus=432
+N=12
+cores=432
 skip=10
 
 # Parameters fixed by the path
@@ -25,36 +25,16 @@ tag=${temp##*/}       # Strip everything up to and including "/"
 temp=${tag%%_*}       # Strip everything after and including first "_"
 beta=${temp##b}       # Strip b from front of temp
 
-# Common parameters for all jobs
-temp=submit_$tag
+temp=submit$first
 echo "#!/bin/bash" > $temp
-echo "#MSUB -A latticgc" >> $temp
-echo "#MSUB -l nodes=$node" >> $temp
-echo "#MSUB -q pbatch" >> $temp
-echo "#MSUB -l walltime=$time" >> $temp
-echo "#MSUB -N spect${vol}_$tag" >> $temp
-echo "#MSUB -j oe" >> $temp
-echo "#MSUB -o out.spectrum.%j" >> $temp
-echo "#MSUB -m ae" >> $temp
-echo "#MSUB -M daschaich@gmail.com" >> $temp
-
-dir=/p/lustre1/schaich2/SU4/$path
-
-# Check that we're not going to break anything
-for(( i=$first ; $i<$last ; i+=$skip )); do
-  out=$dir/Out/spectrum.$i
-  lat=$dir/Configs/config.$i.lime
-  if [ -f $out ]; then
-    echo "ERROR: OUTPUT FILE $out EXISTS, SUBMISSION ABORTED"
-    rm -f $temp
-    exit 1
-  fi
-  if [ ! -f $lat ]; then
-    echo "ERROR: LATTICE $lat NOT FOUND, SUBMISSION ABORTED"
-    rm -f $temp
-    exit 1
-  fi
-done
+echo "#SBATCH -A latticgc" >> $temp
+echo "#SBATCH -p pbatch" >> $temp
+echo "#SBATCH --qos=normal" >> $temp
+echo "#SBATCH -N $N" >> $temp
+echo "#SBATCH -n $cores" >> $temp
+echo "#SBATCH -t $time" >> $temp
+echo "#SBATCH -J spect" >> $temp
+echo "#SBATCH -o out.spectrum.%j" >> $temp
 
 # Diagnostic information
 echo "echo '=====================JOB DIAGNOTICS========================'" >> $temp
@@ -68,28 +48,37 @@ echo "squeue -j \$SLURM_JOBID" >> $temp
 echo "echo 'Machine info'" >> $temp
 echo "sinfo -s" >> $temp
 
-# Write all evolution tasks to run in a single job
-iter=0
+echo "echo '=====================JOB STARTING=========================='" >> $temp
 for(( i=$first ; $i<=$last ; i+=$skip )); do
-  iter=$[$iter + 1]
-  out=$dir/Out/spectrum.$i
-  lat=$dir/Configs/config
+  echo -ne "Wflow.$i "
+  echo "echo $i" >> $temp
+  lat=Configs/config.$i.lime
+  out=Out/spectrum.$i
+  if [ ! -e $lat ]; then
+    echo "Error: lattice not found"
+    rm -f $temp
+    exit 1
+  fi
+  if [ -e $out ]; then
+    echo "Error: output file $out exists"
+    rm -f $temp
+    exit 1
+  fi
 
   # Set up run script for this task
   awk -v X=$mass '{sub("massGoesHere",X);print}' ../template_spectrum.lua > TEMP && mv TEMP SPECT$i.lua
-  awk -v X=$lat.%i.lime '{sub(/inlatGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
+  awk -v X=$lat '{sub(/inlatGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
   awk -v X=${last}${beta/\./41}${vol%%nt*}$i '{sub(/seedGoesHere/,X);print}' SPECT$i.lua > TEMP && mv TEMP SPECT$i.lua
 
+  # Go
   echo "echo \"Job spect${vol}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
   echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
-  echo "echo \"srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc SPECT$i.lua\" >> $out" >> $temp
-  echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc SPECT$i.lua >> $out" >> $temp
-
+  echo "echo \"srun -N$N -n$cores /g/g10/schaich2/bin/qhmc SPECT$i.lua\" >> $out" >> $temp
+  echo "srun -N$N -n$cores /g/g10/schaich2/bin/qhmc SPECT$i.lua >> $out" >> $temp
+  echo "chmod 660 $out" >> $temp
   echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> $temp
-  echo "" >> $temp
 done
+echo "echo '========================ALL DONE==========================='" >> $temp
 
-msub $temp
+sbatch $temp
 rm -f $temp
-
-echo "Requested $time to run $iter jobs ($first--$last by $skip)"

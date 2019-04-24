@@ -15,8 +15,8 @@ ngsteps=$6
 time=$7
 
 # Adjustable parameters
-node=8
-cpus=288
+N=12
+cores=432
 ntraj=10
 traj_length=1
 skip=10   # !!! Should be a way to figure out skip=ntraj*traj_length
@@ -34,15 +34,19 @@ beta=${temp##b}       # Strip b from front of temp
 # Common parameters for all jobs
 temp=submit_$tag
 echo "#!/bin/bash" > $temp
-echo "#MSUB -A latticgc" >> $temp
-echo "#MSUB -l nodes=$node" >> $temp
-echo "#MSUB -q pbatch" >> $temp
-echo "#MSUB -l walltime=$time" >> $temp
-echo "#MSUB -N HMC${vol}_$tag" >> $temp
-echo "#MSUB -j oe" >> $temp
-echo "#MSUB -o out.HMC.%j" >> $temp
-echo "#MSUB -m ae" >> $temp
-echo "#MSUB -M daschaich@gmail.com" >> $temp
+echo "#SBATCH -A latticgc" >> $temp
+echo "#SBATCH -p pbatch" >> $temp
+echo "#SBATCH --qos=normal" >> $temp
+echo "#SBATCH -N $N" >> $temp
+echo "#SBATCH -n $cores" >> $temp
+echo "#SBATCH -t $time" >> $temp
+echo "#SBATCH -J HMC${vol}_$tag" >> $temp
+echo "#SBATCH -o out.HMC.%j" >> $temp
+echo "#SBATCH --mail-user=daschaich@gmail.com" >> $temp
+echo "#SBATCH --mail-type=ALL" >> $temp
+if [ $# -gt 7 ]; then
+    echo "#SBATCH -d afterok:$8" >> $temp
+  fi
 
 dir=/p/lustre1/schaich2/SU4/$path
 
@@ -102,22 +106,13 @@ for(( i=$first ; $i<$last ; i+=$skip )); do
 
   echo "echo \"Job HMC${vol}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
   echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
-  echo "echo \"srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc RUN$i.lua\" >> $out" >> $temp
-  echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc RUN$i.lua >> $out" >> $temp
+  echo "echo \"srun -N$N -n$cores /g/g10/schaich2/bin/qhmc RUN$i.lua\" >> $out" >> $temp
+  echo "srun -N$N -n$cores /g/g10/schaich2/bin/qhmc RUN$i.lua >> $out" >> $temp
 
   echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> $temp
   echo "" >> $temp
 done
 
-if [ $# -gt 7 ]; then
-  msub -l depend=$8 $temp
-else
-  msub $temp
-fi
+sbatch $temp
 rm -f $temp
-
 echo "Requested $time to run $iter jobs ($first--$last by $ntraj)"
-echo -ne "  The latest file in this ensemble is "
-ls -tr Out/out.* | tail -n 1
-echo     "The first file this job will write is Out/out.$first-$[$first+$ntraj]"
-echo "Cancel the job if this doesn't look right"

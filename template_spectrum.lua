@@ -93,6 +93,7 @@ local t0 = qopqdp.dtime()
 g:coulomb(3, gfix_prec, gfix_max, gfix_or)
 t0 = qopqdp.dtime() - t0
 printf("Coulgauge meas time: %g\n", t0)
+getplaq(g)        -- Sanity check
 
 -- Set up and run HYP smearing (verified to be consistent with MILC)
 local smear = {}
@@ -103,6 +104,7 @@ myprint("smear = ", smear, "\n")
 printf("Start smearing\n")
 local sg = smearGauge({g = g}, smear)
 printf("Smearing done\n")
+getplaq(sg)       -- Sanity check
 
 -- Set the asqtad coeffs corresponding to plain staggered
 coeffs = { one_link=1 }
