@@ -104,6 +104,10 @@ for i in range(Ndirs):
     else:
       dat[i].append(Nc * float(temp[1]))
 
+  # TODO: A hack to let the script run before ensembles exist
+  if len(dat[i]) == 0:
+    dat[i].append(-10.0)
+
   if max(dat[i]) > xmax:
     xmax = max(dat[i])
 
@@ -113,11 +117,11 @@ for i in range(Ndirs):
 # Create histogram
 nbins = 20
 plt.figure(figsize=(6.40, 3.84))    # Gnuplot default
-plt.hist(dat[0], nbins, log=False, normed=True, align='mid',
+plt.hist(dat[0], nbins, log=False, density=True, align='mid',
          edgecolor='blue', label=L[0], histtype='step', hatch='//')
-plt.hist(dat[1], nbins, log=False, normed=True, align='mid',
+plt.hist(dat[1], nbins, log=False, density=True, align='mid',
          edgecolor='green', label=L[1], histtype='step', hatch='\\\\')
-plt.hist(dat[2], nbins, log=False, normed=True, align='mid',
+plt.hist(dat[2], nbins, log=False, density=True, align='mid',
          edgecolor='red', label=L[2], histtype='step', hatch='oo')
 
 #xmax = 1.1 * xmax   # A bit of padding at the right edge of the plot
@@ -125,7 +129,7 @@ plt.axis([0, xmax, 0.0, ymax])
 plt.grid(False)
 
 if poly_file.startswith('W'):
-  plt.title('Wflowed Polyakov loop magnitude, ' + title)
+  plt.title('Wflowed Ploop mag, ' + title)
   plt.xlabel('|PL_W|')
 else:
   plt.title('Polyakov loop magnitude, ' + title)
