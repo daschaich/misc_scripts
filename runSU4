@@ -1,18 +1,29 @@
 #!/bin/bash
 
-if [ $# -lt 7 ]; then
-  echo "Usage: $0 <first> <last> <MH> nsteps nsteps2 ngsteps <time> [dependency (optional)]"
+# Keep resubmitting from start to end in sets of per_job
+if [ $# -lt 8 ]; then
+  echo "Usage: $0 <start> <end> <per_job> <MH> <nsteps> <nsteps2> <ngsteps> <time>"
   exit 1
 fi
 
 # Input parameters
 first=$1
 last=$2
-MH=$3
-nsteps=$4
-nsteps2=$5
-ngsteps=$6
-time=$7
+batch=$3
+MH=$4
+nsteps=$5
+nsteps2=$6
+ngsteps=$7
+time=$8
+
+# Check whether we've correctly set $batch to evenly divide ($last-$first)
+iter=0
+count=$first
+for(( i=$first ; $i<$last ; i+=$batch )); do
+  iter=$[$iter + 1]
+  count=$[$count + $batch]
+done
+echo "Will submit $iter jobs and end up at $count MDTU"
 
 # Adjustable parameters
 N=12
@@ -44,13 +55,13 @@ echo "#SBATCH -J HMC${vol}_$tag" >> $temp
 echo "#SBATCH -o out.HMC.%j" >> $temp
 echo "#SBATCH --mail-user=daschaich@gmail.com" >> $temp
 echo "#SBATCH --mail-type=ALL" >> $temp
-if [ $# -gt 7 ]; then
-    echo "#SBATCH -d afterok:$8" >> $temp
-  fi
 
 dir=/p/lustre1/schaich2/SU4/$path
+cd $dir
+echo "cd $dir" >> $temp
 
-# Check that we're not going to break anything
+# Check that we're not going to break anything,
+# either through this job or the subsequent jobs it will submit
 lat=$dir/Configs/config.$first.lime
 if [ ! -f $lat ]; then
   echo "WARNING: LATTICE $lat NOT FOUND"
@@ -84,9 +95,10 @@ echo "squeue -j \$SLURM_JOBID" >> $temp
 echo "echo 'Machine info'" >> $temp
 echo "sinfo -s" >> $temp
 
-# Write all evolution tasks to run in a single job
+# Write this job's evolution tasks to run in a single job
 iter=0
-for(( i=$first ; $i<$last ; i+=$skip )); do
+this_sub=$[$first + $batch]
+for(( i=$first ; $i<$this_sub ; i+=$skip )); do
   iter=$[$iter + 1]
   next=$[$i + $skip]
   out=$dir/Out/out.$i-$next
@@ -113,6 +125,13 @@ for(( i=$first ; $i<$last ; i+=$skip )); do
   echo "" >> $temp
 done
 
+# Submit next job, if applicable
+# Warned above about possibility of ending up between $last and $last+$batch
+if [ $this_sub -lt $last ] ; then
+  echo "echo \"./runLLNL $this_sub $last $batch $MH $nsteps $nsteps2 $ngsteps $time\"" >> $temp
+  echo "./runLLNL $this_sub $last $batch $MH $nsteps $nsteps2 $ngsteps $time" >> $temp
+fi
+
 sbatch $temp
 rm -f $temp
-echo "Requested $time to run $iter jobs ($first--$last by $ntraj)"
+echo "Requested $time to save $iter configs ($first--$this_sub by $ntraj)"

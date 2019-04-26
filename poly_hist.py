@@ -1,25 +1,31 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 # ------------------------------------------------------------------
 # Plot histogram of Polyakov loop magnitudes from dygraph data files
-# Show only the ensemble from which the script is called (for animations)
+# Show only the aspect ratio from which the script is called (for animations)
+# Still combine both high and low starts for that aspect ratio
 # Save resulting plot as ./[W]poly_hist_$tag.pdf
-# Extract $tag from path rather than input argument
+# Extract volume and Nt from path rather than input argument
 
 # Parse arguments: First whether we're considering poly or Wpoly
-# Then thermalization cut, horizontal and vertical maxima,
-# and how many bins to have in the histogram
-if len(sys.argv) < 3:
-  print "Usage:", str(sys.argv[0]), "<file> <cut> <xmax> <bins>"
+# Then thermalization cuta and how many bins to have in the histogram
+if len(sys.argv) < 8:
+  print "Usage:", str(sys.argv[0]), "<file> <Nt> <beta> <mass>",
+  print "<high cut> <low cut> <xmax> <bins>",
   sys.exit(1)
 
 # This should be either poly_mod or Wpoly_mod
 poly_file = str(sys.argv[1])
 
-cut = int(sys.argv[2])
+Nt = int(sys.argv[2])
+beta = str(sys.argv[3])
+mass = str(sys.argv[4])
+high_cut = int(sys.argv[5])
+low_cut = int(sys.argv[6])
+
 xmax = float(sys.argv[3])
 nbins = int(sys.argv[4])
 
@@ -59,7 +65,7 @@ print "%d measurements for %s" % (len(dat), tag)
 
 # Create histogram
 plt.figure(figsize=(6.40, 3.84))    # Gnuplot default
-plt.hist(dat, nbins, log=False, density=False, align='mid',
+plt.hist(dat, nbins, log=False, normed=False, align='mid',
          edgecolor='blue', label=tag, histtype='step', hatch='//')
 
 plt.xlim([0.0, xmax])
