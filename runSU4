@@ -64,9 +64,9 @@ echo "cd $dir" >> $temp
 # either through this job or the subsequent jobs it will submit
 lat=$dir/Configs/config.$first.lime
 if [ ! -f $lat ]; then
-  echo "WARNING: LATTICE $lat NOT FOUND"
-  # Allow job to be submitted with warning,
-  # so it can accumulate priority while the starting config is generated
+  echo "WARNING: LATTICE $lat NOT FOUND, SUBMISSION ABORTED"
+  rm -f $temp
+  exit 1
 fi
 for(( i=$first ; $i<$last ; i+=$skip )); do
   out=$dir/Out/out.$i-$next
