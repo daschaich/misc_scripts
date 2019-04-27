@@ -64,7 +64,7 @@ echo "cd $dir" >> $temp
 # either through this job or the subsequent jobs it will submit
 lat=$dir/Configs/config.$first.lime
 if [ ! -f $lat ]; then
-  echo "WARNING: LATTICE $lat NOT FOUND, SUBMISSION ABORTED"
+  echo "ERROR: LATTICE $lat NOT FOUND, SUBMISSION ABORTED"
   rm -f $temp
   exit 1
 fi
