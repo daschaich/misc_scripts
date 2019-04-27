@@ -1,0 +1,5 @@
+Assuming meson_mass should be compiled with fit.c,
+while meson_mass_co should be compiled with cofit.c
+
+Confirmed that the latter at Liverpool exactly reproduces
+USBSM 8f 24nt48 results obtained at Colorado on 12 Nov 2013
