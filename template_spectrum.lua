@@ -479,5 +479,5 @@ printf("ENDPROP\n");
 printf("END_SPECTRUM\n");
 
 totaltime = qopqdp.dtime() - totaltime;
-printf("Total time: %f seconds.\n", totaltime);
+printf("Total time: %f sec\n", totaltime);
 io.stdout:flush()
