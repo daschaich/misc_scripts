@@ -248,7 +248,11 @@ print >> outfile, "# tau=%g with %d blocks" % (tau, int(N))
 if deriv > 0:
   gprop = 1.0
 else:
-  gprop = 128.0 * 3.14159**2 / 24.0
+  cwd = os.getcwd()
+  if 'SU4' in cwd:    # SU(4)
+    gprop = 128.0 * 3.14159**2 / 45.0
+  else:               # SU(3)
+    gprop = 128.0 * 3.14159**2 / 24.0
 for i in range(Npt):
   dat = np.array(datList[i])
   ave = np.mean(dat, dtype = np.float64)
