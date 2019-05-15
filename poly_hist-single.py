@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 # Extract $tag from path rather than input argument
 
 # Parse arguments: First whether we're considering poly or Wpoly
-# Then thermalization cut, horizontal and vertical maxima,
+# Then thermalization cut, horizontal maximum,
 # and how many bins to have in the histogram
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
   print "Usage:", str(sys.argv[0]), "<file> <cut> <xmax> <bins>"
   sys.exit(1)
 
@@ -73,9 +73,8 @@ plt.ylabel('Count')
 plt.legend()
 
 # Save a pdf
+outfile = 'poly_hist_' + tag + '.pdf'
 if poly_file.startswith('W'):
-  outfile = 'Wpoly_hist_' + tag + '.pdf'
-else:
-  outfile = 'poly_hist_' + tag + '.pdf'
+  outfile = 'W' + outfile
 plt.savefig(outfile, bbox_inches='tight')   # Reduce surrounding whitespace
 # ------------------------------------------------------------------

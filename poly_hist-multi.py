@@ -68,8 +68,8 @@ else:
   sys.exit(1)
 
 # Prepare data to plot, combining high and low starts
+# Use c=0.5 if Wflowed
 # Normalize both poly and Wpoly to be out of Nc rather than 1
-# (Wingate and Ohta seem to do this despite their Eq. 1)
 # Keep track of maximum to set horizontal axis size
 # poly format: MDTU,poly_mod              (normalized to 1)
 # Wpoly format: MDTU,c=0.2,0.3,0.4,0.5    (normalized to Nc)
@@ -138,9 +138,8 @@ plt.ylabel('Relative frequency')
 plt.legend()
 
 # Save a pdf
+outfile = 'poly_hist.pdf'
 if poly_file.startswith('W'):
-  outfile = 'Wpoly_hist.pdf'
-else:
-  outfile = 'poly_hist.pdf'
+  outfile = 'W' + outfile
 plt.savefig(outfile, bbox_inches='tight')   # Reduce surrounding whitespace
 # ------------------------------------------------------------------
