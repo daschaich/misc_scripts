@@ -17,12 +17,13 @@ for filename in glob.glob('Out/out.*'):
   outfile = open('TEMP', 'w')
   check = -1
   for line in open(filename):
+    # Only start copying file after first 'application finished' tag
+    if check == 1:
+      print >> outfile, line.rstrip()
+
+    # Check whether next line should be printed
     if line.startswith('=== MPI application finished '):
       check = 1
-
-    # Only start copying file after first 'application finished' tag
-    if check == 1
-      print >> outfile, line.rstrip()
 
   if check == -1:
     print filename, "did not complete"
