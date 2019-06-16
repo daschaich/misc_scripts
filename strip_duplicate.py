@@ -15,20 +15,21 @@ if not os.path.isdir('Out'):
 # Cycle over measurement files
 for filename in glob.glob('Out/out.*'):
   outfile = open('TEMP', 'w')
-  check = -1
+  check = 0
   for line in open(filename):
     # Only start copying file after first 'application finished' tag
-    if check == 1:
+    if check > 0:
       print >> outfile, line.rstrip()
 
     # Check whether next line should be printed
     if line.startswith('=== MPI application finished '):
-      check = 1
+      check += 1
 
-  if check == -1:
-    print filename, "did not complete"
-    continue
   outfile.close()
-  os.rename('TEMP', filename)
+  if not check == 2:
+    print filename, "does not report two measurements"
+    os.remove('TEMP')
+  else
+    os.rename('TEMP', filename)
 # ------------------------------------------------------------------
 
