@@ -38,12 +38,11 @@ path=${temp##*SU4/}   # Strip everything up to and including "SU4/"
 mass=${path##*_m}     # Strip everything up to and including "_m"
 temp=${path##*f/}     # Strip everything up to and including "f/"
 vol=${temp%%/b*}      # Strip everything after and including "/b"
-tag=${temp##*/}       # Strip everything up to and including "/"
-temp=${tag%%_*}       # Strip everything after and including first "_"
-beta=${temp##b}       # Strip b from front of temp
+tag=${temp##*/b}      # Strip everything up to and including "/b"
+beta=${tag%%_*}       # Strip everything after and including first "_"
 
 # Common parameters for all jobs
-temp=submit_$tag
+temp=submit_b$tag
 echo "#!/bin/bash" > $temp
 echo "#SBATCH -A latticgc" >> $temp
 echo "#SBATCH -p pbatch" >> $temp
@@ -51,7 +50,7 @@ echo "#SBATCH --qos=normal" >> $temp
 echo "#SBATCH -N $N" >> $temp
 echo "#SBATCH -n $cores" >> $temp
 echo "#SBATCH -t $time" >> $temp
-echo "#SBATCH -J HMC${vol}_$tag" >> $temp
+echo "#SBATCH -J HMC${vol}_b$tag" >> $temp
 echo "#SBATCH -o out.HMC.%j" >> $temp
 echo "#SBATCH --mail-user=daschaich@gmail.com" >> $temp
 echo "#SBATCH --mail-type=ALL" >> $temp
@@ -69,8 +68,9 @@ if [ ! -f $lat ]; then
   exit 1
 fi
 for(( i=$first ; $i<$last ; i+=$skip )); do
+  next=$[$i + $skip]
   out=$dir/Out/out.$i-$next
-  lat=$dir/Configs/config.$[$i+$skip].lime
+  lat=$dir/Configs/config.$next.lime
   if [ -f $out ]; then
     echo "ERROR: OUTPUT FILE $out EXISTS, SUBMISSION ABORTED"
     rm -f $temp
@@ -114,9 +114,17 @@ for(( i=$first ; $i<$this_sub ; i+=$skip )); do
   awk -v X=$nsteps2 '{sub(/nsteps2GoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
   awk -v X=$ngsteps '{sub(/ngstepsGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
   awk -v X=$lat.%i.lime '{sub(/latpatGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
-  awk -v X=${last}${beta/\./41}${vol%%nt*}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  if [[ $path == *_high_* ]]; then
+    awk -v X=${beta/\./1}${vol/nt/}${mass/0\./}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  elif [[ $path == *_low_* ]]; then
+    awk -v X=${beta/\./2}${vol/nt/}${mass/0\./}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  else
+    echo "ERROR: CONFUSED BY PATH $path, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
 
-  echo "echo \"Job HMC${vol}_$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
+  echo "echo \"Job HMC${vol}_b$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
   echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
   echo "echo \"srun -N$N -n$cores /g/g10/schaich2/bin/qhmc RUN$i.lua\" >> $out" >> $temp
   echo "srun -N$N -n$cores /g/g10/schaich2/bin/qhmc RUN$i.lua >> $out" >> $temp
