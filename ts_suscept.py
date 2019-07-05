@@ -50,9 +50,8 @@ if good == -1:
 # ------------------------------------------------------------------
 # For plaquette, average two data per line
 # For Wpoly(_mod), grab the last (fourth) number for c=0.5
-# For poly_mod and pbp, just grab the single number after the MDTU label
-# For poly, grab the first number on each line
-for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly', 'poly_mod', 'pbp']:
+# For poly* and pbp, just grab the single number after the MDTU label
+for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
   skip = -1
   count = 0
   ave = 0.0         # Accumulate within each block
@@ -73,10 +72,8 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly', 'poly_mod', 'pbp']:
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
       elif obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
-      elif obs == 'poly_mod' or obs == 'pbp':
+      elif obs == 'poly_mod' or obs == 'pbp' or obs == 'poly_r':
         tr = float(temp[1])
-      elif obs == 'poly':
-        tr = float(temp[0])
       ave += tr
       aveSq += tr * tr
       count += 1
