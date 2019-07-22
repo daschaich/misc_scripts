@@ -30,7 +30,7 @@ N=12
 cores=432
 ntraj=10
 traj_length=1
-skip=10   # !!! Should be a way to figure out skip=ntraj*traj_length
+skip=`echo $Ntraj | awk -v tau="$traj_length" '{print($1*tau)}'`
 
 # Parameters fixed by the path
 temp=`pwd`
