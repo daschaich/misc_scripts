@@ -4,9 +4,14 @@ import sys
 import glob
 import numpy as np
 # ------------------------------------------------------------------
-# Parse dygraph time-series data file to compute susceptibility
+# Parse dygraph time-series data file to compute susceptibility,
+# skewness and (excess) kurtosis
 # for the plaquette, (Wilson-flowed) Polyakov loop and chiral condensate
 # (Other targets may be added in the future)
+
+# When there are multiple measurements in a block,
+# we can't use the naive sum_i(dat_i - vev)^n expressions!
+# Need to accumulate dat^n within each block instead
 
 # Parse arguments: first is thermalization cut,
 # second is block size (should be larger than autocorrelation time)
@@ -50,7 +55,6 @@ if good == -1:
 # For Wpoly(_mod), grab the last (fourth) number for c=0.5
 # For poly* and pbp, just grab the single number after the MDTU label
 for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
-  skip = -1
   count = 0
   ave = 0.0         # Accumulate within each block
   aveSq = 0.0
@@ -65,6 +69,8 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
     MDTU = float(temp[0])
     if MDTU <= cut:
       continue
+
+    # Accumulate within block
     elif MDTU > begin and MDTU < (begin + block_size):
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
@@ -75,23 +81,33 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
       ave += tr
       aveSq += tr * tr
       count += 1
-    elif MDTU >= (begin + block_size):  # Move on to next block
-      if count == 0:
-        print "WARNING: no %s data to average at %d MDTU" % (obs, int(MDTU))
-        skip = 1
-        break
-      datList.append(ave / count)
-      sqList.append(aveSq / count)
-      begin += block_size
-      count = 1                         # Next block begins here
+
+    # Done with this block
+    elif MDTU == (begin + block_size):
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
       elif obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
       elif obs == 'poly_mod' or obs == 'pbp' or obs == 'poly_r':
         tr = float(temp[1])
-      ave = tr
-      aveSq = tr * tr
+      ave += tr
+      aveSq += tr * tr
+      count += 1
+
+      # Record this block
+      datList.append(ave / count)
+      sqList.append(aveSq / count)
+      begin += block_size
+
+      # Re-initialize for next block
+      count = 0
+      ave = 0.0
+      aveSq = 0.0
+
+    # This should never happen
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Require multiple blocks, N>1
   N = len(datList)
@@ -102,25 +118,22 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
   # Now construct jackknife samples through single-block elimination
   # Do normalization offline, so here just have
   #   chi = <obs^2> - <obs>^2
-  dat = np.array(datList)
-  tot = sum(dat)
-  sq = np.array(sqList)
-  totSq = sum(sq)
-  chi = np.zeros(N, dtype = np.float)
+  dat = np.array(datList, dtype = np.float64)
+  sq = np.array(sqList, dtype = np.float64)
+  chi = np.zeros(N, dtype = np.float64)
   for i in range(N):    # Jackknife samples
-    vev = (tot - dat[i]) / (N - 1.0)
-    sq_vev = (totSq - sq[i]) / (N - 1.0)
+    vev = np.mean(np.delete(dat, i))
+    sq_vev = np.mean(np.delete(sq, i))
     chi[i] = sq_vev - vev * vev
 
   # Sanity check -- compare against averages computed separately
 #  print obs, "ave = %.8g" % np.mean(dat, dtype = np.float64)
 
   # Now we can average over jackknife samples and print out results
-  ave = np.mean(chi, dtype = np.float64)
-  var = (N - 1.0) * np.sum((chi - ave)**2) / float(N)
+  ave = np.mean(chi)
+  var = (N - 1.0) * np.mean((chi - ave)**2)
   outfilename = 'results/' + obs + '.suscept'
   outfile = open(outfilename, 'w')
   print >> outfile, "%.8g %.4g # %d" % (ave, np.sqrt(var), N)
   outfile.close()
 # ------------------------------------------------------------------
-

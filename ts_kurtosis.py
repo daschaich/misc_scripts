@@ -3,16 +3,13 @@ import os
 import sys
 import glob
 import numpy as np
-from scipy.misc import comb   # For N choose k
 # ------------------------------------------------------------------
-# Parse dygraph time-series data file to compute cumulants ka_n
+# Parse dygraph time-series data file to compute (excess) kurtosis
 # for the (Wilson-flowed) Polyakov loop
 # (Other targets may be added in the future)
 
-# Following arXiv:1411.7461, this should give us the susceptibility ka_2/V,
-# the skewness ka_3/ka_2^{3/2} and the kurtosis ka_4/ka_2
-# We can check the first against direct computations from ts_suscept.py
-# (accounting for offline normalization by volume)
+# Also check susceptibility and skewness
+# TODO: The former can be compared with the result from ts_suscept.py...
 
 # Parse arguments: first is thermalization cut,
 # second is block size (should be larger than autocorrelation time)
@@ -57,6 +54,7 @@ if good == -1:
 # For poly* and pbp, just grab the single number after the MDTU label
 for obs in ['Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
   count = 0
+TODO: I THINK I NEED TO BLOCK ALL OF tr^2, tr^3 and tr^4!!!...
   ave = 0.0         # Accumulate within each block
   datList = []
   begin = cut       # Where each block begins, to be incremented
@@ -68,6 +66,8 @@ for obs in ['Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
     MDTU = float(temp[0])
     if MDTU <= cut:
       continue
+
+    # Accumulate within block
     elif MDTU > begin and MDTU < (begin + block_size):
       if obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
@@ -75,19 +75,28 @@ for obs in ['Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
         tr = float(temp[1])
       ave += tr
       count += 1
-    elif MDTU >= (begin + block_size):  # Move on to next block
-      if count == 0:
-        print "WARNING: no %s data to average at %d MDTU" % (obs, int(MDTU))
-        skip = 1
-        break
-      datList.append(ave / count)
-      begin += block_size
-      count = 1                         # Next block begins here
+
+    # Done with this block
+    elif MDTU == (begin + block_size):    # Done with this block
       if obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
       elif obs == 'poly_mod' or obs == 'poly_r':
         tr = float(temp[1])
-      ave = tr
+      ave += tr
+      count += 1
+
+      # Record this block
+      datList.append(ave / count)
+      begin += block_size
+
+      # Re-initialize for next block
+      count = 0
+      ave = 0.0
+
+    # This should never happen
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Require multiple blocks, N>1
   N = len(datList)
@@ -96,42 +105,35 @@ for obs in ['Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
     sys.exit(1)
 
   # Now construct jackknife samples through single-block elimination
-  
-  # Jackknife first Norder cumulants ka (and moments mu)
-  # through single-block elimination
-  dat = np.array(datList)
-  muJK = np.empty((Norder, N), dtype = np.float)
-  kaJK = np.empty((Norder, N), dtype = np.float)
+  # Check susceptibility and skewness in addition to kurtosis
+  #   chi = (1/N) sum_i (dat_i - vev)^2
+  #   S = [(1/N) sum_i (dat_i - vev)^3] / chi^{3/2}
+  #   ka = [(1/N) sum_i (dat_i - vev)^4] / chi^2
+  chi = np.zeros(N, dtype = np.float64)
+  S = np.zeros(N, dtype = np.float64)
+  ka = np.zeros(N, dtype = np.float64)
+  dat = np.array(datList, dtype = np.float64)
   for i in range(N):
     JKdat = np.delete(dat, i)             # Remove ith data point
-    for n in range(Norder):
-      muJK[n][i] = np.mean(JKdat**(n + 1), dtype = np.float64)
-      kaJK[n][i] = muJK[n][i]
-      for m in range(n):
-        # comb(N, k) is N-choose-k
-        kaJK[n][i] -= comb(n, m) * kaJK[m][i] * muJK[n - m - 1][i]
+    vev = np.mean(JKdat)
+    chi[i] = np.mean((JKdat - vev)**2)
+    S[i] = np.mean((JKdat - vev)**3) / (np.power(chi[i], 1.5))
+    ka[i] = np.mean((JKdat - vev)**4) / (chi[i]**2) - 3.0
 
-  # Average over jackknife samples for cumulants through ka_N
-  # Checked ka_1 against average and ka_2 against susceptibility...TODO
-  outfilename = 'results/' + obs + '.cumulants'
+  # Average over jackknife samples and print
+  outfilename = 'results/' + obs + '.kurtosis'
   outfile = open(outfilename, 'w')
-  for n in range(Norder):
-    ave = np.average(kaJK[n])
-    var = (N - 1.0) * np.sum((kaJK[n] - ave)**2) / float(N)
-    print >> outfile, "kappa_%d %.8g %.4g # %d" % (n+1, ave, np.sqrt(var), N)
 
-  # Average over jackknife samples for skewness and kurtosis
-  if (Norder > 3):
-    # ka_3 / ka_2^{1.5} (indexing from 1)
-    skewJK = kaJK[2] / np.power(kaJK[1], 1.5)
-    ave = np.average(skewJK)
-    var = (N - 1.0) * np.sum((skewJK - ave)**2) / float(N)
-    print >> outfile, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  ave = np.mean(chi)
+  var = (N - 1.0) * np.mean((chi - ave)**2)
+  print >> outfile, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
 
-    # ka_4 / ka_2^2 (indexing from 1)
-    kurtJK = kaJK[3] / kaJK[1]**2
-    ave = np.average(kurtJK)
-    var = (N - 1.0) * np.sum((kurtJK - ave)**2) / float(N)
-    print >> outfile, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  ave = np.mean(S)
+  var = (N - 1.0) * np.mean((S - ave)**2)
+  print >> outfile, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+
+  ave = np.mean(ka)
+  var = (N - 1.0) * np.mean((ka - ave)**2)
+  print >> outfile, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
   outfile.close()
 # ------------------------------------------------------------------
