@@ -176,8 +176,13 @@ echo '    </table>' >> $out
 echo '  </div>' >> $out
 echo '  <br><br>' >> $out
 
-len=`wc -l data/plaqB.csv | awk '{print $1}'`
-if [ $len -gt 1 ]; then  # Only include if we actually have something to show
+# Only include if we actually have something to show
+if [ -f data/plaqB.csv ] ; then
+  len=`wc -l data/plaqB.csv | awk '{print $1}'`
+else
+  len=0
+fi
+if [ $len -gt 1 ]; then
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
   echo '      <tr><th>Re(spatial loop) ('$tag')</th><th>Spatial loop mod ('$tag')</th></tr>' >> $out
@@ -218,8 +223,13 @@ if [ $len -gt 1 ]; then  # Only include if we actually have something to show
   echo '  <br><br>' >> $out
 fi
 
-len=`wc -l data/plaq_diff.csv | awk '{print $1}'`
-if [ $len -gt 1 ]; then  # Only include if we actually have something to show
+# Only include if we actually have something to show
+if [ -f data/plaq_diff.csv ] ; then
+  len=`wc -l data/plaq_diff.csv | awk '{print $1}'`
+else
+  len=0
+fi
+if [ $len -gt 1 ]; then
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
   echo '      <tr><th>Plaquette difference ('$tag')</th><th>Link difference ('$tag')</th></tr>' >> $out
@@ -260,8 +270,13 @@ if [ $len -gt 1 ]; then  # Only include if we actually have something to show
   echo '  <br><br>' >> $out
 fi
 
-len=`wc -l data/Wflow.csv | awk '{print $1}'`
-if [ $len -gt 1 ]; then  # Only include if we actually have something to show
+# Only include if we actually have something to show
+if [ -f data/Wflow.csv ] ; then
+  len=`wc -l data/Wflow.csv | awk '{print $1}'`
+else
+  len=0
+fi
+if [ $len -gt 1 ]; then
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
   echo '      <tr><th>g<sup>2</sup> from Wilson flow ('$tag')</th><th>Topological charge ('$tag')</th></tr>' >> $out
@@ -341,8 +356,13 @@ if [ $len -gt 1 ]; then  # Only include if we actually have something to show
   echo '  <br><br>' >> $out
 fi
 
-len=`wc -l data/eig.csv | awk '{print $1}'`
-if [ $len -gt 1 ]; then  # Only include if we actually have something to show
+# Only include if we actually have something to show
+if [ -f data/eig.csv ] ; then
+  len=`wc -l data/eig.csv | awk '{print $1}'`
+else
+  len=0
+fi
+if [ $len -gt 1 ]; then
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
   echo '      <tr><th>Eigenvalues ('$tag')</th><th>Intentionally left blank</th></tr>' >> $out
@@ -371,8 +391,13 @@ if [ $len -gt 1 ]; then  # Only include if we actually have something to show
 fi
 echo '  <br><br><p align="right"><a href="#top">Return to top</a></p>' >> $out
 
-len=`wc -l data/plaqB.csv | awk '{print $1}'`
-if [ $len -gt 1 ]; then  # Only include if we actually have something to show
+# Only include if we actually have something to show
+if [ -f data/plaqB.csv ] ; then
+  len=`wc -l data/plaqB.csv | awk '{print $1}'`
+else
+  len=0
+fi
+if [ $len -gt 1 ]; then
   echo '  <h1><a name="blocked"></a>Blocked observables</h1>' >> $out
   echo '  <hr><br>' >> $out
   echo '  <div style="width:880px; height:330px;">' >> $out

@@ -46,20 +46,32 @@ if good == -1:
   print "Error: no data to analyze",
   print "since cut=%d but we only have %d MDTU" % (cut, float(temp[1]))
   sys.exit(1)
+
+# Extract number of flavors for pbp normalization
+# For quenched "valence pbp" we want the 4f normalization
+path = os.getcwd()
+if '4f' in path or '0f' in path:
+  pbp_norm = 1.0
+elif '8f' in path:
+  pbp_norm = 0.5
+else:
+  print "ERROR: So far only 4f and 8f set up"
+  sys.exit(1)
 # ------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------
 # For plaquette, average two data per line
-# For Wpoly(_mod), grab the last (fourth) number for c=0.5
-# For poly* and pbp, just grab the single number after the MDTU label
-for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
-  count = 0
+# For pbp we may need to normalize per continuum flavor
+# For poly(_mod), have only one datum per line
+# For Wpoly(_mod), use the last (fourth) number for c=0.5
+for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
   ave = 0.0         # Accumulate within each block
   aveSq = 0.0
   aveCu = 0.0
   aveFo = 0.0
+  count = 0
   datList = []
   sqList = []
   cuList = []
@@ -75,46 +87,35 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
       continue
 
     # Accumulate within block
-    elif MDTU > begin and MDTU < (begin + block_size):
+    elif MDTU > begin and MDTU <= (begin + block_size):
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
+      elif obs == 'pbp':
+        tr = pbp_norm * float(temp[1])
+      elif obs == 'poly_r' or obs == 'poly_mod':
+        tr = float(temp[1])
       elif obs == 'Wpoly' or obs == 'Wpoly_mod':
         tr = float(temp[-1])
-      elif obs == 'poly_mod' or obs == 'pbp' or obs == 'poly_r':
-        tr = float(temp[1])
       ave += tr
       aveSq += tr * tr
       aveCu += tr**3
       aveFo += tr**4
       count += 1
 
-    # Done with this block
-    elif MDTU == (begin + block_size):
-      if obs == 'plaq':
-        tr = 0.5 * (float(temp[1]) + float(temp[2]))
-      elif obs == 'Wpoly' or obs == 'Wpoly_mod':
-        tr = float(temp[-1])
-      elif obs == 'poly_mod' or obs == 'pbp' or obs == 'poly_r':
-        tr = float(temp[1])
-      ave += tr
-      aveSq += tr * tr
-      aveCu += tr**3
-      aveFo += tr**4
-      count += 1
+      # If that "<=" is really "==" then we are done
+      # Record this block and re-initialize for the next block
+      if MDTU == (begin + block_size):
+        datList.append(ave / float(count))
+        sqList.append(aveSq / float(count))
+        cuList.append(aveCu / float(count))
+        foList.append(aveFo / float(count))
 
-      # Record this block
-      datList.append(ave / count)
-      sqList.append(aveSq / count)
-      cuList.append(aveCu / count)
-      foList.append(aveFo / count)
-      begin += block_size
-
-      # Re-initialize for next block
-      count = 0
-      ave = 0.0
-      aveSq = 0.0
-      aveCu = 0.0
-      aveFo = 0.0
+        begin += block_size
+        ave = 0.0
+        aveSq = 0.0
+        aveCu = 0.0
+        aveFo = 0.0
+        count = 0
 
     # This should never happen
     elif MDTU > (begin + block_size):

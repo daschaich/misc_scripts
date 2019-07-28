@@ -43,12 +43,12 @@ else:
   Nt = int(temp[1][:2])    # First two digits after 'nt'
 vol = L**3 * Nt
 
-# Extract number of flavors for pbp normalization
+# Set pbp normalization depending on number of flavors
 # For quenched "valence pbp" we want the 4f normalization
 if '4f' in path or '0f' in path:
   pbp_norm = 1.0
 elif '8f' in path:
-  pbp_norm = 2.0
+  pbp_norm = 0.5
 else:
   print "ERROR: So far only 4f and 8f set up"
   sys.exit(1)
@@ -132,85 +132,13 @@ outfile.close()
 
 
 # ------------------------------------------------------------------
-# Plaquette is special -- two data (to be averaged) per line
-count = 0
-ave = 0.          # Accumulate within each block
-datList = []
-begin = cut       # Where each block begins, to be incremented
-plaqfile = 'data/plaq.csv'
-for line in open(plaqfile):
-  if line.startswith('M'):
-    continue
-  temp = line.split(',')
-  MDTU = float(temp[0]) + start
-  if MDTU <= cut:
-    continue
-  elif MDTU >= begin and float(temp[0]) < (begin + block_size):
-    ave += (float(temp[1]) + float(temp[2])) / 2
-    count += 1
-  elif MDTU >= (begin + block_size):  # Move on to next block
-    datList.append(ave / float(count))
-    begin += block_size
-    count = 1                     # Next block begins with this line
-    ave = (float(temp[1]) + float(temp[2])) / 2
-
-# Now print mean and standard error, assuming N>1
-dat = np.array(datList)
-N = np.size(dat)
-ave = np.mean(dat, dtype = np.float64)
-err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.)
-outfilename = 'results/plaq.dat'
-outfile = open(outfilename, 'w')
-print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
-outfile.close()
-# ------------------------------------------------------------------
-
-
-
-# ------------------------------------------------------------------
-# Chiral condensate is also special
-# It needs to be halved to be normalized per continuum flavor
-count = 0
-ave = 0.          # Accumulate within each block
-datList = []
-begin = cut       # Where each block begins, to be incremented
-pbpfile = 'data/pbp.csv'
-for line in open(pbpfile):
-  if line.startswith('M'):
-    continue
-  temp = line.split(',')
-  MDTU = float(temp[0]) + start
-  if MDTU <= cut:
-    continue
-  elif MDTU >= begin and MDTU < (begin + block_size):
-    ave += float(temp[1])
-    count += 1
-  elif MDTU >= (begin + block_size):  # Move on to next block
-    datList.append(ave / float(pbp_norm * count))
-    begin += block_size
-    count = 1                     # Next block begins with this line
-    ave = float(temp[1])
-
-# Now print mean and standard error, assuming N>1
-dat = np.array(datList)
-N = np.size(dat)
-ave = np.mean(dat, dtype = np.float64)
-err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.0)
-outfilename = 'results/pbp.dat'
-outfile = open(outfilename, 'w')
-print >> outfile, "# Normalized per continuum flavor"
-print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
-outfile.close()
-# ----------------------------------------------------------------
-
-
-
-# ------------------------------------------------------------------
-# Polyakov loop and spatial Wilson line have only one datum per line
-# Just look at real parts for now (not mod, arg or imaginary parts)
-for obs in ['poly_r', 'xpoly_r']:
-  count = 0
+# For plaquette, average two data per line
+# For pbp we may need to normalize per continuum flavor
+# For (x)poly(_mod), have only one datum per line
+# Currently not looking at arg or imaginary parts
+for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
   ave = 0.0         # Accumulate within each block
+  count = 0
   datList = []
   begin = cut       # Where each block begins, to be incremented
   obsfile = 'data/' + obs + '.csv'
@@ -221,22 +149,43 @@ for obs in ['poly_r', 'xpoly_r']:
     MDTU = float(temp[0]) + start
     if MDTU <= cut:
       continue
-    elif MDTU >= begin and MDTU < (begin + block_size):
-      ave += float(temp[1])
+
+    # Accumulate within block
+    elif MDTU >= begin and MDTU <= (begin + block_size):
+      if obs == 'plaq':
+        tr = 0.5 * (float(temp[1]) + float(temp[2]))
+      elif obs == 'pbp':
+        tr = pbp_norm * float(temp[1])
+      elif obs == 'poly_r' or obs == 'poly_mod' \
+        or obs == 'xpoly_r' or obs == 'xpoly_mod':
+        tr = float(temp[1])
+      ave += tr
       count += 1
-    elif MDTU >= (begin + block_size):  # Move on to next block
-      datList.append(ave / float(count))
-      begin += block_size
-      count = 1                     # Next block begins with this line
-      ave = float(temp[1])
+
+      # If that "<=" is really "==" then we are done with this block
+      # Record it and re-initialize for the next block
+      if MDTU == (begin + block_size):
+        datList.append(ave / float(count))
+
+        begin += block_size
+        ave = 0.0
+        count = 0
+
+    # This doesn't happen for ensembles I generate
+    # May need to be revisited for more general applicability
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
-  dat = np.array(datList)
+  dat = np.array(datList, dtype = np.float64)
   N = np.size(dat)
-  ave = np.mean(dat, dtype = np.float64)
-  err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.)
+  ave = np.mean(dat)
+  err = np.std(dat) / np.sqrt(N - 1.0)
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
+  if obs == 'pbp':
+    print >> outfile, "# Normalized per continuum flavor"
   print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
   outfile.close()
 # ------------------------------------------------------------------
@@ -250,9 +199,9 @@ for obs in ['poly_r', 'xpoly_r']:
 for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
   if '0f' in path and obs == 'cg_iters':
     continue        # No CG iterations for pure-gauge runs
-  skip = -1
-  count = 0
+
   ave = 0.0         # Accumulate within each block
+  count = 0
   datList = []
   begin = t_cut     # Where each block begins, to be incremented
   obsfile = 'data/' + obs + '.csv'
@@ -263,29 +212,32 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
     traj = float(temp[0])
     if traj <= t_cut:
       continue
-    elif traj > begin and traj < (begin + block_size):
+
+    # Accumulate within block
+    elif traj > begin and traj <= (begin + block_size):
       ave += float(temp[1])
       count += 1
-    elif traj >= (begin + block_size):      # Move on to next block
-      if count == 0:
-        print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
-        skip = 1
-        break
-      datList.append(ave / float(count))
-      begin += block_size
-      count = 1                             # Next block begins here
-      ave = float(temp[1])
 
-  if len(datList) == 0:
-    skip = 1
-  if skip > 0:
-    continue
+      # If that "<=" is really "==" then we are done with this block
+      # Record it and re-initialize for the next block
+      if traj == (begin + block_size):
+        datList.append(ave / float(count))
+
+        begin += block_size
+        ave = 0.0
+        count = 0
+
+    # This doesn't happen for ensembles I generate
+    # May need to be revisited for more general applicability
+    elif traj > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
-  dat = np.array(datList)
+  dat = np.array(datList, dtype = np.float64)
   N = np.size(dat)
-  ave = np.mean(dat, dtype = np.float64)
-  err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.0)
+  ave = np.mean(dat)
+  err = np.std(dat) / np.sqrt(N - 1.0)
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
   print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
@@ -299,12 +251,15 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
 # We already got the "+ 1" above, but include it here as well, to check
 # Just look at real parts for now (not mod, arg or imaginary parts)
 for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
-  skip = -1
-  count = 0
   ave = [0.0 for x in range(blMax + 1)] # Accumulate within each block
+  count = 0
   datList = [[] for x in range(blMax + 1)]
   begin = cut       # Where each block begins, to be incremented
+
+  # Only run if we have blocked data
   obsfile = 'data/' + obs + '.csv'
+  if not os.path.isfile(obsfile):
+    continue
   for line in open(obsfile):
     if line.startswith('M'):
       continue
@@ -312,34 +267,38 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
     MDTU = float(temp[0]) + start
     if MDTU <= cut:
       continue
-    elif MDTU >= begin and MDTU < (begin + block_size):
-      for i in range(0, blMax + 1):
+
+    # Accumulate within block
+    elif MDTU > begin and MDTU <= (begin + block_size):
+      for i in range(blMax + 1):
         ave[i] += float(temp[i + 1])
       count += 1
-    elif MDTU >= (begin + block_size):  # Move on to next block
-      if count == 0:
-        print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
-        skip = 1
-        break
-      for i in range(0, blMax + 1):
-        datList[i].append(ave[i] / float(count))
-        ave[i] = float(temp[i + 1])
-      begin += block_size
-      count = 1                     # Next block begins with this line
 
-  if len(datList[0]) == 0:
-    skip = 1
-  if skip > 0:
-    continue
+      # If that "<=" is really "==" then we are done with this block
+      # Record it and re-initialize for the next block
+      if MDTU == (begin + block_size):
+        for i in range(blMax + 1):
+          datList[i].append(ave[i] / float(count))
+
+        begin += block_size
+        for i in range(blMax + 1):
+          ave[i] = 0.0
+        count = 0
+
+    # This doesn't happen for ensembles I generate
+    # May need to be revisited for more general applicability
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
   outfilename = 'results/' + obs +  '.dat'
   outfile = open(outfilename, 'w')
-  for i in range(0, blMax + 1):
-    dat = np.array(datList[i])
+  for i in range(blMax + 1):
+    dat = np.array(datList[i], dtype = np.float64)
     N = np.size(dat)
-    ave = np.mean(dat, dtype = np.float64)
-    err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.0)
+    ave = np.mean(dat)
+    err = np.std(dat) / np.sqrt(N - 1.0)
     print >> outfile, "%.8g %.4g" % (ave, err),
   print >> outfile, "# %d" % N
   outfile.close()
@@ -352,12 +311,15 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
 # is the euclidean norm I'm interested in for now
 # Also need to normalize the link differences by (half) the volume
 for obs in ['plaq_diff', 'link_diff']:
-  skip = -1
+  ave = 0.0         # Accumulate within each block
   count = 0
-  ave = 0.          # Accumulate within each block
   datList = []
   begin = cut       # Where each block begins, to be incremented
+
+  # Only run if we have S4b data
   obsfile = 'data/' + obs + '.csv'
+  if not os.path.isfile(obsfile):
+    continue
   for line in open(obsfile):
     if line.startswith('M'):
       continue
@@ -365,35 +327,36 @@ for obs in ['plaq_diff', 'link_diff']:
     MDTU = float(temp[0]) + start
     if MDTU <= cut:
       continue
-    elif MDTU >= begin and MDTU < (begin + block_size):
-      if obs == 'plaq_diff':
-        ave += float(temp[5])
-      elif obs == 'link_diff':
-        ave += float(temp[5]) * 2. / float(vol)
-      count += 1
-    elif MDTU >= (begin + block_size):  # Move on to next block
-      if count == 0:
-        print "WARNING: no %s data to average at %d traj" % (obs, int(traj))
-        skip = 1
-        break
-      datList.append(ave / float(count))
-      begin += block_size
-      count = 1                     # Next block begins with this line
-      if obs == 'plaq_diff':
-        ave = float(temp[5])
-      elif obs == 'link_diff':
-        ave = float(temp[5]) * 2.0 / float(vol)
 
-  if len(datList) == 0:
-    skip = 1
-  if skip > 0:
-    continue
+    # Accumulate within block
+    elif MDTU > begin and MDTU <= (begin + block_size):
+      if obs == 'plaq_diff':
+        tr = float(temp[5])
+      elif obs == 'link_diff':
+        tr = float(temp[5]) * 2.0 / float(vol)
+      ave += tr
+      count += 1
+
+      # If that "<=" is really "==" then we are done with this block
+      # Record it and re-initialize for the next block
+      if MDTU == (begin + block_size):
+        datList.append(ave / float(count))
+
+        begin += block_size
+        ave = 0.0
+        count = 0
+
+    # This doesn't happen for ensembles I generate
+    # May need to be revisited for more general applicability
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
-  dat = np.array(datList)
+  dat = np.array(datList, dtype = np.float64)
   N = np.size(dat)
-  ave = np.mean(dat, dtype = np.float64)
-  err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.0)
+  ave = np.mean(dat)
+  err = np.std(dat) / np.sqrt(N - 1.0)
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
   print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
@@ -405,9 +368,9 @@ for obs in ['plaq_diff', 'link_diff']:
 # ----------------------------------------------------------------
 # For the Wilson flow, the fourth datum on each line is the c=0.3
 # running coupling I'm interested in for now
-# This still needs the finite volume volume correction (1+delta)~0.97
+# This still needs the finite volume perturbative correction (1+delta)~0.97
+ave = 0.0         # Accumulate within each block
 count = 0
-ave = 0.          # Accumulate within each block
 datList = []
 begin = cut       # Where each block begins, to be incremented
 vol_corr = 0.97
@@ -419,20 +382,32 @@ for line in open(flowfile):
   MDTU = float(temp[0]) + start
   if MDTU <= cut:
     continue
-  elif MDTU >= begin and MDTU < (begin + block_size):
+
+  # Accumulate within block
+  elif MDTU >= begin and MDTU <= (begin + block_size):
     ave += float(temp[3]) / vol_corr
     count += 1
-  elif MDTU >= (begin + block_size):  # Move on to next bloc
-    datList.append(ave / float(count))
-    begin += block_size
-    count = 1                     # Next block begins with this line
-    ave = float(temp[3]) / vol_corr
+
+    # If that "<=" is really "==" then we are done with this block
+    # Record it and re-initialize for the next block
+    if MDTU == (begin + block_size):
+      datList.append(ave / float(count))
+
+      begin += block_size
+      ave = 0.0
+      count = 0
+
+  # This doesn't happen for ensembles I generate
+  # May need to be revisited for more general applicability
+  elif MDTU > (begin + block_size):
+    print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+    sys.exit(1)
 
 # Now print mean and standard error, assuming N>1
-dat = np.array(datList)
+dat = np.array(datList, dtype = np.float64)
 N = np.size(dat)
-ave = np.mean(dat, dtype = np.float64)
-err = np.std(dat, dtype = np.float64) / np.sqrt(N - 1.)
+ave = np.mean(dat)
+err = np.std(dat) / np.sqrt(N - 1.0)
 outfilename = 'results/Wflow_gSq.dat'
 outfile = open(outfilename, 'w')
 print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
@@ -442,18 +417,13 @@ outfile.close()
 
 
 # ----------------------------------------------------------------
-# For the Wilson-flowed Polyakov loop (real part and modulus),
+# For the Wilson-flowed Polyakov loop (real part and modulus)
+# and anisotropy E_ss / E_st,
 # let's print out all four of c=0.2, 0.3, 0.4 and 0.5
-for obs in ['Wpoly', 'Wpoly_mod']:
+for obs in ['Wpoly', 'Wpoly_mod', 'Wflow_aniso']:
+  ave = [0.0 for x in range(4)]     # Accumulate within each block
   count = 0
-  ave2 = 0.0        # Accumulate within each block
-  ave3 = 0.0
-  ave4 = 0.0
-  ave5 = 0.0
-  datList2 = []
-  datList3 = []
-  datList4 = []
-  datList5 = []
+  datList = [[] for x in range(4)]
   begin = cut       # Where each block begins, to be incremented
   flowfile = 'data/' + obs + '.csv'
   for line in open(flowfile):
@@ -463,107 +433,42 @@ for obs in ['Wpoly', 'Wpoly_mod']:
     MDTU = float(temp[0]) + start
     if MDTU <= cut:
       continue
-    elif MDTU >= begin and MDTU < (begin + block_size):
-      ave2 += float(temp[1])
-      ave3 += float(temp[2])
-      ave4 += float(temp[3])
-      ave5 += float(temp[4])
+
+    # Accumulate within block
+    elif MDTU > begin and MDTU <= (begin + block_size):
+      for i in range(4):
+        ave[i] += float(temp[i + 1])
       count += 1
-    elif MDTU >= (begin + block_size):  # Move on to next bloc
-      datList2.append(ave2 / float(count))
-      datList3.append(ave3 / float(count))
-      datList4.append(ave4 / float(count))
-      datList5.append(ave5 / float(count))
-      begin += block_size
-      count = 1                     # Next block begins with this line
-      ave2 = float(temp[1])
-      ave3 = float(temp[2])
-      ave4 = float(temp[3])
-      ave5 = float(temp[4])
+
+      # If that "<=" is really "==" then we are done with this block
+      # Record it and re-initialize for the next block
+      if MDTU == (begin + block_size):
+        for i in range(4):
+          datList[i].append(ave[i] / float(count))
+
+        begin += block_size
+        for i in range(4):
+          ave[i] = 0.0
+        count = 0
+
+    # This doesn't happen for ensembles I generate
+    # May need to be revisited for more general applicability
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
-  dat2 = np.array(datList2)
-  dat3 = np.array(datList3)
-  dat4 = np.array(datList4)
-  dat5 = np.array(datList5)
-  N = np.size(dat2)
-  ave2 = np.mean(dat2, dtype = np.float64)
-  err2 = np.std(dat2, dtype = np.float64) / np.sqrt(N - 1.)
-  ave3 = np.mean(dat3, dtype = np.float64)
-  err3 = np.std(dat3, dtype = np.float64) / np.sqrt(N - 1.)
-  ave4 = np.mean(dat4, dtype = np.float64)
-  err4 = np.std(dat4, dtype = np.float64) / np.sqrt(N - 1.)
-  ave5 = np.mean(dat5, dtype = np.float64)
-  err5 = np.std(dat5, dtype = np.float64) / np.sqrt(N - 1.)
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
   print >> outfile, "# c=0.2 err c=0.3 err c=0.4 err c=0.5 err # Nblocks"
-  print >> outfile, "%.8g %.4g %.8g %.4g" % (ave2, err2, ave3, err3),
-  print >> outfile, "%.8g %.4g %.8g %.4g # %d" % (ave4, err4, ave5, err5, N)
+  for i in range(4):
+    dat = np.array(datList[i], dtype = np.float64)
+    N = np.size(dat)
+    ave = np.mean(dat)
+    err = np.std(dat) / np.sqrt(N - 1.0)
+    print >> outfile, "%.8g %.4g" % (ave, err),
+  print >> outfile, "# %d" % N
   outfile.close()
-# ------------------------------------------------------------------
-
-
-
-# ----------------------------------------------------------------
-# For the Wilson flow anisotropy E_ss / E_st,
-# again print out all four of c=0.2, 0.3, 0.4 and 0.5
-count = 0
-ave2 = 0.0        # Accumulate within each block
-ave3 = 0.0
-ave4 = 0.0
-ave5 = 0.0
-datList2 = []
-datList3 = []
-datList4 = []
-datList5 = []
-begin = cut       # Where each block begins, to be incremented
-flowfile = 'data/Wflow_aniso.csv'
-for line in open(flowfile):
-  if line.startswith('M'):
-    continue
-  temp = line.split(',')
-  MDTU = float(temp[0]) + start
-  if MDTU <= cut:
-    continue
-  elif MDTU >= begin and MDTU < (begin + block_size):
-    ave2 += float(temp[1])
-    ave3 += float(temp[2])
-    ave4 += float(temp[3])
-    ave5 += float(temp[4])
-    count += 1
-  elif MDTU >= (begin + block_size):  # Move on to next bloc
-    datList2.append(ave2 / float(count))
-    datList3.append(ave3 / float(count))
-    datList4.append(ave4 / float(count))
-    datList5.append(ave5 / float(count))
-    begin += block_size
-    count = 1                     # Next block begins with this line
-    ave2 = float(temp[1])
-    ave3 = float(temp[2])
-    ave4 = float(temp[3])
-    ave5 = float(temp[4])
-
-# Now print mean and standard error, assuming N>1
-dat2 = np.array(datList2)
-dat3 = np.array(datList3)
-dat4 = np.array(datList4)
-dat5 = np.array(datList5)
-N = np.size(dat2)
-ave2 = np.mean(dat2, dtype = np.float64)
-err2 = np.std(dat2, dtype = np.float64) / np.sqrt(N - 1.)
-ave3 = np.mean(dat3, dtype = np.float64)
-err3 = np.std(dat3, dtype = np.float64) / np.sqrt(N - 1.)
-ave4 = np.mean(dat4, dtype = np.float64)
-err4 = np.std(dat4, dtype = np.float64) / np.sqrt(N - 1.)
-ave5 = np.mean(dat5, dtype = np.float64)
-err5 = np.std(dat5, dtype = np.float64) / np.sqrt(N - 1.)
-outfilename = 'results/Wflow_aniso.dat'
-outfile = open(outfilename, 'w')
-print >> outfile, "# c=0.2 err c=0.3 err c=0.4 err c=0.5 err # Nblocks"
-print >> outfile, "%.8g %.4g %.8g %.4g" % (ave2, err2, ave3, err3),
-print >> outfile, "%.8g %.4g %.8g %.4g # %d" % (ave4, err4, ave5, err5, N)
-outfile.close()
 # ------------------------------------------------------------------
 
 

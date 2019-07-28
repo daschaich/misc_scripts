@@ -15,19 +15,23 @@ if not os.path.isdir('Out'):
 # Try to deal with the forces
 # First Nf/4 (counting from 01) are for outer lattice fields
 # Next Nf/4 are for Hasenbusch lattice fields
+# Also set Nc and compute Wilson flow coupling factor that depends on Nc^2-1
 temp = os.getcwd()
 if '4f' in temp:
-  Nc=4.0
   Nf=4
   Ftag = 'FF[02]'
+  Nc=4.0
+  gprop = 128.0 * 3.14159**2 / (3.0 * 15.0)
 elif '8f' in temp:
-  Nc=3.0
   Nf=8
   Ftag = 'FF[03]'
+  Nc=3.0
+  gprop = 128.0 * 3.14159**2 / (3.0 * 8.0)
 elif '0f' in temp:
-  Nc=4.0
   Nf=0
   Ftag = 'FF[02]' # Will never be encountered
+  Nc=4.0
+  gprop = 128.0 * 3.14159**2 / (3.0 * 15.0)
 else:
   print "ERROR: Force extraction can only handle Nf=0, 4 or 8"
   sys.exit(1)
@@ -56,47 +60,66 @@ POLY_ARG = open('data/poly_arg.csv', 'w')
 print >> POLY_ARG, "MDTU,arg(Tr(L))"
 XPOLY_ARG = open('data/xpoly_arg.csv', 'w')
 print >> XPOLY_ARG, "MDTU,arg(Tr(W_0))"
-PLAQ_DIFF = open('data/plaq_diff.csv', 'w')
-print >> PLAQ_DIFF, "MDTU,t,x,y,z,Norm"
-LINK_DIFF = open('data/link_diff.csv', 'w')
-print >> LINK_DIFF, "MDTU,t,x,y,z,Norm"
-EIG = open('data/eig.csv', 'w')
-print >> EIG, "MDTU,1,2,3,4,5,6,7,8,9,10,11,12"
-WFLOW = open('data/Wflow.csv', 'w')
-print >> WFLOW, "MDTU,c=0.2,c=0.25,c=0.3,c=0.35"
-gprop = 128.0 * 3.14159**2 / (3.0 * 8.0)  # Only compute this once
-TOPO = open('data/topo.csv', 'w')
-print >> TOPO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
-WPOLY = open('data/Wpoly.csv', 'w')
-print >> WPOLY, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
-WPOLY_MOD = open('data/Wpoly_mod.csv', 'w')
-print >> WPOLY_MOD, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
-WFLOW_SS = open('data/Wflow_ss.csv', 'w')
-print >> WFLOW_SS, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
-WFLOW_ST = open('data/Wflow_st.csv', 'w')
-print >> WFLOW_ST, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
-WFLOW_ANISO = open('data/Wflow_aniso.csv', 'w')
-print >> WFLOW_ANISO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
 
-# Blocked observables
-PLAQB = open('data/plaqB.csv', 'w')
-print >> PLAQB, "MDTU,bl0,bl1,bl2,bl3,bl4"
-POLYB = open('data/polyB.csv', 'w')
-print >> POLYB, "ReTr(L_b),bl0,bl1,bl2,bl3,bl4"
-XPOLYB = open('data/xpolyB.csv', 'w')
-print >> XPOLYB, "Re(W_0),bl0,bl1,bl2,bl3,bl4"
-POLY_RB = open('data/poly_rB.csv', 'w')
-print >> POLY_RB, "MDTU,bl0,bl1,bl2,bl3,bl4"
-POLY_MODB = open('data/poly_modB.csv', 'w')
-print >> POLY_MODB, "MDTU,bl0,bl1,bl2,bl3,bl4"
-XPOLY_RB = open('data/xpoly_rB.csv', 'w')
-print >> XPOLY_RB, "MDTU,bl0,bl1,bl2,bl3,bl4"
-XPOLY_MODB = open('data/xpoly_modB.csv', 'w')
-print >> XPOLY_MODB, "MDTU,bl0,bl1,bl2,bl3,bl4"
-POLY_ARGB = open('data/poly_argB.csv', 'w')
-print >> POLY_ARGB, "MDTU,bl0,bl1,bl2,bl3,bl4"
-XPOLY_ARGB = open('data/xpoly_argB.csv', 'w')
-print >> XPOLY_ARGB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+# Only create S4b data files if Out/Sout* files present
+do_S4b = len(glob.glob('Out/Sout.*'))
+if do_S4b > 0:
+  PLAQ_DIFF = open('data/plaq_diff.csv', 'w')
+  print >> PLAQ_DIFF, "MDTU,t,x,y,z,Norm"
+  LINK_DIFF = open('data/link_diff.csv', 'w')
+  print >> LINK_DIFF, "MDTU,t,x,y,z,Norm"
+
+# Only create eigenvalue data files if Out/eig* files present
+do_eig = len(glob.glob('Out/eig.*'))
+if do_eig > 0:
+  EIG = open('data/eig.csv', 'w')
+  print >> EIG, "MDTU,1,2,3,4,5,6,7,8,9,10,11,12"
+
+# Only create Wilson-flowed data files if Out/Wflow* files present
+Wflow_files = glob.glob('Out/Wflow.*')
+do_Wflow = len(Wflow_files)
+if do_Wflow > 0:
+  WFLOW = open('data/Wflow.csv', 'w')
+  print >> WFLOW, "MDTU,c=0.2,c=0.25,c=0.3,c=0.35"
+  TOPO = open('data/topo.csv', 'w')
+  print >> TOPO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+  WPOLY = open('data/Wpoly.csv', 'w')
+  print >> WPOLY, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+  WPOLY_MOD = open('data/Wpoly_mod.csv', 'w')
+  print >> WPOLY_MOD, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+  WFLOW_SS = open('data/Wflow_ss.csv', 'w')
+  print >> WFLOW_SS, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+  WFLOW_ST = open('data/Wflow_st.csv', 'w')
+  print >> WFLOW_ST, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+  WFLOW_ANISO = open('data/Wflow_aniso.csv', 'w')
+  print >> WFLOW_ANISO, "MDTU,c=0.2,c=0.3,c=0.4,c=0.5"
+
+# Only create MCRG-blocked data files
+# if Out/Wflow* files include 'POLYA NHYP' output lines
+do_blocked = -1
+for line in open(Wflow_files[-1]):
+  if line.startswith('POLYA NHYP '):
+    do_blocked = 1
+    break
+if do_blocked > 0:
+  PLAQB = open('data/plaqB.csv', 'w')
+  print >> PLAQB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+  POLYB = open('data/polyB.csv', 'w')
+  print >> POLYB, "ReTr(L_b),bl0,bl1,bl2,bl3,bl4"
+  XPOLYB = open('data/xpolyB.csv', 'w')
+  print >> XPOLYB, "Re(W_0),bl0,bl1,bl2,bl3,bl4"
+  POLY_RB = open('data/poly_rB.csv', 'w')
+  print >> POLY_RB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+  POLY_MODB = open('data/poly_modB.csv', 'w')
+  print >> POLY_MODB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+  XPOLY_RB = open('data/xpoly_rB.csv', 'w')
+  print >> XPOLY_RB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+  XPOLY_MODB = open('data/xpoly_modB.csv', 'w')
+  print >> XPOLY_MODB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+  POLY_ARGB = open('data/poly_argB.csv', 'w')
+  print >> POLY_ARGB, "MDTU,bl0,bl1,bl2,bl3,bl4"
+  XPOLY_ARGB = open('data/xpoly_argB.csv', 'w')
+  print >> XPOLY_ARGB, "MDTU,bl0,bl1,bl2,bl3,bl4"
 
 # Evolution observables
 ACCP = open('data/accP.csv', 'w')
@@ -126,10 +149,10 @@ print >> TU, "t,MDTU"
 # Nf dependence in some output
 if Nf > 0:
   print >> FORCE, "t,F0,F1,Fgauge"
-  CG_ITERS = open('data/cg_iters.csv', 'w')
-  print >> CG_ITERS, "t,cg_iters"
   print >> NSTEP, "t,N0,N1,Ngauge"
   print >> STEPSIZE, "t,eps0,eps1,eps_gauge"
+  CG_ITERS = open('data/cg_iters.csv', 'w')
+  print >> CG_ITERS, "t,cg_iters"
   MH = open('data/MH.csv', 'w')
   print >> MH, "t,MH"
 else:
@@ -637,25 +660,29 @@ XPOLY_R.close()
 XPOLY_MOD.close()
 POLY_ARG.close()
 XPOLY_ARG.close()
-PLAQ_DIFF.close()
-LINK_DIFF.close()
-EIG.close()
-WFLOW.close()
-TOPO.close()
-WPOLY.close()
-WPOLY_MOD.close()
-WFLOW_SS.close()
-WFLOW_ST.close()
-WFLOW_ANISO.close()
-PLAQB.close()
-POLYB.close()
-XPOLYB.close()
-POLY_RB.close()
-POLY_MODB.close()
-XPOLY_RB.close()
-XPOLY_MODB.close()
-POLY_ARGB.close()
-XPOLY_ARGB.close()
+if do_S4b > 0:
+  PLAQ_DIFF.close()
+  LINK_DIFF.close()
+if do_eig > 0:
+  EIG.close()
+if do_Wflow > 0:
+  WFLOW.close()
+  TOPO.close()
+  WPOLY.close()
+  WPOLY_MOD.close()
+  WFLOW_SS.close()
+  WFLOW_ST.close()
+  WFLOW_ANISO.close()
+if do_blocked > 0:
+  PLAQB.close()
+  POLYB.close()
+  XPOLYB.close()
+  POLY_RB.close()
+  POLY_MODB.close()
+  XPOLY_RB.close()
+  XPOLY_MODB.close()
+  POLY_ARGB.close()
+  XPOLY_ARGB.close()
 ACCP.close()
 EXP_DS.close()
 DELTAS.close()
