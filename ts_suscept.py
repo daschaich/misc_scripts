@@ -58,8 +58,12 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
   count = 0
   ave = 0.0         # Accumulate within each block
   aveSq = 0.0
+  aveCu = 0.0
+  aveFo = 0.0
   datList = []
   sqList = []
+  cuList = []
+  foList = []
   begin = cut       # Where each block begins, to be incremented
   obsfile = 'data/' + obs + '.csv'
   for line in open(obsfile):
@@ -80,6 +84,8 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
         tr = float(temp[1])
       ave += tr
       aveSq += tr * tr
+      aveCu += tr**3
+      aveFo += tr**4
       count += 1
 
     # Done with this block
@@ -92,17 +98,23 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
         tr = float(temp[1])
       ave += tr
       aveSq += tr * tr
+      aveCu += tr**3
+      aveFo += tr**4
       count += 1
 
       # Record this block
       datList.append(ave / count)
       sqList.append(aveSq / count)
+      cuList.append(aveCu / count)
+      foList.append(aveFo / count)
       begin += block_size
 
       # Re-initialize for next block
       count = 0
       ave = 0.0
       aveSq = 0.0
+      aveCu = 0.0
+      aveFo = 0.0
 
     # This should never happen
     elif MDTU > (begin + block_size):
@@ -116,24 +128,47 @@ for obs in ['plaq', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod', 'pbp']:
     sys.exit(1)
 
   # Now construct jackknife samples through single-block elimination
-  # Do normalization offline, so here just have
+  # Do any (e.g., volume) normalization offline
+  # Expanding (1/N) sum_i (dat_i - vev)^n, we have
   #   chi = <obs^2> - <obs>^2
+  #   S   = [<obs^3> - 3<obs^2>*<obs> + 2<obs>^3] / chi^{3/2}
+  #   ka  = [<obs^4> - 4<obs^3>*<obs> + 6<obs^2>*<obs>^2 - 3<obs>^4] / chi^2
+  # Finally 'excess' kurtosis is ka - 3
   dat = np.array(datList, dtype = np.float64)
   sq = np.array(sqList, dtype = np.float64)
+  cu = np.array(cuList, dtype = np.float64)
+  fo = np.array(foList, dtype = np.float64)
   chi = np.zeros(N, dtype = np.float64)
+  S   = np.zeros(N, dtype = np.float64)
+  ka  = np.zeros(N, dtype = np.float64)
   for i in range(N):    # Jackknife samples
     vev = np.mean(np.delete(dat, i))
     sq_vev = np.mean(np.delete(sq, i))
+    cu_vev = np.mean(np.delete(cu, i))
+    fo_vev = np.mean(np.delete(fo, i))
     chi[i] = sq_vev - vev * vev
+    num = (cu_vev - 3.0 * sq_vev * vev + 2.0 * vev**3)
+    S[i] = num / np.power(chi[i], 1.5)
+    num = fo_vev - 4.0 * cu_vev * vev + 6.0 * sq_vev * vev**2 - 3.0 * vev**4
+    ka[i] = num / chi[i]**2 - 3.0
 
   # Sanity check -- compare against averages computed separately
-#  print obs, "ave = %.8g" % np.mean(dat, dtype = np.float64)
+#  print obs, "ave = %.8g" % np.mean(dat)
 
   # Now we can average over jackknife samples and print out results
-  ave = np.mean(chi)
-  var = (N - 1.0) * np.mean((chi - ave)**2)
   outfilename = 'results/' + obs + '.suscept'
   outfile = open(outfilename, 'w')
-  print >> outfile, "%.8g %.4g # %d" % (ave, np.sqrt(var), N)
+
+  ave = np.mean(chi)
+  var = (N - 1.0) * np.mean((chi - ave)**2)
+  print >> outfile, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+
+  ave = np.mean(S)
+  var = (N - 1.0) * np.mean((S - ave)**2)
+  print >> outfile, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+
+  ave = np.mean(ka)
+  var = (N - 1.0) * np.mean((ka - ave)**2)
+  print >> outfile, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
   outfile.close()
 # ------------------------------------------------------------------
