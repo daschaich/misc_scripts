@@ -97,10 +97,11 @@ if do_Wflow > 0:
 # Only create MCRG-blocked data files
 # if Out/Wflow* files include 'POLYA NHYP' output lines
 do_blocked = -1
-for line in open(Wflow_files[-1]):
-  if line.startswith('POLYA NHYP '):
-    do_blocked = 1
-    break
+if len(Wflow_files) > 1:
+  for line in open(Wflow_files[-1]):
+    if line.startswith('POLYA NHYP '):
+      do_blocked = 1
+      break
 if do_blocked > 0:
   PLAQB = open('data/plaqB.csv', 'w')
   print >> PLAQB, "MDTU,bl0,bl1,bl2,bl3,bl4"
