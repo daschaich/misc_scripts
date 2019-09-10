@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # Extract volume and Nt from path rather than input argument
 
 # Parse arguments: First whether we're considering poly or Wpoly
-# Then thermalization cut, horizontal maximum,
+# Then thermalization cut, horizontal maximum (ignored if negative),
 # and how many bins to have in the histogram
 if len(sys.argv) < 7:
   print "Usage:", str(sys.argv[0]), "<file> <beta> <mass>",
@@ -48,6 +48,7 @@ else:
 tag = 'beta_F=' + beta
 temp = cwd.split('/')   # Path ends "#f/#nt#"
 title = temp[-2] + ', ' + temp[-1] + ', m=' + mass
+#title = temp[-2] + ', ' + temp[-1]          # Uncomment for pure-gauge
 
 # Prepare data to plot, combining high and low starts
 # Use c=0.5 if Wflowed
@@ -90,7 +91,9 @@ plt.figure(figsize=(6.40, 3.84))    # Gnuplot default
 plt.hist(dat, nbins, log=False, normed=False, align='mid',
          edgecolor='blue', label=tag, histtype='step', hatch='//')
 
-plt.xlim([0.0, xmax])
+# If xmax<=0 then autozoom, otherwise use given xmax
+if xmax > 0.0:
+  plt.xlim([0, xmax])
 plt.grid(False)
 
 if poly_file.startswith('W'):   # Record t corresponding to c=0.5
