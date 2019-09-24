@@ -61,6 +61,7 @@ for t in np.arange(start, end, 0.01):
   tSqE += 2.0
 
   # Done after overall factor of 64pi^2 t^2 / (3 L^3 Nt)
+  # TODO: Make sure the 3.0 is not N...
   tSqE *= (64.0 * np.pi**2 * t**2) / (3.0 * float(L**3 * Nt))
   print "%g %.8g" % (t, tSqE)
 # ------------------------------------------------------------------

@@ -20,7 +20,7 @@ import numpy as np
 # Then give both thermalization cuts, and finally
 # a combined block size (larger than combined time...)
 # We discard any partial blocks at the end of each run
-if len(sys.argv) < 3:
+if len(sys.argv) < 6:
   print "Usage:", str(sys.argv[0]), "<beta> <mass>",
   print "<high cut> <low cut> <block>"
   sys.exit(1)
