@@ -13,39 +13,37 @@ import numpy as np
 # we can't use the naive sum_i(dat_i - vev)^n expressions!
 # Need to accumulate dat^n within each block instead
 
-# Parse arguments: first is thermalization cut,
-# second is block size (should be larger than autocorrelation time)
-# We discard any partial blocks at the end
+# Combine high- and low-start runs
+# Save output in both runs' results directories
+
+# Parse arguments: first specify ensemble by beta and mass
+# Then give both thermalization cuts, and finally
+# a combined block size (larger than combined time...)
+# We discard any partial blocks at the end of each run
 if len(sys.argv) < 3:
-  print "Usage:", str(sys.argv[0]), "<cut> <block>"
+  print "Usage:", str(sys.argv[0]), "<beta> <mass>",
+  print "<high cut> <low cut> <block>"
   sys.exit(1)
-cut = int(sys.argv[1])
-block_size = int(sys.argv[2])
+beta = str(sys.argv[1])
+mass = str(sys.argv[2])
+hi_cut = int(sys.argv[3])
+lo_cut = int(sys.argv[4])
+block_size = int(sys.argv[5])
 # ------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------
+# Set up directories from path and input
+hi_dir = 'b' + beta + '_high_m' + mass
+lo_dir = 'b' + beta + '_low_m' + mass
+
 # First make sure we're calling this from the right place
-if not os.path.isdir('data'):
-  print "ERROR: data/ does not exist"
-  sys.exit(1)
-
-# Check that we actually have data to average
-MDTUfile = 'data/TU.csv'
-good = -1
-for line in open(MDTUfile):
-  if line.startswith('t'):
-    continue
-  temp = line.split(',')
-  if float(temp[1]) > cut:
-    good = 1
-    break
-
-if good == -1:
-  print "Error: no data to analyze",
-  print "since cut=%d but we only have %d MDTU" % (cut, float(temp[1]))
-  sys.exit(1)
+toCheck = [hi_dir + '/data', lo_dir + '/data']
+for i in toCheck:
+  if not os.path.isdir(i):
+    print "ERROR:", i, "does not exist"
+    sys.exit(1)
 
 # Extract number of flavors for pbp normalization
 # For quenched "valence pbp" we want the 4f normalization
@@ -76,14 +74,69 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
   sqList = []
   cuList = []
   foList = []
-  begin = cut       # Where each block begins, to be incremented
-  obsfile = 'data/' + obs + '.csv'
+
+  # First high-start run
+  begin = hi_cut    # Where each block begins, to be incremented
+  obsfile = hi_dir + '/data/' + obs + '.csv'
   for line in open(obsfile):
     if line.startswith('M'):
       continue
     temp = line.split(',')
     MDTU = float(temp[0])
-    if MDTU <= cut:
+    if MDTU <= hi_cut:
+      continue
+
+    # Accumulate within block
+    elif MDTU > begin and MDTU <= (begin + block_size):
+      if obs == 'plaq':
+        tr = 0.5 * (float(temp[1]) + float(temp[2]))
+      elif obs == 'pbp':
+        tr = pbp_norm * float(temp[1])
+      elif obs == 'poly_r' or obs == 'poly_mod':
+        tr = float(temp[1])
+      elif obs == 'Wpoly' or obs == 'Wpoly_mod':
+        tr = float(temp[-1])
+      ave += tr
+      aveSq += tr * tr
+      aveCu += tr**3
+      aveFo += tr**4
+      count += 1
+
+      # If that "<=" is really "==" then we are done
+      # Record this block and re-initialize for the next block
+      if MDTU == (begin + block_size):
+        datList.append(ave / float(count))
+        sqList.append(aveSq / float(count))
+        cuList.append(aveCu / float(count))
+        foList.append(aveFo / float(count))
+
+        begin += block_size
+        ave = 0.0
+        aveSq = 0.0
+        aveCu = 0.0
+        aveFo = 0.0
+        count = 0
+
+    # This should never happen
+    elif MDTU > (begin + block_size):
+      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      sys.exit(1)
+
+  # Clear any partial block from the end of the high-start run
+  # and add the low-start run
+  ave = 0.0         # Accumulate within each block
+  aveSq = 0.0
+  aveCu = 0.0
+  aveFo = 0.0
+  count = 0
+  begin = lo_cut    # Where each block begins, to be incremented
+  obsfile = lo_dir + '/data/' + obs + '.csv'
+  for line in open(obsfile):
+    if line.startswith('M'):
+      continue
+    temp = line.split(',')
+    MDTU = float(temp[0])
+    if MDTU <= lo_cut:
       continue
 
     # Accumulate within block
@@ -157,19 +210,25 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
 #  print obs, "ave = %.8g" % np.mean(dat)
 
   # Now we can average over jackknife samples and print out results
-  outfilename = 'results/' + obs + '.suscept'
-  outfile = open(outfilename, 'w')
+  outfilename = hi_dir + '/results/' + obs + '.suscept-combo'
+  outfile_hi = open(outfilename, 'w')
+  outfilename = lo_dir + '/results/' + obs + '.suscept-combo'
+  outfile_lo = open(outfilename, 'w')
 
   ave = np.mean(chi)
   var = (N - 1.0) * np.mean((chi - ave)**2)
-  print >> outfile, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print >> outfile_hi, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print >> outfile_lo, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
 
   ave = np.mean(S)
   var = (N - 1.0) * np.mean((S - ave)**2)
-  print >> outfile, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print >> outfile_hi, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print >> outfile_lo, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
 
   ave = np.mean(ka)
   var = (N - 1.0) * np.mean((ka - ave)**2)
-  print >> outfile, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
-  outfile.close()
+  print >> outfile_hi, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print >> outfile_lo, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  outfile_hi.close()
+  outfile_lo.close()
 # ------------------------------------------------------------------

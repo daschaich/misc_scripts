@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 # Extract volume and Nt from path rather than input argument
 
 # Parse arguments: First whether we're considering poly or Wpoly
-# Then thermalization cut, horizontal maximum (ignored if negative),
+# Then specify ensemble by beta and mass
+# Next thermalization cuts, horizontal maximum (ignored if negative),
 # and how many bins to have in the histogram
 if len(sys.argv) < 7:
   print "Usage:", str(sys.argv[0]), "<file> <beta> <mass>",

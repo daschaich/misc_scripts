@@ -1,22 +1,32 @@
 echo "  <p>Last update: `date`</p>"
-echo "  <ul>"
-echo "    <li><a href="poly_hist_m05.gif">poly_hist_m05.gif</a></li>"
-echo "    <li><a href="Wpoly_hist_m05.gif">Wpoly_hist_m05.gif</a></li>"
-echo "    <br>"
-echo "    <li><a href="poly_hist_m1.gif">poly_hist_m1.gif</a></li>"
-echo "    <li><a href="Wpoly_hist_m1.gif">Wpoly_hist_m1.gif</a></li>"
-echo "    <br>"
-echo "    <li><a href="poly_hist_m2.gif">poly_hist_m2.gif</a></li>"
-echo "    <li><a href="Wpoly_hist_m2.gif">Wpoly_hist_m2.gif</a></li>"
-echo "    <br>"
-echo "    <li><a href="poly_hist_m4.gif">poly_hist_m4.gif</a></li>"
-echo "    <li><a href="Wpoly_hist_m4.gif">Wpoly_hist_m4.gif</a></li>"
-for m in 05 1 2 4 ; do
-  for i in poly_hist_b*_m0.$m.pdf ; do
-    echo "    <br>"
-    echo "    <li><a href="$i">$i</a></li>"
-    echo "    <li><a href="W$i">W$i</a></li>"
-  done
+echo "  <table width=\"4000px\">"
+echo "    <tr>"
+for m in 4 2 1 05 ; do
+  echo "      <th width=\"500px\">m=0."$m" Unflowed</th>"
+  echo "      <th width=\"500px\">m=0."$m" Wilson-flowed</th>"
 done
-echo "  </ul>"
+echo "    </tr>"
+echo "    <tr>"
+for m in 4 2 1 05 ; do
+  echo "      <td width=\"500px\"><a href=\"poly_hist_m"$m".gif\"><img src=\"poly_hist_m"$m".gif\" width=\"450px\"></a></td>"
+  echo "      <td width=\"500px\"><a href=\"Wpoly_hist_m"$m".gif\"><img src=\"Wpoly_hist_m"$m".gif\" width=\"450px\"></a></td>"
+done
+echo "    </tr>"
+echo "    <tr>"
+# Explicit heights are a bit of a hack to improve alignment...
+# TODO!!! Need to correct bash's sorting whenever couplings have different numbers of digits after the decimal point...
+for m in 4 2 1 05 ; do
+  echo "      <td width=\"500px\">"
+  for i in poly_hist_b*_m0.$m.pdf ; do
+    echo "        <a href=\""$i"\"><img src=\""${i/pdf/png}"\" width=\"450px\" height=\"300px\"></a><br>"
+  done
+  echo "      </td>"
+  echo "      <td width=\"500px\">"
+  for i in poly_hist_b*_m0.$m.pdf ; do
+    echo "        <a href=\"W"$i"\"><img src=\"W"${i/pdf/png}"\" width=\"450px\" height=\"300px\"></a><br>"
+  done
+  echo "      </td>"
+done
+echo "    </tr>"
+echo "  </table>"
 echo "</body></html>"
