@@ -133,7 +133,7 @@ tot = N_in + N_out
 frac = norm * (N_in / tot - shift)
 outfilename = 'results/deconf_frac-' + str(theta) + '.dat'
 outfile = open(outfilename, 'w')
-print >> outfile, "%.4g # %d" % (frac, tot)
+print >> outfile, "%.8g # %d" % (frac, tot)
 outfile.close()
 # ------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ print >> outfile, "# c=0.2 c=0.3 c=0.4 c=0.5 # Nmeas"
 for i in range(4):
   tot = N_in[i] + N_out[i]
   frac = norm * (N_in[i] / tot - shift)
-  print >> outfile, "%.4g" % frac,
+  print >> outfile, "%.8g" % frac,
 print >> outfile, "# %d" % tot
 outfile.close()
 # ------------------------------------------------------------------
