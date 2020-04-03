@@ -48,8 +48,9 @@ else:
 
 tag = 'beta_F=' + beta
 temp = cwd.split('/')   # Path ends "#f/#nt#"
-title = temp[-2] + ', ' + temp[-1] + ', m=' + mass
-#title = temp[-2] + ', ' + temp[-1]          # Uncomment for pure-gauge
+#title = temp[-2] + ', ' + temp[-1] + ', m=' + mass
+title = 'Nf=4, ' + temp[-1] + ', m=' + mass
+#title = 'pure gauge, ' + temp[-1]          # Uncomment for pure-gauge
 
 # Prepare data to plot, combining high and low starts
 # Use c=0.5 if Wflowed
@@ -85,7 +86,6 @@ for line in open(toOpen):
 
 # Print number of measurements to allow offline checks
 print "%d measurements for %s" % (len(dat), tag)
-tag = tag + ' (' + str(len(dat)) + ' meas)'
 
 # Create histogram
 plt.figure(figsize=(6.40, 3.84))    # Gnuplot default

@@ -36,8 +36,7 @@ norm = pi_ov_four / (pi_ov_four - theta)
 
 # Quick sanity check on input angle cut theta
 if theta < 0.0 or theta > pi_ov_four:
-  print "ERROR: theta=%.4g out of range [0, pi/4], aborting" \
-        % (theta, int(temp[0]))
+  print "ERROR: theta=%.4g out of range [0, pi/4], aborting" % theta
   sys.exit(1)
 
 # First extract lattice volume from path
