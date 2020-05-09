@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 import sys
 import glob
 import numpy as np
-import acor         # Uses "the Kubo formula" to compute autocorrelation time
+import emcee.autocorr as acor
 # ------------------------------------------------------------------
 # Parse dygraph data files to construct averages and standard errors
 # with given thermalization cut and block size
@@ -23,7 +23,7 @@ MAX = 99    # Hard code number of eigenvalues to extract
 # We discard any partial blocks at the end
 # I also need to specify where I took over the run
 if len(sys.argv) < 4:
-  print "Usage:", str(sys.argv[0]), "<cut> <block> <start>"
+  print("Usage:", str(sys.argv[0]), "<cut> <block> <start>")
   sys.exit(1)
 cut = int(sys.argv[1])
 block_size = int(sys.argv[2])
@@ -50,7 +50,7 @@ if '4f' in path or '0f' in path:
 elif '8f' in path:
   pbp_norm = 0.5
 else:
-  print "ERROR: So far only 4f and 8f set up"
+  print("ERROR: So far only 0f, 4f and 8f set up")
   sys.exit(1)
 
 # Set the maximum number of RG blockings
@@ -81,8 +81,8 @@ for line in open(MDTUfile):
 
 final_MDTU = float(temp[1])
 if good == -1:
-  print "Error: no data to analyze",
-  print "since cut=%d but we only have %d MDTU" % (cut, final_MDTU)
+  print("Error: no data to analyze ", end='')
+  print("since cut=%d but we only have %d MDTU" % (cut, final_MDTU))
   sys.exit(1)
 # ------------------------------------------------------------------
 
@@ -102,8 +102,8 @@ for line in open('data/Wpoly_mod.csv'):
 
   # Need to check separation and update prev before skipping to therm cut
   if not MDTU - prev == sep:
-    print "Error: Wpoly_mod meas at %d and %d not separated by %d" \
-          % (prev, MDTU, sep)
+    print("Error: Wpoly_mod meas at %d and %d not separated by %d" \
+          % (prev, MDTU, sep))
     sys.exit(1)
   prev = MDTU
 
@@ -111,13 +111,18 @@ for line in open('data/Wpoly_mod.csv'):
     continue
   dat.append(float(temp[4]))
 
-# Discard this mean and sigma -- we'll recompute it later
-tau, mean, sigma = acor.acor(np.array(dat))
+# Arguments explained in emcee.readthedocs.io/en/stable/user/autocorr/
+#                    and emcee.readthedocs.io/en/stable/tutorials/autocorr/
+# 'c' is step size for window search (default 5)
+#     Larger c should reduce noise, but can add bias...
+# 'tol' is min ratio between data and tau (default 50)
+# 'Quiet' prints warning rather than shutting down if tol not satisfied
+tau = acor.integrated_time(np.array(dat), c=5, tol=10, quiet=True)
 tau *= sep
 if tau > block_size:
-  print "Error: Wpoly_mod autocorrelation time %d" % tau,
-  print "is larger than block size %d" % block_size,
-  print "in %s" % path
+  print("Error: Wpoly_mod autocorrelation time %d " % tau, end='')
+  print("is larger than block size %d " % block_size, end='')
+  print("in %s" % path)
   sys.exit(1)
 
 # Record Wpoly_mod auto-correlation time for future reference
@@ -125,7 +130,7 @@ if tau > block_size:
 eff_stat = np.floor(len(dat) * sep / tau)
 outfilename = 'results/Wpoly_mod.autocorr'
 outfile = open(outfilename, 'w')
-print >> outfile, "%d --> %.8g %.4g # %d" % (tau, mean, sigma, eff_stat)
+print("%d --> %.8g %.4g # %d" % (tau, mean, sigma, eff_stat), file=outfile)
 outfile.close()
 # ------------------------------------------------------------------
 
@@ -174,7 +179,7 @@ for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
     # This doesn't happen for ensembles I generate
     # May need to be revisited for more general applicability
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
@@ -185,8 +190,8 @@ for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
   if obs == 'pbp':
-    print >> outfile, "# Normalized per continuum flavor"
-  print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
+    print("# Normalized per continuum flavor", file=outfile)
+  print("%.8g %.4g # %d" % (ave, err, N), file=outfile)
   outfile.close()
 # ------------------------------------------------------------------
 
@@ -230,7 +235,7 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
     # This doesn't happen for ensembles I generate
     # May need to be revisited for more general applicability
     elif traj > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
@@ -240,7 +245,7 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
   err = np.std(dat) / np.sqrt(N - 1.0)
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
-  print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
+  print("%.8g %.4g # %d" % (ave, err, N), file=outfile)
   outfile.close()
 # ------------------------------------------------------------------
 
@@ -288,7 +293,7 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
     # This doesn't happen for ensembles I generate
     # May need to be revisited for more general applicability
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
@@ -299,8 +304,8 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
     N = np.size(dat)
     ave = np.mean(dat)
     err = np.std(dat) / np.sqrt(N - 1.0)
-    print >> outfile, "%.8g %.4g" % (ave, err),
-  print >> outfile, "# %d" % N
+    print("%.8g %.4g " % (ave, err), end='', file=outfile)
+  print("# %d" % N, file=outfile)
   outfile.close()
 # ------------------------------------------------------------------
 
@@ -349,7 +354,7 @@ for obs in ['plaq_diff', 'link_diff']:
     # This doesn't happen for ensembles I generate
     # May need to be revisited for more general applicability
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
@@ -359,7 +364,7 @@ for obs in ['plaq_diff', 'link_diff']:
   err = np.std(dat) / np.sqrt(N - 1.0)
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
-  print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
+  print("%.8g %.4g # %d" % (ave, err, N), file=outfile)
   outfile.close()
 # ----------------------------------------------------------------
 
@@ -400,7 +405,7 @@ for line in open(flowfile):
   # This doesn't happen for ensembles I generate
   # May need to be revisited for more general applicability
   elif MDTU > (begin + block_size):
-    print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+    print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
     sys.exit(1)
 
 # Now print mean and standard error, assuming N>1
@@ -410,7 +415,7 @@ ave = np.mean(dat)
 err = np.std(dat) / np.sqrt(N - 1.0)
 outfilename = 'results/Wflow_gSq.dat'
 outfile = open(outfilename, 'w')
-print >> outfile, "%.8g %.4g # %d" % (ave, err, N)
+print("%.8g %.4g # %d" % (ave, err, N), file=outfile)
 outfile.close()
 # ------------------------------------------------------------------
 
@@ -454,20 +459,20 @@ for obs in ['Wpoly', 'Wpoly_mod', 'Wflow_aniso']:
     # This doesn't happen for ensembles I generate
     # May need to be revisited for more general applicability
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Now print mean and standard error, assuming N>1
   outfilename = 'results/' + obs + '.dat'
   outfile = open(outfilename, 'w')
-  print >> outfile, "# c=0.2 err c=0.3 err c=0.4 err c=0.5 err # Nblocks"
+  print("# c=0.2 err c=0.3 err c=0.4 err c=0.5 err # Nblocks", file=outfile)
   for i in range(4):
     dat = np.array(datList[i], dtype = np.float64)
     N = np.size(dat)
     ave = np.mean(dat)
     err = np.std(dat) / np.sqrt(N - 1.0)
-    print >> outfile, "%.8g %.4g" % (ave, err),
-  print >> outfile, "# %d" % N
+    print("%.8g %.4g " % (ave, err), end='', file=outfile)
+  print("# %d" % N, file=outfile)
   outfile.close()
 # ------------------------------------------------------------------
 
@@ -500,8 +505,8 @@ for i in cfgs:
     if line.startswith('Nvecs'):
       Nvecs = int((line.split())[1])
       if Nvecs < MAX:    # Did not measure enough eigenvalues
-        print "Warning: skipping %s, which measured only %d eigenvalues" \
-              % (toOpen, Nvecs)
+        print("Warning: skipping %s, which measured only %d eigenvalues" \
+              % (toOpen, Nvecs))
         break
     elif line.startswith('EIG'):
       temp = line.split()
@@ -517,8 +522,8 @@ if len(eig) == 0:
 
 # Normalize by volume and number of eigenvalue measurements
 if len(max_eig) != count:
-  print "ERROR: only have %d of %d maximum eigenvalues" \
-        % (len(max_eig), count)
+  print("ERROR: only have %d of %d maximum eigenvalues" \
+        % (len(max_eig), count))
   sys.exit(1)
 norm = count * vol
 
@@ -533,6 +538,6 @@ for dat in eig:
     break
   tot += 2.0 / float(norm)      # Factor of two for complex conjugate pairs
   # Redundant but easy to include constant norm in output
-  print >> outfile, "%.8g %.8g %.4g" % (dat, tot, norm)
+  print("%.8g %.8g %.4g" % (dat, tot, norm), file=outfile)
 outfile.close()
 # ------------------------------------------------------------------

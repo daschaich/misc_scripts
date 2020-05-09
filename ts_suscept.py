@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 import sys
 import glob
@@ -17,7 +17,7 @@ import numpy as np
 # second is block size (should be larger than autocorrelation time)
 # We discard any partial blocks at the end
 if len(sys.argv) < 3:
-  print "Usage:", str(sys.argv[0]), "<cut> <block>"
+  print("Usage:", str(sys.argv[0]), "<cut> <block>")
   sys.exit(1)
 cut = int(sys.argv[1])
 block_size = int(sys.argv[2])
@@ -28,7 +28,7 @@ block_size = int(sys.argv[2])
 # ------------------------------------------------------------------
 # First make sure we're calling this from the right place
 if not os.path.isdir('data'):
-  print "ERROR: data/ does not exist"
+  print("ERROR: data/ does not exist")
   sys.exit(1)
 
 # Check that we actually have data to average
@@ -43,8 +43,8 @@ for line in open(MDTUfile):
     break
 
 if good == -1:
-  print "Error: no data to analyze",
-  print "since cut=%d but we only have %d MDTU" % (cut, float(temp[1]))
+  print("Error: no data to analyze ", end='')
+  print("since cut=%d but we only have %d MDTU" % (cut, float(temp[1])))
   sys.exit(1)
 
 # Extract number of flavors for pbp normalization
@@ -55,7 +55,7 @@ if '4f' in path or '0f' in path:
 elif '8f' in path:
   pbp_norm = 0.5
 else:
-  print "ERROR: So far only 4f and 8f set up"
+  print("ERROR: So far only 0f, 4f and 8f set up")
   sys.exit(1)
 # ------------------------------------------------------------------
 
@@ -119,13 +119,13 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
 
     # This should never happen
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Require multiple blocks, N>1
   N = len(datList)
   if N < 2:
-    print "ERROR: need multiple blocks to take average"
+    print("ERROR: need multiple blocks to take average")
     sys.exit(1)
 
   # Now construct jackknife samples through single-block elimination
@@ -154,7 +154,7 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
     ka[i] = num / chi[i]**2 - 3.0
 
   # Sanity check -- compare against averages computed separately
-#  print obs, "ave = %.8g" % np.mean(dat)
+#  print(obs, "ave = %.8g" % np.mean(dat))
 
   # Now we can average over jackknife samples and print out results
   outfilename = 'results/' + obs + '.suscept'
@@ -162,14 +162,14 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
 
   ave = np.mean(chi)
   var = (N - 1.0) * np.mean((chi - ave)**2)
-  print >> outfile, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print("suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile)
 
   ave = np.mean(S)
   var = (N - 1.0) * np.mean((S - ave)**2)
-  print >> outfile, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print("skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile)
 
   ave = np.mean(ka)
   var = (N - 1.0) * np.mean((ka - ave)**2)
-  print >> outfile, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print("kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile)
   outfile.close()
 # ------------------------------------------------------------------

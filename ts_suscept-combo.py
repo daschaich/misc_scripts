@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 import sys
 import glob
@@ -21,8 +21,8 @@ import numpy as np
 # a combined block size (larger than combined time...)
 # We discard any partial blocks at the end of each run
 if len(sys.argv) < 6:
-  print "Usage:", str(sys.argv[0]), "<beta> <mass>",
-  print "<high cut> <low cut> <block>"
+  print("Usage:", str(sys.argv[0]), "<beta> <mass> ", end='')
+  print("<high cut> <low cut> <block>")
   sys.exit(1)
 beta = str(sys.argv[1])
 mass = str(sys.argv[2])
@@ -42,7 +42,7 @@ lo_dir = 'b' + beta + '_low_m' + mass
 toCheck = [hi_dir + '/data', lo_dir + '/data']
 for i in toCheck:
   if not os.path.isdir(i):
-    print "ERROR:", i, "does not exist"
+    print("ERROR:", i, "does not exist")
     sys.exit(1)
 
 # Extract number of flavors for pbp normalization
@@ -53,7 +53,7 @@ if '4f' in path or '0f' in path:
 elif '8f' in path:
   pbp_norm = 0.5
 else:
-  print "ERROR: So far only 4f and 8f set up"
+  print("ERROR: So far only 0f, 4f and 8f set up")
   sys.exit(1)
 # ------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
 
     # This should never happen
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Clear any partial block from the end of the high-start run
@@ -172,13 +172,13 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
 
     # This should never happen
     elif MDTU > (begin + block_size):
-      print "ERROR: Unexpected behavior in %s, aborting" % obsfile
+      print("ERROR: Unexpected behavior in %s, aborting" % obsfile)
       sys.exit(1)
 
   # Require multiple blocks, N>1
   N = len(datList)
   if N < 2:
-    print "ERROR: need multiple blocks to take average"
+    print("ERROR: need multiple blocks to take average")
     sys.exit(1)
 
   # Now construct jackknife samples through single-block elimination
@@ -207,7 +207,7 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
     ka[i] = num / chi[i]**2 - 3.0
 
   # Sanity check -- compare against averages computed separately
-#  print obs, "ave = %.8g" % np.mean(dat)
+#  print(obs, "ave = %.8g" % np.mean(dat))
 
   # Now we can average over jackknife samples and print out results
   outfilename = hi_dir + '/results/' + obs + '.suscept-combo'
@@ -217,18 +217,18 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
 
   ave = np.mean(chi)
   var = (N - 1.0) * np.mean((chi - ave)**2)
-  print >> outfile_hi, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
-  print >> outfile_lo, "suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print("suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile_hi)
+  print("suscept %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile_lo)
 
   ave = np.mean(S)
   var = (N - 1.0) * np.mean((S - ave)**2)
-  print >> outfile_hi, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
-  print >> outfile_lo, "skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print("skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile_hi)
+  print("skewness %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile_lo)
 
   ave = np.mean(ka)
   var = (N - 1.0) * np.mean((ka - ave)**2)
-  print >> outfile_hi, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
-  print >> outfile_lo, "kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N)
+  print("kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile_hi)
+  print("kurtosis %.8g %.4g # %d" % (ave, np.sqrt(var), N), file=outfile_lo)
   outfile_hi.close()
   outfile_lo.close()
 # ------------------------------------------------------------------
