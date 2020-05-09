@@ -127,11 +127,11 @@ if tau > block_size:
   sys.exit(1)
 
 # Record Wpoly_mod auto-correlation time for future reference
-# Include average and effective number of independent measurements
+# Include effective number of independent measurements
 eff_stat = np.floor(len(dat) * sep / tau)
 outfilename = 'results/Wpoly_mod.autocorr'
 outfile = open(outfilename, 'w')
-print("%d --> %.8g %.4g # %d" % (tau, mean, sigma, eff_stat), file=outfile)
+print("%d # %d" % (tau, eff_stat), file=outfile)
 outfile.close()
 # ------------------------------------------------------------------
 
