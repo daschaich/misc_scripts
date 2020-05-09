@@ -39,20 +39,6 @@ if theta < 0.0 or theta > pi_ov_four:
   print "ERROR: theta=%.4g out of range [0, pi/4], aborting" % theta
   sys.exit(1)
 
-# First extract lattice volume from path
-# For now handle only one- or two-digit L and Nt
-path = os.getcwd()
-temp = path.split('nt')
-if '/' in temp[0][-2:]:
-  L = int(temp[0][-1:])    # Last digit before 'nt'
-else:
-  L = int(temp[0][-2:])    # Last two digits before 'nt'
-if '/' in temp[0][:2]:
-  Nt = int(temp[1][:1])    # First digit after 'nt'
-else:
-  Nt = int(temp[1][:2])    # First two digits after 'nt'
-vol = L**3 * Nt
-
 # Check that we actually have data to average
 MDTUfile = 'data/TU.csv'
 good = -1

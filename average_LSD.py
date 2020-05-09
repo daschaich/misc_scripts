@@ -32,6 +32,7 @@ start = int(sys.argv[3])
 # First extract lattice volume from path
 # For now handle only one- or two-digit L and Nt
 path = os.getcwd()
+path = path.replace('mnt', '')    # Accommodate Barkla filesystem
 temp = path.split('nt')
 if '/' in temp[0][-2:]:
   L = int(temp[0][-1:])    # Last digit before 'nt'
@@ -371,9 +372,9 @@ for obs in ['plaq_diff', 'link_diff']:
 
 
 # ----------------------------------------------------------------
-# For the Wilson flow, the fourth datum on each line is the c=0.3
-# running coupling I'm interested in for now
-# This still needs the finite volume perturbative correction (1+delta)~0.97
+# For the Wilson flow, the fourth datum on each line
+# is the c=0.3 running coupling I'm interested in for now
+# Add rough finite-volume perturbative correction (1+delta)~0.97
 ave = 0.0         # Accumulate within each block
 count = 0
 datList = []

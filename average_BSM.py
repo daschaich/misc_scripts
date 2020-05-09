@@ -30,6 +30,7 @@ block_size = int(sys.argv[2])
 # First extract lattice volume from path
 # For now assume L and Nt are both two-digit numbers
 path = os.getcwd()
+path = path.replace('mnt', '')    # Accommodate Barkla filesystem
 temp = path.split('nt')
 L = int(temp[0][-2:])    # Last two digits before 'nt'
 Nt = int(temp[1][:2])    # First two digits after 'nt'
@@ -190,9 +191,9 @@ if os.path.isdir('data'):
   # ----------------------------------------------------------------
 
   # ----------------------------------------------------------------
-  # For the Wilson flow, the fourth datum on each line is the c=0.3
-  # running coupling I'm interested in for now
-  # This still needs the finite volume volume correction (1+delta)~0.97
+  # For the Wilson flow, the fourth datum on each line
+  # is the c=0.3 running coupling I'm interested in for now
+  # Add rough finite-volume perturbative correction (1+delta)~0.97
   count = 0
   ave = 0.          # Accumulate within each block
   datList = []

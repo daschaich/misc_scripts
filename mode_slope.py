@@ -29,6 +29,7 @@ if not os.path.isdir('results'):
 # Extract lattice volume from path
 # For now assume L and Nt are both two-digit numbers
 path = os.getcwd()
+path = path.replace('mnt', '')    # Accommodate Barkla filesystem
 temp = path.split('nt')
 L = int(temp[0][-2:])    # Last two digits before 'nt'
 Nt = int(temp[1][:2])    # First two digits after 'nt'
