@@ -1,0 +1,30 @@
+#!/bin/bash
+# ------------------------------------------------------------------
+if [ $# != 0 ]; then
+  echo "Usage: $0"
+  exit 1
+fi
+
+temp=`pwd`
+if [[ $temp == *"KS_nHYP_FA"* ]] ; then
+  dir=${temp##*FA/}   # Strip everything up to and including "FA/"
+  path=/data/lsd/KS_nHYP_FA/$dir
+elif [[ $temp == *"SU4"* ]] ; then
+  dir=${temp##*SU4/}   # Strip everything up to and including "SU4/"
+  path=/data/lsd/SU4/$dir
+else
+  echo "ERROR: Unrecognized path $temp"
+  exit 1
+fi
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# Replace Web page
+date=`date`
+rm -f index.html
+echo writeLSD $dir "$date"
+/home/schaich/bin/writeLSD $dir "$date"
+chmod 664 index.html
+# ------------------------------------------------------------------

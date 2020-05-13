@@ -157,7 +157,7 @@ for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
       continue
 
     # Accumulate within block
-    elif MDTU >= begin and MDTU <= (begin + block_size):
+    elif MDTU > begin and MDTU <= (begin + block_size):
       if obs == 'plaq':
         tr = 0.5 * (float(temp[1]) + float(temp[2]))
       elif obs == 'pbp':
@@ -172,7 +172,6 @@ for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
       # Record it and re-initialize for the next block
       if MDTU == (begin + block_size):
         datList.append(ave / float(count))
-
         begin += block_size
         ave = 0.0
         count = 0
@@ -228,7 +227,6 @@ for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
       # Record it and re-initialize for the next block
       if traj == (begin + block_size):
         datList.append(ave / float(count))
-
         begin += block_size
         ave = 0.0
         count = 0
@@ -285,10 +283,8 @@ for obs in ['plaqB', 'poly_rB', 'xpoly_rB']:
       if MDTU == (begin + block_size):
         for i in range(blMax + 1):
           datList[i].append(ave[i] / float(count))
-
-        begin += block_size
-        for i in range(blMax + 1):
           ave[i] = 0.0
+        begin += block_size
         count = 0
 
     # This doesn't happen for ensembles I generate
@@ -347,7 +343,6 @@ for obs in ['plaq_diff', 'link_diff']:
       # Record it and re-initialize for the next block
       if MDTU == (begin + block_size):
         datList.append(ave / float(count))
-
         begin += block_size
         ave = 0.0
         count = 0
@@ -367,11 +362,11 @@ for obs in ['plaq_diff', 'link_diff']:
   outfile = open(outfilename, 'w')
   print("%.8g %.4g # %d" % (ave, err, N), file=outfile)
   outfile.close()
-# ----------------------------------------------------------------
+# ------------------------------------------------------------------
 
 
 
-# ----------------------------------------------------------------
+# ------------------------------------------------------------------
 # For the Wilson flow, the fourth datum on each line
 # is the c=0.3 running coupling I'm interested in for now
 # Add rough finite-volume perturbative correction (1+delta)~0.97
@@ -390,7 +385,7 @@ for line in open(flowfile):
     continue
 
   # Accumulate within block
-  elif MDTU >= begin and MDTU <= (begin + block_size):
+  elif MDTU > begin and MDTU <= (begin + block_size):
     ave += float(temp[3]) / vol_corr
     count += 1
 
@@ -398,7 +393,6 @@ for line in open(flowfile):
     # Record it and re-initialize for the next block
     if MDTU == (begin + block_size):
       datList.append(ave / float(count))
-
       begin += block_size
       ave = 0.0
       count = 0
@@ -422,7 +416,7 @@ outfile.close()
 
 
 
-# ----------------------------------------------------------------
+# ------------------------------------------------------------------
 # For the Wilson-flowed Polyakov loop (real part and modulus)
 # and anisotropy E_ss / E_st,
 # let's print out all four of c=0.2, 0.3, 0.4 and 0.5
@@ -451,10 +445,8 @@ for obs in ['Wpoly', 'Wpoly_mod', 'Wflow_aniso']:
       if MDTU == (begin + block_size):
         for i in range(4):
           datList[i].append(ave[i] / float(count))
-
-        begin += block_size
-        for i in range(4):
           ave[i] = 0.0
+        begin += block_size
         count = 0
 
     # This doesn't happen for ensembles I generate

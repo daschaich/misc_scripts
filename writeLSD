@@ -8,7 +8,7 @@ fi
 tag=$1
 date=$2
 
-# Turn Wilson line scatter plots off/on depending on level of statistics
+# Turn Wilson line scatter plots off/on depending on theory
 if [ -d "/data/lsd/KS_nHYP_FA/$tag" ] ; then
   out="/data/lsd/KS_nHYP_FA/$tag/index.html"
   scatter=0
@@ -85,7 +85,7 @@ echo '  <br><br>' >> $out
 if [ $scatter -gt 0 ]; then  # scatter set above depending on directory path
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
-  echo '      <tr><th>Polyakov loop ('$tag')</th><th>Spatial loop ('$tag')</th></tr>' >> $out
+  echo '      <tr><th>Polyakov loop ('$tag')</th><th>Intentionally left blank</th></tr>' >> $out
   echo '      <tr>' >> $out
   echo '        <td style="width:400px; height:300px;">' >> $out
   echo '          <div id="poly"></div>' >> $out
@@ -110,6 +110,7 @@ if [ $scatter -gt 0 ]; then  # scatter set above depending on directory path
   echo '          </script>' >> $out
   echo '        </td>' >> $out
   echo '        <td style="width:400px; height:300px;">' >> $out
+if [ 0 -gt 1 ]; then
   echo '          <div id="xpoly"></div>' >> $out
   echo '          <script type="text/javascript">' >> $out
   echo '            g = new Dygraph(document.getElementById("xpoly"),' >> $out
@@ -130,6 +131,7 @@ if [ $scatter -gt 0 ]; then  # scatter set above depending on directory path
   echo '                              },' >> $out
   echo '                            });' >> $out
   echo '          </script>' >> $out
+fi
   echo '        </td>' >> $out
   echo '      </tr>' >> $out
   echo '    </table>' >> $out
@@ -279,6 +281,45 @@ fi
 if [ $len -gt 1 ]; then
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
+echo '      <tr><th>Re(WPoly) ('$tag')</th><th>Wilson-flowed Polyakov loop mod ('$tag')</th></tr>' >> $out
+  echo '      <tr>' >> $out
+  echo '        <td style="width:400px; height:300px;">' >> $out
+  echo '          <div id="Wpoly"></div>' >> $out
+  echo '          <script type="text/javascript">' >> $out
+  echo '            g = new Dygraph(document.getElementById("Wpoly"),' >> $out
+  echo '                            "data/Wpoly.csv",' >> $out
+  echo '                            { rollPeriod: 5,' >> $out
+  echo '                              colors: ["blue", "red", "green", "black"],' >> $out
+  echo '                              showRoller: true,' >> $out
+  echo '                              yValueFormatter: function(x) {' >> $out
+  echo '                                var shift = Math.pow(10, 4)' >> $out
+  echo '                                return Math.round(x * shift) / shift' >> $out
+  echo '                              },' >> $out
+  echo '                            });' >> $out
+  echo '          </script>' >> $out
+  echo '        </td>' >> $out
+  echo '        <td style="width:400px; height:300px;">' >> $out
+  echo '          <div id="Wpoly_mod"></div>' >> $out
+  echo '          <script type="text/javascript">' >> $out
+  echo '            g = new Dygraph(document.getElementById("Wpoly_mod"),' >> $out
+  echo '                            "data/Wpoly_mod.csv",' >> $out
+  echo '                            { rollPeriod: 5,' >> $out
+  echo '                              colors: ["blue", "red", "green", "black"],' >> $out
+  echo '                              showRoller: true,' >> $out
+  echo '                              yValueFormatter: function(x) {' >> $out
+  echo '                                var shift = Math.pow(10, 4)' >> $out
+  echo '                                return Math.round(x * shift) / shift' >> $out
+  echo '                              },' >> $out
+  echo '                            });' >> $out
+  echo '          </script>' >> $out
+  echo '        </td>' >> $out
+  echo '      </tr>' >> $out
+  echo '    </table>' >> $out
+  echo '  </div>' >> $out
+  echo '  <br><br>' >> $out
+
+  echo '  <div style="width:880px; height:330px;">' >> $out
+  echo '    <table>' >> $out
   echo '      <tr><th>g<sup>2</sup> from Wilson flow ('$tag')</th><th>Topological charge ('$tag')</th></tr>' >> $out
   echo '      <tr>' >> $out
   echo '        <td style="width:400px; height:300px;">' >> $out
@@ -318,23 +359,8 @@ if [ $len -gt 1 ]; then
 
   echo '  <div style="width:880px; height:330px;">' >> $out
   echo '    <table>' >> $out
-  echo '      <tr><th>Wilson-flowed Polyakov loop ('$tag')</th><th>Wilson flow anisotropy ('$tag')</th></tr>' >> $out
+  echo '      <tr><th>Wilson flow anisotropy ('$tag')</th><th>Intentionally left blank</th></tr>' >> $out
   echo '      <tr>' >> $out
-  echo '        <td style="width:400px; height:300px;">' >> $out
-  echo '          <div id="Wpoly"></div>' >> $out
-  echo '          <script type="text/javascript">' >> $out
-  echo '            g = new Dygraph(document.getElementById("Wpoly"),' >> $out
-  echo '                            "data/Wpoly.csv",' >> $out
-  echo '                            { rollPeriod: 5,' >> $out
-  echo '                              colors: ["blue", "red", "green", "black"],' >> $out
-  echo '                              showRoller: true,' >> $out
-  echo '                              yValueFormatter: function(x) {' >> $out
-  echo '                                var shift = Math.pow(10, 4)' >> $out
-  echo '                                return Math.round(x * shift) / shift' >> $out
-  echo '                              },' >> $out
-  echo '                            });' >> $out
-  echo '          </script>' >> $out
-  echo '        </td>' >> $out
   echo '        <td style="width:400px; height:300px;">' >> $out
   echo '          <div id="Wflow_aniso"></div>' >> $out
   echo '          <script type="text/javascript">' >> $out
@@ -349,6 +375,8 @@ if [ $len -gt 1 ]; then
   echo '                              },' >> $out
   echo '                            });' >> $out
   echo '          </script>' >> $out
+  echo '        </td>' >> $out
+  echo '        <td style="width:400px; height:300px;">' >> $out
   echo '        </td>' >> $out
   echo '      </tr>' >> $out
   echo '    </table>' >> $out
