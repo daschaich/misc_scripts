@@ -43,7 +43,7 @@ MISSINGFILES = open('MISSING', 'w')
 PLAQ = open('data/plaq.csv', 'w')
 print >> PLAQ, "MDTU,plaq_ss,plaq_st"
 PBP = open('data/pbp.csv', 'w')
-print >> PBP, "MDTU,Re(pbp),Im(pbp)"
+print >> PBP, "MDTU,Re(pbp)"
 POLY = open('data/poly.csv', 'w')
 print >> POLY, "ReTr(L),ImTr(L)"
 XPOLY = open('data/xpoly.csv', 'w')

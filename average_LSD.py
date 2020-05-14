@@ -133,6 +133,46 @@ outfilename = 'results/Wpoly_mod.autocorr'
 outfile = open(outfilename, 'w')
 print("%d # %d" % (tau, eff_stat), file=outfile)
 outfile.close()
+
+# Also keep track of the pbp autocorrelation time
+# Expect this to be shorter than the one for Wpoly_mod above
+# Format: MDTU,Tr(X1)^2,...,Tr(X9)^2
+dat = []
+sep = 1       # Measured after each trajectory
+prev = 0
+for line in open('data/pbp.csv'):
+  if line.startswith('M'):
+    continue
+  temp = line.split(',')
+  MDTU = int(temp[0])
+
+  # Need to check separation and update prev before skipping to therm cut
+  if not MDTU - prev == sep:
+    print("Error: pbp meas at %d and %d not separated by %d" \
+          % (prev, MDTU, sep))
+    sys.exit(1)
+  prev = MDTU
+
+  if MDTU <= cut:
+    continue
+  dat.append(float(temp[1]))
+
+# Arguments discussed above
+tau = acor.integrated_time(np.array(dat), c=5, tol=10, quiet=True)
+tau *= sep
+if tau > block_size:
+  print("Error: pbp autocorrelation time %d " % tau, end='')
+  print("is larger than block size %d " % block_size, end='')
+  print("in %s" % path)
+  sys.exit(1)
+
+# Record pbp auto-correlation time for future reference
+# Include effective number of independent measurements
+eff_stat = np.floor(len(dat) * sep / tau)
+outfilename = 'results/pbp.autocorr'
+outfile = open(outfilename, 'w')
+print("%d # %d" % (tau, eff_stat), file=outfile)
+outfile.close()
 # ------------------------------------------------------------------
 
 
