@@ -135,7 +135,7 @@ print("%d # %d" % (tau, eff_stat), file=outfile)
 outfile.close()
 
 # Also keep track of the pbp autocorrelation time
-# Expect this to be shorter than the one for Wpoly_mod above
+# Print warnings if larger than the Wpoly_mod tau computed above
 # Format: MDTU,Tr(X1)^2,...,Tr(X9)^2
 dat = []
 sep = 1       # Measured after each trajectory
@@ -157,21 +157,23 @@ for line in open('data/pbp.csv'):
     continue
   dat.append(float(temp[1]))
 
-# Arguments discussed above
-tau = acor.integrated_time(np.array(dat), c=5, tol=10, quiet=True)
-tau *= sep
-if tau > block_size:
-  print("Error: pbp autocorrelation time %d " % tau, end='')
+# Arguments discussed above --- make this advice rather than requirement
+tau_pbp = acor.integrated_time(np.array(dat), c=5, tol=10, quiet=True)
+tau_pbp *= sep
+if tau_pbp > block_size:
+  print("Warning: pbp autocorrelation time %d " % tau_pbp, end='')
   print("is larger than block size %d " % block_size, end='')
   print("in %s" % path)
-  sys.exit(1)
 
 # Record pbp auto-correlation time for future reference
 # Include effective number of independent measurements
-eff_stat = np.floor(len(dat) * sep / tau)
+eff_stat = np.floor(len(dat) * sep / tau_pbp)
 outfilename = 'results/pbp.autocorr'
 outfile = open(outfilename, 'w')
-print("%d # %d" % (tau, eff_stat), file=outfile)
+print("%d # %d" % (tau_pbp, eff_stat), file=outfile)
+if tau_pbp > tau:
+  print("Warning: %d for pbp " % tau_pbp, end='', file=outfile)
+  print("larger than %d for Wpoly_mod" % tau, file=outfile)
 outfile.close()
 # ------------------------------------------------------------------
 
