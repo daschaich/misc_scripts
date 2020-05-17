@@ -41,13 +41,13 @@ if theta < 0.0 or theta > pi_ov_four:
 
 # Make sure we're calling this from the right place
 if not os.path.isdir('data'):
-  print "ERROR:", i, "does not exist, aborting"
+  print "ERROR: data does not exist, aborting"
   sys.exit(1)
 if not os.path.isfile('data/poly_arg.csv'):
-  print "ERROR:", i, "does not exist, aborting"
+  print "ERROR: data/poly_arg.csv does not exist, aborting"
   sys.exit(1)
 if not os.path.isfile('data/Wpoly_arg.csv'):
-  print "ERROR:", i, "does not exist, aborting"
+  print "ERROR: data/Wpoly_arg.csv does not exist, aborting"
   sys.exit(1)
 
 # Check that we actually have data to average

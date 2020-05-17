@@ -32,18 +32,17 @@ hi_dir = 'b' + beta + '_high_m' + mass
 lo_dir = 'b' + beta + '_low_m' + mass
 
 # First make sure we're calling this from the right place
-toCheck = [hi_dir + '/data', lo_dir + '/data']
-for i in toCheck:
+for i in [hi_dir + '/data', lo_dir + '/data']:
   if not os.path.isdir(i):
     print "ERROR:", i, "does not exist, aborting"
     sys.exit(1)
-  obsfile = i + '/poly_arg.csv'
+  toCheck = i + '/poly_arg.csv'
   if not os.path.isfile(obsfile):
-    print "ERROR:", i, "does not exist, aborting"
+    print "ERROR:", toCheck, "does not exist, aborting"
     sys.exit(1)
-  obsfile = i + '/Wpoly_arg.csv'
+  toCheck = i + '/Wpoly_arg.csv'
   if not os.path.isfile(obsfile):
-    print "ERROR:", i, "does not exist, aborting"
+    print "ERROR:", toCheck, "does not exist, aborting"
     sys.exit(1)
 
 # For convenience
