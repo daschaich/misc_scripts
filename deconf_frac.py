@@ -46,6 +46,9 @@ if not os.path.isdir('data'):
 if not os.path.isfile('data/poly_arg.csv'):
   print "ERROR:", i, "does not exist, aborting"
   sys.exit(1)
+if not os.path.isfile('data/Wpoly_arg.csv'):
+  print "ERROR:", i, "does not exist, aborting"
+  sys.exit(1)
 
 # Check that we actually have data to average
 MDTUfile = 'data/TU.csv'

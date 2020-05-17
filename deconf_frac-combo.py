@@ -41,6 +41,10 @@ for i in toCheck:
   if not os.path.isfile(obsfile):
     print "ERROR:", i, "does not exist, aborting"
     sys.exit(1)
+  obsfile = i + '/Wpoly_arg.csv'
+  if not os.path.isfile(obsfile):
+    print "ERROR:", i, "does not exist, aborting"
+    sys.exit(1)
 
 # For convenience
 pi_ov_four = 0.25 * np.pi
