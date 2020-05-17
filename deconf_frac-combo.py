@@ -35,7 +35,11 @@ lo_dir = 'b' + beta + '_low_m' + mass
 toCheck = [hi_dir + '/data', lo_dir + '/data']
 for i in toCheck:
   if not os.path.isdir(i):
-    print "ERROR:", i, "does not exist"
+    print "ERROR:", i, "does not exist, aborting"
+    sys.exit(1)
+  obsfile = i + '/poly_arg.csv'
+  if not os.path.isfile(obsfile):
+    print "ERROR:", i, "does not exist, aborting"
     sys.exit(1)
 
 # For convenience

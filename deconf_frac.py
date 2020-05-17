@@ -39,6 +39,14 @@ if theta < 0.0 or theta > pi_ov_four:
   print "ERROR: theta=%.4g out of range [0, pi/4], aborting" % theta
   sys.exit(1)
 
+# Make sure we're calling this from the right place
+if not os.path.isdir('data'):
+  print "ERROR:", i, "does not exist, aborting"
+  sys.exit(1)
+if not os.path.isfile('data/poly_arg.csv'):
+  print "ERROR:", i, "does not exist, aborting"
+  sys.exit(1)
+
 # Check that we actually have data to average
 MDTUfile = 'data/TU.csv'
 good = -1
