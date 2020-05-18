@@ -37,11 +37,11 @@ for i in [hi_dir + '/data', lo_dir + '/data']:
     print "ERROR:", i, "does not exist, aborting"
     sys.exit(1)
   toCheck = i + '/poly_arg.csv'
-  if not os.path.isfile(obsfile):
+  if not os.path.isfile(toCheck):
     print "ERROR:", toCheck, "does not exist, aborting"
     sys.exit(1)
   toCheck = i + '/Wpoly_arg.csv'
-  if not os.path.isfile(obsfile):
+  if not os.path.isfile(toCheck):
     print "ERROR:", toCheck, "does not exist, aborting"
     sys.exit(1)
 
