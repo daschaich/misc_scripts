@@ -5,7 +5,7 @@ import glob
 import numpy as np
 import h5py
 # ------------------------------------------------------------------
-# Package SU(4) results and attributes into an HDF5 file for distributing
+# Package SU(4) data and results/attributes into publishable HDF5 file
 
 # Cycle over all streams and write to ~/LSD/SU4/SU4_data.hdf5
 # Attributes for each stream:
@@ -23,10 +23,9 @@ if not os.path.isdir("~/LSD/SU4"):
   print("ERROR: ~/LSD/SU4 not found")
   sys.exit(1)
 os.chdir("~/LSD/SU4")
-f = h5py.File("SU4_data.hdf5")
+f = h5py.File("SU4_data.h5", 'w')
 
 # Top-level groups for each Nf
-...Create group for each ensemble, with 'high', 'low', 'combo' sub-groups
 for Nf in glob.glob('*f'):
   f.create_group(Nf)
 
@@ -56,6 +55,39 @@ for Nf in glob.glob('*f'):
       if start == 'low':
         f.create_group(this_ens + '/combo')
 
-      # Now set up data and load attributes/results for this stream
-      # TODO: DATA AS DATASET AND RESULTS AS ATTRIBUTES...
+      # Now set up data and attributes/results for this stream
+      # First get numbers of trajectories and Wilson flow measurements
+      os.chdir("~/LSD/SU4/" + Nf + '/' + vol + '/' + stream)
+      for line in open('data/plaq.csv'):
+        Ntraj = int(line.split(',')[0])
+      for line in open('data/Wpoly.csv'):
+        NWflow = int(line.split(',')[0])
+
+      # First observables measured after every trajectory=MDTU
+      # Try to figure out how many data to include from each line
+      for obs in ['plaq']:
+        name = this_ens + '/' + obs
+        obsfile = 'data/' + obs + '.csv'
+        i = 0
+        for line in open(obsfile):
+          temp = line.split(',')
+          if line.startswith('M'):
+            Ndat = len(temp)
+            dset = f.create_dataset(name, (Ntraj,Ndat,), dtype='f')
+            continue
+          for j in range(Ndat):
+            dset[i][j] = float(temp[j + 1])
+          i += 1
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# Zero-temperature runs are a bit simpler
+os.chdir("~/LSD/SU4/4f/24nt48")
+for ens in glob.glob('b[1-9]*'):
+  temp = stream.split('_')
+  beta = temp[0]
+  mass = temp[1]
+  f.create_group('4f/24nt48/' + ens)
 # ------------------------------------------------------------------
