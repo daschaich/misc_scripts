@@ -7,6 +7,10 @@ import h5py
 # ------------------------------------------------------------------
 # Package SU(4) data and results/attributes into publishable HDF5 file
 
+# File will hopefully be smaller than ~5.5GB total disk usage
+# $ du -h --total *f/*nt*/b[1-9]*/data *f/*nt*/b[1-9]*/results | tail -n 1
+#   5.6G total
+
 # Cycle over all streams and write to ~/LSD/SU4/SU4_data.hdf5
 # Attributes for each stream:
 #   Nf, L, Nt, beta_F, (valence) mass,
@@ -47,12 +51,16 @@ for Nf in glob.glob('*f'):
     # Then sixth-level groups for each stream ('high', 'low', 'combo')
     os.chdir(path + Nf + '/' + vol)
     for stream in glob.glob('b[1-9]*'):   # Avoid 'backup' dirs
+      toCheck = stream + '/results/Wpoly_mod.autocorr'
+      if not os.path.isfile(toCheck):     # Skip unfinished streams
+        continue
+
       temp = stream.split('_')
       beta = temp[0]
       start = temp[1]
       mass = temp[2]
       this_ens = this_vol + '/' + mass + '/' + beta
-      f.create_group(this_ens + '/' + start)
+      this_str = f.create_group(this_ens + '/' + start)
       if start == 'low':
         f.create_group(this_ens + '/combo')
 
@@ -71,25 +79,29 @@ for Nf in glob.glob('*f'):
       Ntraj = len(traj_arr)
       traj = np.array(traj_arr)
       plaq = np.array(plaq_arr)
-      f.create_dataset(this_ens + '/traj', data=traj)
-      f.create_dataset(this_ens + '/plaq', data=plaq)
+      this_str.create_dataset('traj', data=traj)
+      this_str.create_dataset('plaq', data=plaq)
 
       # TODO: Attributes and results... set Nblocks
 
       # Now all other observables measured every trajectory=MDTU
       # Dynamically figure out how many data on each line
       # TODO: Add others... pbp header problematic...
-      for obs in ['exp_dS']:
-        name = this_ens + '/' + obs
+      for obs in ['pbp', 'exp_dS']:
         obsfile = 'data/' + obs + '.csv'
         traj = 0
         for line in open(obsfile):
           temp = line.split(',')
           if line.startswith('M') or line.startswith('t'):
-            Ndat = len(temp)
-            dset = f.create_dataset(name, (Ntraj,Ndat,), dtype='f')
+            Ndat = len(temp) - 1       # Skipping MDTU label
+            if Ndat == 1:
+              dset = this_str.create_dataset(obs, (Ntraj,), dtype='f')
+            elif Ndat > 1:
+              dset = this_str.create_dataset(obs, (Ntraj,Ndat,), dtype='f')
+            else:
+              print("ERROR: Ndat=%d for %s" % (Ndat, obs))
             continue
-          for j in range(Ndat - 1):       # Skipping MDTU label
+          for j in range(Ndat):
             dset[traj][j] = float(temp[j + 1])
           traj += 1
 
@@ -108,12 +120,16 @@ for Nf in glob.glob('*f'):
       NWflow = len(Wmeas_arr)
       Wmeas = np.array(Wmeas_arr)
       topo = np.array(topo_arr)
-      f.create_dataset(this_ens + '/Wmeas', data=Wmeas)
-      f.create_dataset(this_ens + '/topo', data=topo)
+      this_str.create_dataset('Wmeas', data=Wmeas)
+      this_str.create_dataset('topo', data=topo)
 
       # Now all other observables measured every trajectory=MDTU
       # Try to figure out how many data to include from each line
       # TODO: Add others... (different c for Wflow vs. Wpoly...)
+
+    # TODO: Record thermalization cuts for each volume
+    for line in open('therm.sh'):
+      temp = line.split(',')
 # ------------------------------------------------------------------
 
 
