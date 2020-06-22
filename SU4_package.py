@@ -36,7 +36,8 @@ for Nf in glob.glob('*f'):
 
   # Second- and third-level groups for each (Nt, L) volume
   os.chdir(path + Nf)
-  for vol in glob.glob('*nt*'):
+#  for vol in glob.glob('*nt*'): # !!!TODO: Accelerate for testing
+  for vol in glob.glob('*nt12'):
     if vol == '24nt48':       # Do zero-temperature runs separately
       continue
 
@@ -60,31 +61,54 @@ for Nf in glob.glob('*f'):
       start = temp[1]
       mass = temp[2]
       this_ens = this_vol + '/' + mass + '/' + beta
-      this_str = f.create_group(this_ens + '/' + start)
+      this_str = this_ens + '/' + start
+      this_grp = f.create_group(this_str)
       if start == 'low':
+        combine = True
         f.create_group(this_ens + '/combo')
 
-      # Now set up data and attributes/results for this stream
-      # First pass through plaq.dat to set Ntraj
+      # ------------------------------------------------------------
+      # Record acceptance and Nblocks for stream
       os.chdir(path + Nf + '/' + vol + '/' + stream)
-      traj_arr = []
+      for line in open('results/accP.dat'):
+      # Now set up data and attributes/results for this stream
+      # First do plaq, setting Ntraj & Nblocks
       plaq_arr = [[], []]
       for line in open('data/plaq.csv'):
         if line.startswith('M'):
           continue
         temp = line.split(',')
-        traj_arr.append(int(temp[0]))
         plaq_arr[0].append(float(temp[1]))    # ss
         plaq_arr[1].append(float(temp[2]))    # st
-      Ntraj = len(traj_arr)
-      traj = np.array(traj_arr)
+      Ntraj = len(plaq_arr[0])
+      this_grp.attrs['Ntraj'] = Ntraj
+
       plaq = np.array(plaq_arr)
-      this_str.create_dataset('traj', data=traj)
-      this_str.create_dataset('plaq', data=plaq)
+      this_grp.create_dataset('traj', data=traj)
+      dset = this_grp.create_dataset('plaq', data=plaq)
+      dset.attrs['columns'] = ['ss', 'st']
 
-      # TODO: Attributes and results... set Nblocks
+      # Set Nblocks and record results as attributes
+      for line in open('results/plaq.dat'):
+        temp = line.split()
+        Nblocks = int(temp[-1])
+        this_grp.attrs['Nblocks'] = Nblocks
+        dset.attrs['ave'] = float(temp[0])
+        dset.attrs['err'] = float(temp[1])
+      for line in open('results/plaq.suscept'):
+        temp = line.split()
+        dset.attrs[temp[0]] = float(temp[1])
+        dset.attrs[temp[0] + '_err'] = float(temp[2])
+        if not int(temp[-1]) == Nblocks:
+          print("ERROR: Nblocks mismatch in %s: " % this_str, end='')
+          print("%s vs %d in plaq.suscept" % (temp[-1], Nblocks))
+          sys.exit(1)
+      # ------------------------------------------------------------
 
-      # Now all other observables measured every trajectory=MDTU
+      # ------------------------------------------------------------
+      # Next do simple observables measured every trajectory=MDTU
+      #   pbp, exp_dS
+      #   Skip xpoly, wall_time
       # Dynamically figure out how many data on each line
       # TODO: Add others... pbp header problematic...
       for obs in ['pbp', 'exp_dS']:
@@ -95,9 +119,9 @@ for Nf in glob.glob('*f'):
           if line.startswith('M') or line.startswith('t'):
             Ndat = len(temp) - 1       # Skipping MDTU label
             if Ndat == 1:
-              dset = this_str.create_dataset(obs, (Ntraj,), dtype='f')
+              dset = this_grp.create_dataset(obs, (Ntraj,), dtype='f')
             elif Ndat > 1:
-              dset = this_str.create_dataset(obs, (Ntraj,Ndat,), dtype='f')
+              dset = this_grp.create_dataset(obs, (Ntraj,Ndat,), dtype='f')
             else:
               print("ERROR: Ndat=%d for %s" % (Ndat, obs))
             continue
@@ -105,8 +129,23 @@ for Nf in glob.glob('*f'):
             dset[traj][j] = float(temp[j + 1])
           traj += 1
 
-        # TODO: Attributes and results... check Nblocks
+        resfile = 'results/' + obs + '.dat'
+        for line in open(resfile):
+          if line.startswith('#'):
+            continue
+          temp = line.split()
+          dset.attrs['ave'] = float(temp[0])
+          dset.attrs['err'] = float(temp[1])
+          if not int(temp[-1]) == Nblocks:
+            print("ERROR: Nblocks mismatch in %s, " % this_str, end='')
+            print("%s vs %d in %s" % (temp[-1], Nblocks, resfile))
+            sys.exit(1)
 
+
+        # TODO: Attributes and results... check Nblocks
+      # ------------------------------------------------------------
+
+      # ------------------------------------------------------------
       # First pass through topo.dat to set NWflow
       # Only recording c=0.5 topological charge for clean time-series plot
       Wmeas_arr = []
