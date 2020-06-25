@@ -52,8 +52,10 @@ for Nf in glob.glob('*f'):
     # Then sixth-level groups for each stream ('high', 'low', 'combo')
     os.chdir(path + Nf + '/' + vol)
     for stream in glob.glob('b[1-9]*'):   # Avoid 'backup' dirs
-      toCheck = stream + '/results/Wpoly_mod.autocorr'
+      os.chdir(path + Nf + '/' + vol + '/' + stream)
+      toCheck = 'results/Wpoly_mod.autocorr'
       if not os.path.isfile(toCheck):     # Skip unfinished streams
+        print("Skipping %s" % Nf + '/' + vol + '/' + stream)
         continue
 
       temp = stream.split('_')
@@ -68,11 +70,22 @@ for Nf in glob.glob('*f'):
         f.create_group(this_ens + '/combo')
 
       # ------------------------------------------------------------
-      # Record acceptance and Nblocks for stream
-      os.chdir(path + Nf + '/' + vol + '/' + stream)
+      # Record acceptance, auto-correlation and Nblocks for stream
       for line in open('results/accP.dat'):
+        temp = line.split()
+        Nblocks = int(temp[-1])
+        this_grp.attrs['Nblocks'] = Nblocks
+        this_grp.attrs['acceptance'] = float(temp[0])
+      for line in open('results/Wpoly_mod.autocorr'):
+        temp = line.split()
+        this_grp.attrs['autocorrelation time'] = float(temp[0])
+      for line in open('results/pbp.autocorr'):
+        if not line.startswith('W'):
+          temp = line.split()
+          this_grp.attrs['pbp autocorrelation time'] = float(temp[0])
+
       # Now set up data and attributes/results for this stream
-      # First do plaq, setting Ntraj & Nblocks
+      # First do plaq, setting Ntraj
       plaq_arr = [[], []]
       for line in open('data/plaq.csv'):
         if line.startswith('M'):
@@ -84,17 +97,18 @@ for Nf in glob.glob('*f'):
       this_grp.attrs['Ntraj'] = Ntraj
 
       plaq = np.array(plaq_arr)
-      this_grp.create_dataset('traj', data=traj)
       dset = this_grp.create_dataset('plaq', data=plaq)
       dset.attrs['columns'] = ['ss', 'st']
 
-      # Set Nblocks and record results as attributes
+      # Record results as attributes
       for line in open('results/plaq.dat'):
         temp = line.split()
-        Nblocks = int(temp[-1])
-        this_grp.attrs['Nblocks'] = Nblocks
         dset.attrs['ave'] = float(temp[0])
         dset.attrs['err'] = float(temp[1])
+        if not int(temp[-1]) == Nblocks:
+          print("ERROR: Nblocks mismatch in %s: " % this_str, end='')
+          print("%s vs %d in plaq.suscept" % (temp[-1], Nblocks))
+          sys.exit(1)
       for line in open('results/plaq.suscept'):
         temp = line.split()
         dset.attrs[temp[0]] = float(temp[1])
@@ -110,7 +124,7 @@ for Nf in glob.glob('*f'):
       #   pbp, exp_dS
       #   Skip xpoly, wall_time
       # Dynamically figure out how many data on each line
-      # TODO: Add others... pbp header problematic...
+      # TODO: Add others...
       for obs in ['pbp', 'exp_dS']:
         obsfile = 'data/' + obs + '.csv'
         traj = 0
@@ -125,10 +139,14 @@ for Nf in glob.glob('*f'):
             else:
               print("ERROR: Ndat=%d for %s" % (Ndat, obs))
             continue
-          for j in range(Ndat):
-            dset[traj][j] = float(temp[j + 1])
+          if Ndat == 1:
+            dset[traj] = float(temp[1])
+          else:
+            for j in range(Ndat):
+              dset[traj][j] = float(temp[j + 1])
           traj += 1
 
+        # TODO: Attributes and results... check Nblocks
         resfile = 'results/' + obs + '.dat'
         for line in open(resfile):
           if line.startswith('#'):
@@ -141,15 +159,27 @@ for Nf in glob.glob('*f'):
             print("%s vs %d in %s" % (temp[-1], Nblocks, resfile))
             sys.exit(1)
 
-
-        # TODO: Attributes and results... check Nblocks
+        # Susceptibility, skewness, kurtosis if present
+        suscfile = 'results/' + obs + '.suscept'
+        if not os.path.isfile(suscfile):     # No suscept for some obs
+          continue
+        for line in open(suscfile):
+          temp = line.split()
+          dset.attrs[temp[0]] = float(temp[1])
+          dset.attrs[temp[0] + '_err'] = float(temp[2])
+          if not int(temp[-1]) == Nblocks:
+            print("ERROR: Nblocks mismatch in %s: " % this_str, end='')
+            print("%s vs %d in %s.suscept" % (temp[-1], Nblocks, obs))
+            sys.exit(1)
       # ------------------------------------------------------------
 
       # ------------------------------------------------------------
-      # First pass through topo.dat to set NWflow
-      # Only recording c=0.5 topological charge for clean time-series plot
-      Wmeas_arr = []
+      # Now for Wilson-flowed observables
+      # First set Nflow by going through topo.dat to set NWflow
+      # Only have c=0.5 topological charge (for clean time-series plot)
+      # Also save trajectories at which Wilson flow measurements were run
       topo_arr = []
+      Wmeas_arr = []
       for line in open('data/topo.csv'):
         if line.startswith('M'):
           continue
@@ -159,15 +189,15 @@ for Nf in glob.glob('*f'):
       NWflow = len(Wmeas_arr)
       Wmeas = np.array(Wmeas_arr)
       topo = np.array(topo_arr)
-      this_str.create_dataset('Wmeas', data=Wmeas)
-      this_str.create_dataset('topo', data=topo)
+      this_grp.create_dataset('Wmeas', data=Wmeas)
+      this_grp.create_dataset('topo', data=topo)
 
-      # Now all other observables measured every trajectory=MDTU
+      # TODO: Now all other Wilson-flowed observables
       # Try to figure out how many data to include from each line
-      # TODO: Add others... (different c for Wflow vs. Wpoly...)
 
     # TODO: Record thermalization cuts for each volume
-    for line in open('therm.sh'):
+    therm = path + Nf + '/' + vol + '/therm.sh'
+    for line in open(therm):
       temp = line.split(',')
 # ------------------------------------------------------------------
 
@@ -175,10 +205,18 @@ for Nf in glob.glob('*f'):
 
 # ------------------------------------------------------------------
 # Zero-temperature runs are a bit simpler
-os.chdir(path + "4f/24nt48")
+os.chdir(path + '4f/24nt48')
 for ens in glob.glob('b[1-9]*'):
-  temp = stream.split('_')
+  temp = ens.split('_')
   beta = temp[0]
   mass = temp[1]
-  f.create_group('4f/24nt48/' + mass + '/' + beta)
+  this_grp = f.create_group('4f/24nt48/' + mass + '/' + beta)
+
+  # Record acceptance and Nblocks for stream
+  os.chdir(path + '4f/24nt48/' + ens)
+  for line in open('results/accP.dat'):
+    temp = line.split()
+    Nblocks = int(temp[-1])
+    this_grp.attrs['Nblocks'] = Nblocks
+    this_grp.attrs['acceptance'] = float(temp[0])
 # ------------------------------------------------------------------
