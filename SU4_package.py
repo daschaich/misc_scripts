@@ -12,11 +12,13 @@ import h5py
 #   5.6G total
 
 # Cycle over all streams and write to ~/LSD/SU4/SU4_data.hdf5
+# Group paths will specify Nf, Nt, L, beta_F, (valence) mass and start
 # Attributes for each stream:
-#   Nf, L, Nt, beta_F, (valence) mass,
-#   thermalization cut, block size
-# Data for each stream:
-#   plaquette, chiral condensate, ...
+#   Number of trajectories, acceptance rate, (Wpoly) autocorrelation time,
+#   additional pbp autocorrelation time, thermalization cut, block size,
+#   number of blocks
+# Datasets for each stream will each with ave, err (suscept) as attributes
+#   plaquette, chiral condensate, exp(-Delta S), TODO...
 # ------------------------------------------------------------------
 
 
@@ -36,8 +38,7 @@ for Nf in glob.glob('*f'):
 
   # Second- and third-level groups for each (Nt, L) volume
   os.chdir(path + Nf)
-#  for vol in glob.glob('*nt*'): # !!!TODO: Accelerate for testing
-  for vol in glob.glob('*nt12'):
+  for vol in glob.glob('*nt*'):
     if vol == '24nt48':       # Do zero-temperature runs separately
       continue
 
