@@ -13,7 +13,7 @@ import h5py
 #   Number of trajectories, acceptance rate, (Wpoly) autocorrelation time,
 #   thermalization cut, block size, number of blocks,
 #   and pbp autocorrelation time for reference
-# Datasets for each stream will each with ave, err (suscept) as attributes
+# Datasets for each stream, each with ave, err (suscept) as attributes:
 #   plaquette, |PL|, arg(PL), real(PL), chiral condensate, exp(-Delta S),
 #   list of Wflow measurements, Wflow_aniso, |PL_W|, arg(PL_W), real(PL_W)
 # arg(PL) and arg(PL_W) not averaged, but determine deconfinement fraction
@@ -78,7 +78,7 @@ for Nf in glob.glob('*f'):
           temp = line.split()
           this_grp.attrs['thermalization cut'] = int(temp[2])
           this_grp.attrs['block size'] = int(temp[3])
-          check = int(temp[3])
+          check = int(temp[2])
           break
       if check < 0:
         print("ERROR: Thermalization cut not found for %s: " % this_str)
@@ -121,7 +121,7 @@ for Nf in glob.glob('*f'):
         dset.attrs['err'] = float(temp[1])
         if not int(temp[-1]) == Nblocks:
           print("ERROR: Nblocks mismatch in %s: " % this_str, end='')
-          print("%s vs %d in plaq.suscept" % (temp[-1], Nblocks))
+          print("%s vs %d in plaq.dat" % (temp[-1], Nblocks))
           sys.exit(1)
       for line in open('results/plaq.suscept'):
         temp = line.split()
@@ -193,7 +193,7 @@ for Nf in glob.glob('*f'):
 
       # ------------------------------------------------------------
       # Now for Wilson-flowed observables
-      # First set Nflow by going through topo.dat to set Nmeas
+      # First set Nmeas by going through topo.dat to set Nmeas
       # Also save trajectories at which Wilson flow measurements were run
       # Only have c=0.5 topological charge (for clean time-series plot)
       # We don't average the topological charge, so it has no attributes
@@ -220,8 +220,8 @@ for Nf in glob.glob('*f'):
         if line.startswith('M'):
           continue
         temp = line.split(',')
-        for j in range(4):
-          dset[meas][j] = float(temp[j + 1])
+        dset[meas] = [float(temp[1]), float(temp[2]), \
+                      float(temp[3]), float(temp[4])]
         meas += 1
 
       if meas != Nmeas:
@@ -262,21 +262,20 @@ for Nf in glob.glob('*f'):
       # ------------------------------------------------------------
       # Move on to other Wilson-flowed observables
       # All measured for c=0.2, 0.3, 0.4 and 0.5
-      # Dynamically figure out how many data are on each line
       for obs in ['Wpoly_mod', 'Wpoly_arg', 'Wflow_aniso']:
         obsfile = 'data/' + obs + '.csv'
-        dset = this_grp.create_dataset(obs, (Nmeas,4), dtype='f')
-        dset.attrs['columns'] = ['c=0.2', 'c=0.3', 'c=0.4', 'c=0.5']
-
         if not os.path.isfile(obsfile):       # Only Nt=8 has Wpoly_arg
           continue
+
+        dset = this_grp.create_dataset(obs, (Nmeas,4), dtype='f')
+        dset.attrs['columns'] = ['c=0.2', 'c=0.3', 'c=0.4', 'c=0.5']
         meas = 0
         for line in open(obsfile):
           if line.startswith('M'):
             continue
           temp = line.split(',')
-          for j in range(4):
-            dset[meas][j] = float(temp[j + 1])
+          dset[meas] = [float(temp[1]), float(temp[2]), \
+                        float(temp[3]), float(temp[4])]
           meas += 1
 
         if meas != Nmeas:

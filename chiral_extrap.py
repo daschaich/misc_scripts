@@ -71,7 +71,7 @@ cov /= chiSq_dof
 CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 intercept = out[degree]
 int_err = np.sqrt(cov[degree][degree])    # Component of covar matrix
-print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g" \
-      % (intercept, int_err, chiSq, dof, chiSq / dof, CL)
+print "0 %.8g %.4g # %.4g/%d = %.4g --> %.4g" \
+      % (intercept, int_err, chiSq, dof, chiSq_dof, CL)
 #print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
 # ------------------------------------------------------------------
