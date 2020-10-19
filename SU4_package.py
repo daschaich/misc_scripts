@@ -193,8 +193,8 @@ for Nf in glob.glob('*f'):
 
       # ------------------------------------------------------------
       # Now for Wilson-flowed observables
-      # First set Nmeas by going through topo.dat to set Nmeas
-      # Also save trajectories at which Wilson flow measurements were run
+      # First go through topo.dat to set Nmeas
+      # Save trajectories at which Wilson flow measurements were run
       # Only have c=0.5 topological charge (for clean time-series plot)
       # We don't average the topological charge, so it has no attributes
       topo_arr = []
