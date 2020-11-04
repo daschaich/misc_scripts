@@ -1,0 +1,101 @@
+#!/bin/bash
+
+if [ $# -lt 5 ]; then
+  echo "Usage: $0 <t_src> <first> <last> <skip> <time>"
+  exit 1
+fi
+
+t=$1
+first=$2
+last=$3
+skip=$4
+time=$5
+
+# Source points are either (0, 0, 0, 0) or (L/4, L/4, L/4, L/2)
+if [ "$t" == "24" ]; then
+  src=12
+elif [ "$t" == "32" ]; then
+  src=16
+elif [ "$t" == "48" ]; then
+  src=24
+elif [ "$t" == "64" ]; then
+  src=32
+elif [ "$t" == "96" ]; then
+  src=48
+else
+  src=0
+fi
+
+# Adjustable parameters
+Qmax=10
+
+echo "#!/bin/bash" > temp
+echo "#SBATCH -A latticgc" >> temp
+echo "#SBATCH -p pbatch" >> temp
+echo "#SBATCH --qos=normal" >> temp
+echo "#SBATCH -N 1" >> temp
+if [ "$t" == "96" ]; then      # !!!Need most of node's memory
+  echo "#SBATCH -n 20" >> temp # !!!srun will only use 1 of these...
+else
+  echo "#SBATCH -n 1" >> temp
+fi
+echo "#SBATCH --mem=0" >> temp
+echo "#SBATCH -t $time" >> temp
+echo "#SBATCH -J KSdecomp" >> temp
+echo "#SBATCH -o ../out.KSdecomp.%j" >> temp
+
+dir=`pwd`
+bin=/g/g10/schaich2/bin/KSdecomp
+
+# So KSdecomp can find libimf.so
+echo "LD_LIBRARY_PATH='/usr/tce/packages/intel/intel-19.0.4/lib/intel64_lin/'" >> temp
+
+# Diagnostic information
+echo "echo '=====================JOB DIAGNOTICS========================'" >> temp
+echo "date" >> temp
+echo "echo -n 'This machine is ';hostname" >> temp
+echo "echo -n 'My jobid is '; echo \$SLURM_JOBID" >> temp
+echo "echo 'My path is:' " >> temp
+echo "echo \$PATH" >> temp
+echo "echo 'My LD library path is:' " >> temp
+echo "echo \$LD_LIBRARY_PATH" >> temp
+echo "echo 'My job info:'" >> temp
+echo "squeue -j \$SLURM_JOBID" >> temp
+echo "echo 'Machine info'" >> temp
+echo "sinfo -s" >> temp
+
+iter=0
+for(( i=$first ; $i<=$last ; i+=$skip )); do
+  iter=$[$iter + 1]
+  echo -ne "KSdecomp.$i "
+  echo "echo $i" >> temp
+
+  # !!! Need to run from directory containing the KSaxi and KSvec files
+  out=out.KSdecomp.t$t.$i
+  if [ -f $out ]; then
+    echo "Error: output file $out exists"
+    rm -f temp
+    exit 1
+  fi
+  if [ ! -f KSaxi.t$t.$i ]; then
+    echo "Error: correlators KSaxi.t$t.$i not found"
+    rm -f temp
+    exit 1
+  fi
+  if [ ! -f KSvec.t$t.$i ]; then
+    echo "Error: correlators KSvec.t$t.$i not found"
+    rm -f temp
+    exit 1
+  fi
+
+  echo "echo \"Job KSdecomp.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> temp
+  echo "echo \"srun -N1 -n1 $bin o.t$t.$i Q$Qmax x$src $src $src $t\" >> $out" >> temp
+  echo "srun -N1 -n1 $bin o.t$t.$i Q$Qmax x$src $src $src $t >> $out" >> temp
+  echo "echo \"=== Finished at \"\`date\`\" ===\" >> $out" >> temp
+  echo "" >> temp
+done
+echo "echo '========================ALL DONE==========================='" >> temp
+
+sbatch temp
+rm -f temp
+echo "Requested $time for $iter staggered Fourier transforms ($first--$last by $skip) with source ($src, $src, $src, $t)"
