@@ -25,7 +25,7 @@ fi
 #echo "Writing $out"
 
 echo '<html><head>' > $out
-echo '<script type="text/javascript" src="http://bsm.physics.yale.edu/ext/plot-ts/nHYP/dygraph-combined.js"></script>' >> $out
+echo '<script type="text/javascript" src="http://www.maths.liv.ac.uk/TheorPhys/people/staff/schaich/dygraph-combined.js"></script>' >> $out
 echo '<style type="text/css">' >> $out
 echo '  #main{' >> $out
 echo '    margin-right:19em;' >> $out
