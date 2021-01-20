@@ -9,11 +9,14 @@ tag=$1
 date=$2
 
 # Turn Wilson line scatter plots off/on depending on theory
-if [ -d "/data/lsd/KS_nHYP_FA/$tag" ] ; then
-  out="/data/lsd/KS_nHYP_FA/$tag/index.html"
+if [ -d "/raid1/backup/schaich/LSD/KS_nHYP_FA/$tag" ] ; then
+  out="/raid1/backup/schaich/LSD/KS_nHYP_FA/$tag/index.html"    # Customized for Liverpool
   scatter=0
-elif [ -d "/data/lsd/SU4/$tag" ] ; then
-  out="/data/lsd/SU4/$tag/index.html"
+elif [ -d "/raid1/backup/schaich/LSD/SU4/$tag" ] ; then
+  out="/raid1/backup/schaich/LSD/SU4/$tag/index.html"
+  scatter=1
+elif [ -d "/raid1/backup/schaich/LSD/SU4quenched/$tag" ] ; then
+  out="/raid1/backup/schaich/LSD/SU4quenched/$tag/index.html"
   scatter=1
 else
   echo "ERROR: Can't find appropriate $tag directory"

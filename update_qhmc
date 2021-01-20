@@ -8,10 +8,16 @@ fi
 temp=`pwd`
 if [[ $temp == *"KS_nHYP_FA"* ]] ; then
   dir=${temp##*FA/}   # Strip everything up to and including "FA/"
-  path=/data/lsd/KS_nHYP_FA/$dir
-elif [[ $temp == *"SU4"* ]] ; then
-  dir=${temp##*SU4/}   # Strip everything up to and including "SU4/"
-  path=/data/lsd/SU4/$dir
+  inpath=/raidc/users/schaich/LSD/KS_nHYP_FA/$dir
+  outpath=/raid1/backup/schaich/LSD/KS_nHYP_FA/$dir
+elif [[ $temp == *"SU4/4f"* ]] ; then
+  dir=${temp##*SU4/4f/}   # Strip everything up to and including "SU4/4f/"
+  inpath=/raidc/users/schaich/LSD/SU4/4f/$dir
+  outpath=/raid1/backup/schaich/LSD/SU4/$dir
+elif [[ $temp == *"SU4/0f"* ]] ; then
+  dir=${temp##*SU4/0f/}   # Strip everything up to and including "SU4/0f/"
+  inpath=/raidc/users/schaich/LSD/SU4/0f/$dir
+  outpath=/raid1/backup/schaich/LSD/SU4quenched/$dir
 else
   echo "ERROR: Unrecognized path $temp"
   exit 1
@@ -23,24 +29,29 @@ fi
 # ------------------------------------------------------------------
 # Construct list of files in given ensemble, for parse_qhmc.py
 rm -f list.txt
-for i in $path/Out/out.* ; do
+for i in $inpath/Out/out.* ; do
   echo ${i##*.} >> temp    # Strip everything up to and including the last "."
 done
 sort temp -n | uniq > list.txt
 rm -f temp
 
 # Use list of files in given ensemble to extract time series data
-rm -f data/*.csv ERRORS MISSING
-date=`date`
-echo "python /home/schaich/bin/parse_qhmc.py"
-python /home/schaich/bin/parse_qhmc.py
-chmod 664 data/*.csv
+rm -f $outpath/data/*.csv $outpath/ERRORS
+echo "python ~schaich/scripts/parse_qhmc.py"
+python ~schaich/scripts/parse_qhmc.py
+chmod 644 $outpath/data/*.csv
 rm -f list.txt            # Done with this
 
 # Replace Web page to update timestamp
 date=`date`
-rm -f index.html
+rm -f $outpath/index.html
 echo writeLSD $dir "$date"
-/home/schaich/bin/writeLSD $dir "$date"
-chmod 664 index.html
+~schaich/scripts/writeLSD $dir "$date"
+chmod 644 $outpath/index.html
+
+# I like to monitor this (looks better without $outpath)
+#grep Apparent ERRORS
+wc -l M*
+wc -l E*
+echo
 # ------------------------------------------------------------------
