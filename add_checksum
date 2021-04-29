@@ -5,40 +5,29 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-# Input parameters
 config=$1
-time=00:05:00
 
 # Adjustable parameters
-node=32
-cpus=512
-Nf=8
-L=48
-Nt=96
-mass=0.00222
-beta=4.8
-start=high
-ntraj=10
-traj_length=1
-skip=10   # !!! Should be a way to figure out skip=ntraj*traj_length
+N=18
+cores=648
+time=00:05:00
 
-# Common parameters for all jobs
-tag=b${beta}_${start}_m$mass
-temp=submit_$tag
+temp=submit$config
 echo "#!/bin/bash" > $temp
-echo "#MSUB -A latticgc" >> $temp
-echo "#MSUB -l partition=cab" >> $temp
-echo "#MSUB -l nodes=$node" >> $temp
-echo "#MSUB -q pbatch" >> $temp
-echo "#MSUB -l walltime=$time" >> $temp
-echo "#MSUB -N add_checksum$config" >> $temp
-echo "#MSUB -j oe" >> $temp
-echo "#MSUB -o out.add_checksum.%j" >> $temp
-#echo "#MSUB -m ae" >> $temp
-#echo "#MSUB -M daschaich@gmail.com" >> $temp
+echo "#SBATCH -A latticgc" >> $temp
+echo "#SBATCH -p pbatch" >> $temp
+echo "#SBATCH --qos=normal" >> $temp
+echo "#SBATCH -N $N" >> $temp
+echo "#SBATCH -n $cores" >> $temp
+echo "#SBATCH -t $time" >> $temp
+echo "#SBATCH -J chck$config" >> $temp
+echo "#SBATCH -o out.chck.%j" >> $temp
+echo "#SBATCH --mail-user=daschaich@gmail.com" >> $temp
+echo "#SBATCH --mail-type=FAIL" >> $temp
 
 # Check that we're not going to break anything
-lat=Configs/config.$config.lime
+dir=`pwd`
+lat=$dir/Configs/config.$config.lime
 if [ ! -f $lat ]; then
   echo "ERROR: LATTICE $lat NOT FOUND"
   rm -f $temp
@@ -49,9 +38,9 @@ lat=Configs/config.$config.lime
 out=Configs/CHCK.$config.lime
 
 # Set up run script for this task
-awk -v X=$lat '{sub(/inlatGoesHere/,X);print}' add_checksum.lua > TEMP && mv TEMP CHCK$config.lua
-awk -v X=$out '{sub(/outlatGoesHere/,X);print}' CHCK$config.lua > TEMP && mv TEMP CHCK$config.lua
-echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc CHCK$config.lua" >> $temp
+awk -v X=$lat '{sub(/inlatGoesHere/,X);print}' add_checksum.lua > TEMP && mv TEMP chck$config.lua
+awk -v X=$out '{sub(/outlatGoesHere/,X);print}' chck$config.lua > TEMP && mv TEMP chck$config.lua
+echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc chck$config.lua" >> $temp
 
-msub $temp
-rm -f $temp
+sbatch $temp
+rm $temp
