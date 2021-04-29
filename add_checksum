@@ -40,7 +40,7 @@ out=Configs/CHCK.$config.lime
 # Set up run script for this task
 awk -v X=$lat '{sub(/inlatGoesHere/,X);print}' add_checksum.lua > TEMP && mv TEMP chck$config.lua
 awk -v X=$out '{sub(/outlatGoesHere/,X);print}' chck$config.lua > TEMP && mv TEMP chck$config.lua
-echo "srun -N$node -n$cpus /g/g10/schaich2/bin/qhmc chck$config.lua" >> $temp
+echo "srun -N$N -n$cores /g/g10/schaich2/bin/qhmc chck$config.lua" >> $temp
 
 sbatch $temp
 rm $temp
