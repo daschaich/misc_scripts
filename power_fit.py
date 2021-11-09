@@ -3,6 +3,7 @@ import os
 import sys
 import numpy as np
 from scipy import optimize
+from scipy.special import gammainc
 # ------------------------------------------------------------------
 # Perform fit to power law (e.g., for M_P data)
 
@@ -89,5 +90,7 @@ if power == 999:
         % (x, x_err, gamma, ga_err)
 
 chiSq = ((errfunc(p_out, m, dat, err))**2).sum()
-print "chiSq/dof = %.4g/%d = %.4g" % (chiSq, dof, chiSq / dof)
+CL = 1.0 - gammainc(0.5 * dof, 0.5 * chiSq)
+print("chiSq/dof = %.4g/%d = %.4g --> CL = %.4g" \
+      % (chiSq, dof, chiSq / dof, CL))
 # ------------------------------------------------------------------

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# for i in {start..end..step} ; do echo -ne "$i " ; bash pipiCosma $i ; sleep 3 ; done
-
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <config>"
   exit 1
@@ -38,7 +36,7 @@ echo "#!/bin/bash" > $temp
 echo "#SBATCH -D ./" >> $temp
 echo "#SBATCH --export=ALL" >>$temp
 echo "#SBATCH -N $N" >> $temp
-echo "#SBATCH --ntasks-per-node=$per_node" >> $temp 
+echo "#SBATCH --ntasks-per-node=$per_node" >> $temp
 echo "#SBATCH --cpus-per-task=$per_task" >> $temp
 echo "#SBATCH -p cosma8" >>$temp
 echo "#SBATCH -A dp162" >>$temp
@@ -46,8 +44,6 @@ echo "#SBATCH --exclusive" >>$temp
 echo "#SBATCH -t $time" >>$temp
 echo "#SBATCH -J $tag.$cfg" >> $temp
 echo "#SBATCH -o out.pipi.%j" >> $temp
-#echo "#SBATCH --mail-user=daschaich@gmail.com" >>$temp
-#echo "#SBATCH --mail-type=END,FAIL" >>$temp
 
 echo "export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so" >> $temp
 echo "module add intel_comp/2018" >> $temp
@@ -68,15 +64,13 @@ echo "echo 'Machine info'" >> $temp
 echo "sinfo -s" >> $temp
 
 echo "echo '=====================JOB STARTING=========================='" >> $temp
-  
 # Check that we're not going to break anything,
 # Maybe add checks for the meson and pion correlators?
 latPrefix=$path/Configs/ckpoint_lat
 lat=${latPrefix}.${cfg}
 out=Out/pipi.$cfg
 if [ ! -e $lat ]; then
-  echo "Error: lattice not found"
-  echo "file: $lat"
+  echo "Error: lattice $lat not found"
   rm -f $temp
   exit 1
 fi

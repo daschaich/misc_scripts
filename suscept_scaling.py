@@ -5,12 +5,13 @@ import numpy as np
 from scipy.optimize import least_squares
 from scipy.special import gammainc
 # ------------------------------------------------------------------
-# Fit susceptibility data to power law, A * x**B
+# Fit susceptibility data to power law, A * V**B
+# (Focus on first-order volume scaling)
 # May make power_fit.py a bit redundant
 # TODO: May eventually compute and print out error band for gnuplotting
 #       But ignoring that for now
 
-# Parse argument: the file to analyze (FORMAT: L dat err)
+# Parse argument: the file to analyze (FORMAT: vol dat err)
 if len(sys.argv) < 2:
   print("Usage:", str(sys.argv[0]), "<file>")
   sys.exit(1)
@@ -24,7 +25,7 @@ if not os.path.isfile(filename):
 # p_in are order-of-magnitude initial guesses
 expfunc = lambda p, x: p[0] * np.power(x, p[1])
 errfunc = lambda p, x, y, err: (expfunc(p, x) - y) / err
-p_in = np.array([1.0, 1.0])
+p_in = np.array([100.0, 1.0])
 
 # Define corresponding Jacobian matrix
 # Recall x^p = exp(p * log x)
@@ -41,18 +42,18 @@ def jac(p, x, y, err):
 
 # ------------------------------------------------------------------
 # Read, parse and fit data
-# Assumed format: L dat err
-LList = []
+# Assumed format: vol dat err
+VList = []
 datList = []
 errList = []
 for line in open(filename):
   if len(line) == 1 or line.startswith('#') or line.startswith('!'):
     continue
   temp = line.split()
-  LList.append(float(temp[0]))
+  VList.append(float(temp[0]))
   datList.append(float(temp[1]))
   errList.append(float(temp[2]))
-L = np.array(LList)
+L = np.array(VList)
 dat = np.array(datList)
 err = np.array(errList)
 

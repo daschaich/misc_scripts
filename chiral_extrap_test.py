@@ -2,8 +2,8 @@
 import os
 import sys
 import numpy as np
-from scipy import optimize
-from scipy import special
+from scipy.optimize import least_squares
+from scipy.special import gammainc
 # ------------------------------------------------------------------
 # Perform chiral extrapolation (e.g., for Z_A data)
 
@@ -24,7 +24,7 @@ p_in = np.array([0.1, 0.1])
 
 # Define corresponding Jacobian matrix
 def jac(p, x, y, err):
-  J = np.empty((x.size, p.size))
+  J = np.empty((x.size, p.size), dtype = np.float)
   J[:, 0] = x / err
   J[:, 1] = 1.0 / err
   return J
@@ -51,14 +51,14 @@ err = np.array(errList)
 
 # Require enough degrees of freedom
 dof = len(m) - len(p_in)
-if dof <= 0:
-  print "ERROR: Not enough data points to fit to rational function"
+if dof < 1:
+  print("ERROR: dof > 0 required")
   sys.exit(1)
 
 # Return fit parameters
 # and covariance matrix (J^T J)^{-1} where J is jacobian matrix
-all_out = optimize.least_squares(errfunc, p_in, #bounds=(-10.0, 10.0),
-                                 jac=jac, method='lm', args=(m, dat, err))
+all_out = least_squares(errfunc, p_in, #bounds=(-10.0, 10.0),
+                        jac=jac, method='lm', args=(m, dat, err))
 out = all_out.x
 tj = all_out.jac
 pcov = np.linalg.inv(np.dot(np.transpose(tj), tj))

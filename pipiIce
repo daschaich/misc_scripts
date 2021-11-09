@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# for i in {start..end..step} ; do echo -ne "$i " ; bash pipiIce $i ; sleep 3 ; done
-
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <config>"
   exit 1
@@ -35,7 +33,7 @@ echo "#!/bin/bash" > $temp
 echo "#SBATCH -p icelake" >> $temp
 echo "#SBATCH -A dirac-dp162-CPU" >> $temp
 echo "#SBATCH -N $N" >> $temp
-echo "#SBATCH --ntasks-per-node=$per_node" >> $temp 
+echo "#SBATCH --ntasks-per-node=$per_node" >> $temp
 echo "#SBATCH --cpus-per-task=$per_task" >> $temp
 echo "#SBATCH -t $time" >> $temp
 echo "#SBATCH -J $tag.$cfg" >> $temp
@@ -57,15 +55,13 @@ echo "echo 'Machine info'" >> $temp
 echo "sinfo -s" >> $temp
 
 echo "echo '=====================JOB STARTING=========================='" >> $temp
-  
 # Check that we're not going to break anything,
 # Maybe add checks for the meson and pion correlators?
 latPrefix=$path/Configs/ckpoint_lat
 lat=${latPrefix}.${cfg}
 out=Out/pipi.$cfg
 if [ ! -e $lat ]; then
-  echo "Error: lattice not found"
-  echo "file: $lat"
+  echo "Error: lattice $lat not found"
   rm -f $temp
   exit 1
 fi
