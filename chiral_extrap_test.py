@@ -9,12 +9,12 @@ from scipy.special import gammainc
 
 # Parse argument: the file to analyze
 if len(sys.argv) < 2:
-  print "Usage:", str(sys.argv[0]), "<file>"
+  print("Usage:", str(sys.argv[0]), "<file>")
   sys.exit(1)
 filename = str(sys.argv[1])
 
 if not os.path.isfile(filename):
-  print "ERROR:", filename, "does not exist"
+  print("ERROR:", filename, "does not exist")
   sys.exit(1)
 
 # errfunc will be minimized via least-squares optimization
@@ -64,15 +64,15 @@ tj = all_out.jac
 pcov = np.linalg.inv(np.dot(np.transpose(tj), tj))
 
 if all_out.success < 0 or all_out.success > 4:
-  print "WARNING: Fit failed with the following error message:"
-  print errmsg
+  print("WARNING: Fit failed with the following error message:")
+  print(errmsg)
 
 # Compute chiSq and print out intercept
 chiSq = ((errfunc(out, m, dat, err))**2).sum()
-CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
+CL = 1.0 - gammainc(0.5 * dof, 0.5 * chiSq)
 intercept = out[1]
 int_err = np.sqrt(pcov[1][1])     # Component of covariance matrix
-print "0 %.6g %.4g # %.4g/%d = %.4g --> %.4g" \
-      % (intercept, int_err, chiSq, dof, chiSq / dof, CL)
-#print "%.6g %.4g" % (out[0], np.sqrt(pcov[0][0]))
+print("0 %.8g %.4g # %.4g/%d = %.4g --> %.4g" \
+      % (intercept, int_err, chiSq, dof, chiSq / dof, CL))
+#print("%.6g %.4g" % (out[0], np.sqrt(pcov[0][0])))
 # ------------------------------------------------------------------

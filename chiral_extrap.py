@@ -9,7 +9,7 @@ from scipy import special
 # Parse arguments: first is the file to analyze (FORMAT: m dat err)
 # Optional second argument is order of polynomial fit
 if len(sys.argv) < 2:
-  print "Usage:", str(sys.argv[0]), "<file> <poly degree (default=1)>"
+  print("Usage:", str(sys.argv[0]), "<file> <poly degree (default=1)>")
   sys.exit(1)
 filename = str(sys.argv[1])
 if len(sys.argv) > 2:
@@ -18,7 +18,7 @@ else:
   degree = 1
 
 if not os.path.isfile(filename):
-  print "ERROR:", filename, "does not exist"
+  print("ERROR:", filename, "does not exist")
   sys.exit(1)
 # ------------------------------------------------------------------
 
@@ -45,8 +45,7 @@ weight = np.array(wList)
 dof = len(m) - degree - 1
 if dof == 0:
   out = np.polyfit(m, dat, degree, full=False, w=weight, cov=False)
-#  print "%.6g" % out[0],
-  print "%.6g (no dof)" % out[degree]
+  print("%.6g (no dof)" % out[degree])
   sys.exit(0)
 
 # Return polynomial coefficient values and covariance matrix
@@ -71,7 +70,7 @@ cov /= chiSq_dof
 CL = 1.0 - special.gammainc(0.5 * dof, 0.5 * chiSq)
 intercept = out[degree]
 int_err = np.sqrt(cov[degree][degree])    # Component of covar matrix
-print "0 %.8g %.4g # %.4g/%d = %.4g --> %.4g" \
-      % (intercept, int_err, chiSq, dof, chiSq_dof, CL)
-#print "%.6g %.4g" % (out[0], np.sqrt(cov[0][0]))
+print("0 %.8g %.4g # %.4g/%d = %.4g --> %.4g" \
+      % (intercept, int_err, chiSq, dof, chiSq_dof, CL))
+#print("%.6g %.4g" % (out[0], np.sqrt(cov[0][0])))
 # ------------------------------------------------------------------
