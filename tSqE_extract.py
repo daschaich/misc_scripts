@@ -67,6 +67,7 @@ topofile = open(topofilename, 'w')
 for i in cfgs:
   cOld = -1.0
   print >> outfile, i,
+  print >> topofile, i,
   toOpen = filetag + '.' + str(i)
   for line in open(toOpen):
     if line.startswith('WFLOW '):
