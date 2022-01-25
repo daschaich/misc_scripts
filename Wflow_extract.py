@@ -7,6 +7,7 @@ import numpy as np
 # This script extracts the Wilson flow running coupling,
 # mimicking parse_BSM.pl without relying on out.* files
 # No arguments; for now fix c=0.2, 0.25, 0.3 and 0.35
+# Also extract topological charge for c=0.2, 0.3, 0.4 and 0.5
 
 # See if this is necessary
 if os.path.isdir('data'):
