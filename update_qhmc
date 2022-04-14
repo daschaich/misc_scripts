@@ -8,15 +8,15 @@ fi
 temp=`pwd`
 if [[ $temp == *"KS_nHYP_FA"* ]] ; then
   dir=${temp##*FA/}   # Strip everything up to and including "FA/"
-  inpath=/raidc/users/schaich/LSD/KS_nHYP_FA/$dir
+  inpath=/raidc/schaich/LSD/KS_nHYP_FA/$dir
   outpath=/raid1/backup/schaich/LSD/KS_nHYP_FA/$dir
 elif [[ $temp == *"SU4/4f"* ]] ; then
   dir=${temp##*SU4/4f/}   # Strip everything up to and including "SU4/4f/"
-  inpath=/raidc/users/schaich/LSD/SU4/4f/$dir
+  inpath=/raidc/schaich/LSD/SU4/4f/$dir
   outpath=/raid1/backup/schaich/LSD/SU4/$dir
 elif [[ $temp == *"SU4/0f"* ]] ; then
   dir=${temp##*SU4/0f/}   # Strip everything up to and including "SU4/0f/"
-  inpath=/raidc/users/schaich/LSD/SU4/0f/$dir
+  inpath=/raidc/schaich/LSD/SU4/0f/$dir
   outpath=/raid1/backup/schaich/LSD/SU4quenched/$dir
 else
   echo "ERROR: Unrecognized path $temp"
