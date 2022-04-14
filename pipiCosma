@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# for i in {start..end..step} ; do echo -ne "$i " ; bash pipiCosma $i ; sleep 3 ; done
+
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <config>"
   exit 1
@@ -64,18 +66,32 @@ echo "echo 'Machine info'" >> $temp
 echo "sinfo -s" >> $temp
 
 echo "echo '=====================JOB STARTING=========================='" >> $temp
+
 # Check that we're not going to break anything,
 # Maybe add checks for the meson and pion correlators?
 latPrefix=$path/Configs/ckpoint_lat
-lat=${latPrefix}.${cfg}
-out=Out/pipi.$cfg
+lat=$latPrefix.$cfg
+out=Out/pipi.t40.$cfg # TODO: Read in source time as input parameter
+mes=mesons/wall_ll.t40.$cfg.h5
+two=pipi/wall_llll.t40.$cfg.h5
 if [ ! -e $lat ]; then
-  echo "Error: lattice $lat not found"
+  echo "Error: lattice not found"
+  echo "file: $lat"
   rm -f $temp
   exit 1
 fi
 if [ -e $out ]; then
   echo "Error: output file $out exists"
+  rm -f $temp
+  exit 1
+fi
+if [ -e $mes ]; then
+  echo "Error: output file $mes exists"
+  rm -f $temp
+  exit 1
+fi
+if [ -e $two ]; then
+  echo "Error: output file $two exists"
   rm -f $temp
   exit 1
 fi
@@ -86,18 +102,20 @@ if [ ! -e base.xml ]; then
 fi
 
 # Set up XML parameters for this job
-cp -f base.xml xml.$cfg
+cp -f base.xml xml.t40.$cfg
 cfgEnd=$((cfg+1))
-sed -i "s/_CONFIG_START_/${cfg}/g" xml.$cfg
-sed -i "s/_CONFIG_END_/${cfgEnd}/g" xml.$cfg
-sed -i "s/_RUN_ID_/${tag}/g" xml.$cfg
-sed -i "s#_CONFIG_PREFIX_#${latPrefix}#g" xml.$cfg
+sed -i "s/_CONFIG_START_/${cfg}/g" xml.t40.$cfg
+sed -i "s/_CONFIG_END_/${cfgEnd}/g" xml.t40.$cfg
+sed -i "s/_RUN_ID_/${tag}/g" xml.t40.$cfg
+sed -i "s#_CONFIG_PREFIX_#${latPrefix}#g" xml.t40.$cfg
 
 # Go
 echo "echo \"Job pipi.$cfg started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
 echo "echo \"=== Running MPI application on $cores cpus ===\" >> $out" >> $temp
-echo "echo \"srun --mpi=pmi2 -n $tasks $bin xml.$cfg --grid $Lattice --mpi $MPIGrid --threads $per_task --comms-concurrent --comms-overlap --shm 2048\" >> $out" >> $temp
-echo "srun --mpi=pmi2 -n $tasks $bin xml.$cfg --grid $Lattice --mpi $MPIGrid --threads $per_task --comms-concurrent --comms-overlap --shm 2048 >> $out" >> $temp
+echo "echo \"srun --mpi=pmi2 -n $tasks $bin xml.t40.$cfg --grid $Lattice --mpi $MPIGrid --threads $per_task --comms-concurrent --comms-overlap --shm 2048\" >> $out" >> $temp
+echo "srun --mpi=pmi2 -n $tasks $bin xml.t40.$cfg --grid $Lattice --mpi $MPIGrid --threads $per_task --comms-concurrent --comms-overlap --shm 2048 >> $out" >> $temp
+echo "mv -iv mesons/wall_ll.$cfg.h5 $mes" >> $temp
+echo "mv -iv pipi/wall_llll.$cfg.h5 $two" >> $temp
 echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> $temp
 echo "echo '========================ALL DONE==========================='" >> $temp
 
