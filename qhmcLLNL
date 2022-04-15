@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# Keep resubmitting from start to end in sets of per_job
+if [ $# -lt 8 ]; then
+  echo "Usage: $0 <start> <end> <per_job> <MH> <nsteps> <nsteps2> <ngsteps> <time>"
+  exit 1
+fi
+
+# Input parameters
+first=$1
+last=$2
+batch=$3
+MH=$4
+nsteps=$5
+nsteps2=$6
+ngsteps=$7
+time=$8
+
+# Check whether we've correctly set $batch to evenly divide ($last-$first)
+iter=0
+count=$first
+for(( i=$first ; $i<$last ; i+=$batch )); do
+  iter=$[$iter + 1]
+  count=$[$count + $batch]
+done
+echo "Will submit $iter jobs and end up at $count MDTU"
+
+# Adjustable parameters
+N=14
+cores=768
+ntraj=10
+traj_length=1
+skip=`echo $ntraj | awk -v tau="$traj_length" '{print($1*tau)}'`
+
+# Parameters fixed by the path
+temp=`pwd`
+path=${temp##*SU4/}   # Strip everything up to and including "SU4/"
+mass=${path##*_m}     # Strip everything up to and including "_m"
+temp=${path##*f/}     # Strip everything up to and including "f/"
+vol=${temp%%/b*}      # Strip everything after and including "/b"
+tag=${temp##*/b}      # Strip everything up to and including "/b"
+beta=${tag%%_*}       # Strip everything after and including first "_"
+
+# Common parameters for all jobs
+temp=submit_b$tag
+echo "#!/bin/bash" > $temp
+echo "#SBATCH -A latticgc" >> $temp
+echo "#SBATCH -p pbatch" >> $temp
+echo "#SBATCH --qos=normal" >> $temp
+echo "#SBATCH -N $N" >> $temp
+echo "#SBATCH -n $cores" >> $temp
+echo "#SBATCH -t $time" >> $temp
+echo "#SBATCH -J HMC${vol}_b$tag" >> $temp
+echo "#SBATCH -o out.HMC.%j" >> $temp
+echo "#SBATCH --mail-user=daschaich@gmail.com" >> $temp
+echo "#SBATCH --mail-type=ALL" >> $temp
+
+dir=/p/lustre1/schaich2/SU4/$path
+cd $dir
+echo "cd $dir" >> $temp
+
+# Check that we're not going to break anything,
+# either through this job or the subsequent jobs it will submit
+lat=$dir/Configs/config.$first.lime
+if [ ! -f $lat ]; then
+  echo "WARNING: LATTICE $lat NOT FOUND, SUBMISSION ABORTED"
+  rm -f $temp
+  exit 1
+fi
+for(( i=$first ; $i<$last ; i+=$skip )); do
+  next=$[$i + $skip]
+  out=$dir/Out/out.$i-$next
+  lat=$dir/Configs/config.$next.lime
+  if [ -f $out ]; then
+    echo "ERROR: OUTPUT FILE $out EXISTS, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+  if [ -f $lat ]; then
+    echo "ERROR: LATTICE $lat EXISTS, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+done
+
+# Diagnostic information
+echo "echo '=====================JOB DIAGNOTICS========================'" >> $temp
+echo "date" >> $temp
+echo "echo -n 'This machine is ';hostname" >> $temp
+echo "echo -n 'My jobid is '; echo \$SLURM_JOBID" >> $temp
+echo "echo 'My path is:' " >> $temp
+echo "echo \$PATH" >> $temp
+echo "echo 'My job info:'" >> $temp
+echo "squeue -j \$SLURM_JOBID" >> $temp
+echo "echo 'Machine info'" >> $temp
+echo "sinfo -s" >> $temp
+
+# Write this job's evolution tasks to run in a single job
+iter=0
+this_sub=$[$first + $batch]
+for(( i=$first ; $i<$this_sub ; i+=$skip )); do
+  iter=$[$iter + 1]
+  next=$[$i + $skip]
+  out=$dir/Out/out.$i-$next
+  lat=$dir/Configs/config
+
+  # Set up run script for this task
+  awk -v X=$mass '{sub("massGoesHere",X);print}' ../template.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$beta '{sub(/betaGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$MH '{sub(/mass2GoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$ntraj '{sub(/ntrajGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$i '{sub(/trajGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$nsteps '{sub(/nstepsGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$nsteps2 '{sub(/nsteps2GoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$ngsteps '{sub(/ngstepsGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  awk -v X=$lat.%i.lime '{sub(/latpatGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  if [[ $path == *_high_* ]]; then
+    awk -v X=${beta/\./1}${vol/nt/}${mass/0\./}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  elif [[ $path == *_low_* ]]; then
+    awk -v X=${beta/\./2}${vol/nt/}${mass/0\./}$i '{sub(/seedGoesHere/,X);print}' RUN$i.lua > TEMP && mv TEMP RUN$i.lua
+  else
+    echo "ERROR: CONFUSED BY PATH $path, SUBMISSION ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+
+  # Try to short-circuit coredump bombs on ruby...
+  if [ ! -f $lat.$i.lime ]; then
+    echo "WARNING: LATTICE $lat.$i.lime NOT FOUND, RUNNING ABORTED"
+    rm -f $temp
+    exit 1
+  fi
+
+  echo "echo \"Job HMC${vol}_b$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
+  echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
+  echo "echo \"srun -N$N -n$cores /g/g10/schaich2/bin/qhmc RUN$i.lua\" >> $out" >> $temp
+  echo "srun -N$N -n$cores /g/g10/schaich2/bin/qhmc RUN$i.lua >> $out" >> $temp
+
+  echo "echo \"=== MPI application finished at \"\`date\`\" ===\" >> $out" >> $temp
+  echo "" >> $temp
+done
+
+# Submit next job, if applicable
+# Warned above about possibility of ending up between $last and $last+$batch
+if [ $this_sub -lt $last ] ; then
+  echo "echo \"./runLLNL $this_sub $last $batch $MH $nsteps $nsteps2 $ngsteps $time\"" >> $temp
+  echo "./runLLNL $this_sub $last $batch $MH $nsteps $nsteps2 $ngsteps $time" >> $temp
+fi
+
+sbatch $temp
+rm -f $temp
+echo "Requested $time to save $iter configs ($first--$this_sub by $ntraj)"
