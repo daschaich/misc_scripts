@@ -125,11 +125,11 @@ for(( i=$first ; $i<$this_sub ; i+=$skip )); do
   fi
 
   # Try to short-circuit coredump bombs on ruby...
-  if [ ! -f $lat.$i.lime ]; then
-    echo "WARNING: LATTICE $lat.$i.lime NOT FOUND, RUNNING ABORTED"
-    rm -f $temp
-    exit 1
-  fi
+  echo "if [ ! -f $lat.$i.lime ]; then" >> $temp
+  echo "  echo \"ERROR: LATTICE $lat.$i.lime NOT FOUND, RUNNING ABORTED\"" >> $temp
+  echo "  rm -f $temp" >> $temp
+  echo "  exit 1" >> $temp
+  echo "fi" >> $temp
 
   echo "echo \"Job HMC${vol}_b$tag.$i started \"\`date\`\" jobid \$SLURM_JOBID\" >> $out" >> $temp
   echo "echo \"=== Running MPI application on $cpus cpus ===\" >> $out" >> $temp
