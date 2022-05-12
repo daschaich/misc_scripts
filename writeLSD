@@ -15,8 +15,14 @@ if [ -d "/raid1/backup/schaich/LSD/KS_nHYP_FA/$tag" ] ; then
 elif [ -d "/raid1/backup/schaich/LSD/SU4/$tag" ] ; then
   out="/raid1/backup/schaich/LSD/SU4/$tag/index.html"
   scatter=1
-elif [ -d "/raid1/backup/schaich/LSD/SU4quenched/$tag" ] ; then
-  out="/raid1/backup/schaich/LSD/SU4quenched/$tag/index.html"
+elif [ -d "/raid1/backup/schaich/LSD/SU4YM/$tag" ] ; then
+  out="/raid1/backup/schaich/LSD/SU4YM/$tag/index.html"
+  scatter=1
+elif [ -d "/raid1/backup/schaich/LSD/SU6YM/$tag" ] ; then
+  out="/raid1/backup/schaich/LSD/SU6YM/$tag/index.html"
+  scatter=1
+elif [ -d "/raid1/backup/schaich/LSD/SU8YM/$tag" ] ; then
+  out="/raid1/backup/schaich/LSD/SU8YM/$tag/index.html"
   scatter=1
 else
   echo "ERROR: Can't find appropriate $tag directory"

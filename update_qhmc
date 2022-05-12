@@ -17,7 +17,15 @@ elif [[ $temp == *"SU4/4f"* ]] ; then
 elif [[ $temp == *"SU4/0f"* ]] ; then
   dir=${temp##*SU4/0f/}   # Strip everything up to and including "SU4/0f/"
   inpath=/raidc/schaich/LSD/SU4/0f/$dir
-  outpath=/raid1/backup/schaich/LSD/SU4quenched/$dir
+  outpath=/raid1/backup/schaich/LSD/SU4YM/$dir
+elif [[ $temp == *"SU6"* ]] ; then
+  dir=${temp##*SU6/}   # Strip everything up to and including "SU6/"
+  inpath=/raidc/schaich/LSD/SU6/$dir
+  outpath=/raid1/backup/schaich/LSD/SU6YM/$dir
+elif [[ $temp == *"SU8"* ]] ; then
+  dir=${temp##*SU8/}   # Strip everything up to and including "SU8/"
+  inpath=/raidc/schaich/LSD/SU8/$dir
+  outpath=/raid1/backup/schaich/LSD/SU8YM/$dir
 else
   echo "ERROR: Unrecognized path $temp"
   exit 1

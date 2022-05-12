@@ -28,23 +28,67 @@ for i in *nt12/b[0-9]*267 *nt6/b*6 ; do
 done
 
 cd ~/LSD/SU4/0f
-for i in 8nt4/b*W* ; do
-  if [ -d /raid1/backup/schaich/LSD/SU4quenched/$i/data ] ; then
+for i in *nt8/Wb* ; do
+  if [ -d /raid1/backup/schaich/LSD/SU4YM/$i/data ] ; then
     echo "$i already done"
     continue
   fi
 
   echo "Doing $i"
-  mkdir /raid1/backup/schaich/LSD/SU4quenched/$i
-  mkdir /raid1/backup/schaich/LSD/SU4quenched/$i/data
-  touch /raid1/backup/schaich/LSD/SU4quenched/$i/ERRORS
-  touch /raid1/backup/schaich/LSD/SU4quenched/$i/MISSING
+  mkdir /raid1/backup/schaich/LSD/SU4YM/$i
+  mkdir /raid1/backup/schaich/LSD/SU4YM/$i/data
+  touch /raid1/backup/schaich/LSD/SU4YM/$i/ERRORS
+  touch /raid1/backup/schaich/LSD/SU4YM/$i/MISSING
 
   cd $i
   rm -f data ERRORS MISSING
-  ln -s /raid1/backup/schaich/LSD/SU4quenched/$i/data
-  ln -s /raid1/backup/schaich/LSD/SU4quenched/$i/ERRORS
-  ln -s /raid1/backup/schaich/LSD/SU4quenched/$i/MISSING
+  ln -s /raid1/backup/schaich/LSD/SU4YM/$i/data
+  ln -s /raid1/backup/schaich/LSD/SU4YM/$i/ERRORS
+  ln -s /raid1/backup/schaich/LSD/SU4YM/$i/MISSING
+  ls -l
+  cd ../..
+done
+
+cd ~/LSD/SU6
+for i in *nt8/Wb* ; do
+  if [ -d /raid1/backup/schaich/LSD/SU6YM/$i/data ] ; then
+    echo "$i already done"
+    continue
+  fi
+
+  echo "Doing $i"
+  mkdir /raid1/backup/schaich/LSD/SU6YM/$i
+  mkdir /raid1/backup/schaich/LSD/SU6YM/$i/data
+  touch /raid1/backup/schaich/LSD/SU6YM/$i/ERRORS
+  touch /raid1/backup/schaich/LSD/SU6YM/$i/MISSING
+
+  cd $i
+  rm -f data ERRORS MISSING
+  ln -s /raid1/backup/schaich/LSD/SU6YM/$i/data
+  ln -s /raid1/backup/schaich/LSD/SU6YM/$i/ERRORS
+  ln -s /raid1/backup/schaich/LSD/SU6YM/$i/MISSING
+  ls -l
+  cd ../..
+done
+
+cd ~/LSD/SU8
+for i in *nt8/Wb* ; do
+  if [ -d /raid1/backup/schaich/LSD/SU8YM/$i/data ] ; then
+    echo "$i already done"
+    continue
+  fi
+
+  echo "Doing $i"
+  mkdir /raid1/backup/schaich/LSD/SU8YM/$i
+  mkdir /raid1/backup/schaich/LSD/SU8YM/$i/data
+  touch /raid1/backup/schaich/LSD/SU8YM/$i/ERRORS
+  touch /raid1/backup/schaich/LSD/SU8YM/$i/MISSING
+
+  cd $i
+  rm -f data ERRORS MISSING
+  ln -s /raid1/backup/schaich/LSD/SU8YM/$i/data
+  ln -s /raid1/backup/schaich/LSD/SU8YM/$i/ERRORS
+  ln -s /raid1/backup/schaich/LSD/SU8YM/$i/MISSING
   ls -l
   cd ../..
 done

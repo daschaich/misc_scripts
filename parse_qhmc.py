@@ -21,20 +21,26 @@ if '4f' in temp:
   Nf=4
   Ftag = 'FF[02]'
   Nc=4.0
-  gprop = 128.0 * 3.14159**2 / (3.0 * 15.0)
 elif '8f' in temp:
   Nf=8
   Ftag = 'FF[03]'
   Nc=3.0
-  gprop = 128.0 * 3.14159**2 / (3.0 * 8.0)
 elif '0f' in temp:
   Nf=0
   Ftag = 'FF[02]' # Will never be encountered
   Nc=4.0
-  gprop = 128.0 * 3.14159**2 / (3.0 * 15.0)
+elif 'SU6' in temp:
+  Nf=0
+  Ftag = 'FF[02]' # Will never be encountered
+  Nc=6.0
+elif 'SU8' in temp:
+  Nf=0
+  Ftag = 'FF[02]' # Will never be encountered
+  Nc=8.0
 else:
   print "ERROR: Force extraction can only handle Nf=0, 4 or 8"
   sys.exit(1)
+gprop = 128.0 * 3.14159**2 / (3.0 * (Nc * Nc - 1.0))
 
 ERRFILE = open('ERRORS', 'w')
 MISSINGFILES = open('MISSING', 'w')
@@ -281,13 +287,17 @@ for temp_tag in open('list.txt'):
       start_traj = int((line.split('.'))[-2])
 
     elif line.startswith('traj '):
-      print >> WALLTIME, "%d,%g" % (traj, float((line.split())[3]))
+#      print >> WALLTIME, "%d,%g" % (traj, float((line.split())[3]))
       temp = start_traj + int((line.split())[1])
       if traj != temp:
         print "Trajectory count mismatch in", infile,
         print "%d vs %d" % (traj, temp)
         print >> ERRFILE, "Trajectory count mismatch in", infile,
         print >> ERRFILE, "%d vs %d" % (traj, temp)
+
+    # This should include measurement etc. time, not just MD
+    elif line.startswith('trajectory time: '):
+      print >> WALLTIME, "%d,%g" % (traj, float((line.split())[2]))
 
     # Forces and nsteps -- monitor maxima rather than rms...
     # Ftag handles dependence on Nf when Nf > 0...
