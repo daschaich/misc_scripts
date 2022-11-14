@@ -136,7 +136,7 @@ outfile.close()
 
 # Also keep track of the pbp autocorrelation time
 # Print warnings if larger than the Wpoly_mod tau computed above
-# Format: MDTU,Tr(X1)^2,...,Tr(X9)^2
+# (Format: MDTU,pbp)
 dat = []
 sep = 1       # Measured after each trajectory
 prev = 0
