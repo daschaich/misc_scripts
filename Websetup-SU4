@@ -1,94 +1,94 @@
 #!/bin/bash
 
-if [ ! -d /raid1/backup/schaich/LSD/SU4 ] ; then
-  echo "Need to mount /raid1..."
-  sudo mount rafa.amtp:/raid1 /raid1
+if [ ! -d /raide/www/people/staff/schaich/LSD/SU4 ] ; then
+  echo "Need to mount /raide..."
+  sudo mount sune.amtp:/raide /raide
 fi
 
 cd ~/LSD/SU4/4f
 for i in *nt12/b[0-9]*267 *nt6/b*6 ; do
-  if [ -d /raid1/backup/schaich/LSD/SU4/$i/data ] ; then
+  if [ -d /raide/www/people/staff/schaich/LSD/SU4/$i/data ] ; then
     echo "$i already done"
     continue
   fi
 
   echo "Doing $i"
-  mkdir /raid1/backup/schaich/LSD/SU4/$i
-  mkdir /raid1/backup/schaich/LSD/SU4/$i/data
-  touch /raid1/backup/schaich/LSD/SU4/$i/ERRORS
-  touch /raid1/backup/schaich/LSD/SU4/$i/MISSING
+  mkdir /raide/www/people/staff/schaich/LSD/SU4/$i
+  mkdir /raide/www/people/staff/schaich/LSD/SU4/$i/data
+  touch /raide/www/people/staff/schaich/LSD/SU4/$i/ERRORS
+  touch /raide/www/people/staff/schaich/LSD/SU4/$i/MISSING
 
   cd $i
   rm -f data ERRORS MISSING
-  ln -s /raid1/backup/schaich/LSD/SU4/$i/data
-  ln -s /raid1/backup/schaich/LSD/SU4/$i/ERRORS
-  ln -s /raid1/backup/schaich/LSD/SU4/$i/MISSING
+  ln -s /raide/www/people/staff/schaich/LSD/SU4/$i/data
+  ln -s /raide/www/people/staff/schaich/LSD/SU4/$i/ERRORS
+  ln -s /raide/www/people/staff/schaich/LSD/SU4/$i/MISSING
   ls -l
   cd ../..
 done
 
 cd ~/LSD/SU4/0f
 for i in *nt8/Wb* ; do
-  if [ -d /raid1/backup/schaich/LSD/SU4YM/$i/data ] ; then
+  if [ -d /raide/www/people/staff/schaich/LSD/SU4YM/$i/data ] ; then
     echo "$i already done"
     continue
   fi
 
   echo "Doing $i"
-  mkdir /raid1/backup/schaich/LSD/SU4YM/$i
-  mkdir /raid1/backup/schaich/LSD/SU4YM/$i/data
-  touch /raid1/backup/schaich/LSD/SU4YM/$i/ERRORS
-  touch /raid1/backup/schaich/LSD/SU4YM/$i/MISSING
+  mkdir /raide/www/people/staff/schaich/LSD/SU4YM/$i
+  mkdir /raide/www/people/staff/schaich/LSD/SU4YM/$i/data
+  touch /raide/www/people/staff/schaich/LSD/SU4YM/$i/ERRORS
+  touch /raide/www/people/staff/schaich/LSD/SU4YM/$i/MISSING
 
   cd $i
   rm -f data ERRORS MISSING
-  ln -s /raid1/backup/schaich/LSD/SU4YM/$i/data
-  ln -s /raid1/backup/schaich/LSD/SU4YM/$i/ERRORS
-  ln -s /raid1/backup/schaich/LSD/SU4YM/$i/MISSING
+  ln -s /raide/www/people/staff/schaich/LSD/SU4YM/$i/data
+  ln -s /raide/www/people/staff/schaich/LSD/SU4YM/$i/ERRORS
+  ln -s /raide/www/people/staff/schaich/LSD/SU4YM/$i/MISSING
   ls -l
   cd ../..
 done
 
 cd ~/LSD/SU6
 for i in *nt8/Wb* ; do
-  if [ -d /raid1/backup/schaich/LSD/SU6YM/$i/data ] ; then
+  if [ -d /raide/www/people/staff/schaich/LSD/SU6YM/$i/data ] ; then
     echo "$i already done"
     continue
   fi
 
   echo "Doing $i"
-  mkdir /raid1/backup/schaich/LSD/SU6YM/$i
-  mkdir /raid1/backup/schaich/LSD/SU6YM/$i/data
-  touch /raid1/backup/schaich/LSD/SU6YM/$i/ERRORS
-  touch /raid1/backup/schaich/LSD/SU6YM/$i/MISSING
+  mkdir /raide/www/people/staff/schaich/LSD/SU6YM/$i
+  mkdir /raide/www/people/staff/schaich/LSD/SU6YM/$i/data
+  touch /raide/www/people/staff/schaich/LSD/SU6YM/$i/ERRORS
+  touch /raide/www/people/staff/schaich/LSD/SU6YM/$i/MISSING
 
   cd $i
   rm -f data ERRORS MISSING
-  ln -s /raid1/backup/schaich/LSD/SU6YM/$i/data
-  ln -s /raid1/backup/schaich/LSD/SU6YM/$i/ERRORS
-  ln -s /raid1/backup/schaich/LSD/SU6YM/$i/MISSING
+  ln -s /raide/www/people/staff/schaich/LSD/SU6YM/$i/data
+  ln -s /raide/www/people/staff/schaich/LSD/SU6YM/$i/ERRORS
+  ln -s /raide/www/people/staff/schaich/LSD/SU6YM/$i/MISSING
   ls -l
   cd ../..
 done
 
 cd ~/LSD/SU8
 for i in *nt8/Wb* ; do
-  if [ -d /raid1/backup/schaich/LSD/SU8YM/$i/data ] ; then
+  if [ -d /raide/www/people/staff/schaich/LSD/SU8YM/$i/data ] ; then
     echo "$i already done"
     continue
   fi
 
   echo "Doing $i"
-  mkdir /raid1/backup/schaich/LSD/SU8YM/$i
-  mkdir /raid1/backup/schaich/LSD/SU8YM/$i/data
-  touch /raid1/backup/schaich/LSD/SU8YM/$i/ERRORS
-  touch /raid1/backup/schaich/LSD/SU8YM/$i/MISSING
+  mkdir /raide/www/people/staff/schaich/LSD/SU8YM/$i
+  mkdir /raide/www/people/staff/schaich/LSD/SU8YM/$i/data
+  touch /raide/www/people/staff/schaich/LSD/SU8YM/$i/ERRORS
+  touch /raide/www/people/staff/schaich/LSD/SU8YM/$i/MISSING
 
   cd $i
   rm -f data ERRORS MISSING
-  ln -s /raid1/backup/schaich/LSD/SU8YM/$i/data
-  ln -s /raid1/backup/schaich/LSD/SU8YM/$i/ERRORS
-  ln -s /raid1/backup/schaich/LSD/SU8YM/$i/MISSING
+  ln -s /raide/www/people/staff/schaich/LSD/SU8YM/$i/data
+  ln -s /raide/www/people/staff/schaich/LSD/SU8YM/$i/ERRORS
+  ln -s /raide/www/people/staff/schaich/LSD/SU8YM/$i/MISSING
   ls -l
   cd ../..
 done

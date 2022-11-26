@@ -9,23 +9,23 @@ temp=`pwd`
 if [[ $temp == *"KS_nHYP_FA"* ]] ; then
   dir=${temp##*FA/}   # Strip everything up to and including "FA/"
   inpath=/raidc/schaich/LSD/KS_nHYP_FA/$dir
-  outpath=/raid1/backup/schaich/LSD/KS_nHYP_FA/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/KS_nHYP_FA/$dir
 elif [[ $temp == *"SU4/4f"* ]] ; then
   dir=${temp##*SU4/4f/}   # Strip everything up to and including "SU4/4f/"
   inpath=/raidc/schaich/LSD/SU4/4f/$dir
-  outpath=/raid1/backup/schaich/LSD/SU4/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU4/$dir
 elif [[ $temp == *"SU4/0f"* ]] ; then
   dir=${temp##*SU4/0f/}   # Strip everything up to and including "SU4/0f/"
   inpath=/raidc/schaich/LSD/SU4/0f/$dir
-  outpath=/raid1/backup/schaich/LSD/SU4YM/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU4YM/$dir
 elif [[ $temp == *"SU6"* ]] ; then
   dir=${temp##*SU6/}   # Strip everything up to and including "SU6/"
   inpath=/raidc/schaich/LSD/SU6/$dir
-  outpath=/raid1/backup/schaich/LSD/SU6YM/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU6YM/$dir
 elif [[ $temp == *"SU8"* ]] ; then
   dir=${temp##*SU8/}   # Strip everything up to and including "SU8/"
   inpath=/raidc/schaich/LSD/SU8/$dir
-  outpath=/raid1/backup/schaich/LSD/SU8YM/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU8YM/$dir
 else
   echo "ERROR: Unrecognized path $temp"
   exit 1

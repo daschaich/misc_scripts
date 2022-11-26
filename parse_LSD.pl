@@ -6,59 +6,59 @@ use Switch;
 # This script parses MILC output files for a single ensemble,
 # shuffling the extracted data into dedicated files for plotting.
 
-die "Usage: $0 <path>\n"
-  if (@ARGV != 1);
+if (! -d "Out") {
+  die "ERROR: Out/ does not exist"
+}
 
-my $path = shift;
 my $i;
 my $junk;
 open ERRFILE, "> ERRORS" or die "Error opening ERRORS ($!)\n";
 open MISSINGFILES, "> MISSING" or die "Error opening MISSING ($!)\n";
 
 # Set up header lines in new data/ files
-open KEY, "> $path/data/key.csv" or die "Error opening $path/data/key.csv ($!)\n";
-open STEPSIZE, "> $path/data/stepsize.csv" or die "Error opening $path/data/stepsize.csv ($!)\n";
-open NSTEP, "> $path/data/Nstep.csv" or die "Error opening $path/data/Nstep.csv ($!)\n";
-open MH, "> $path/data/MH.csv" or die "Error opening $path/data/MH.csv ($!)\n";
-open TLENGTH, "> $path/data/tlength.csv" or die "Error opening $path/data/tlength.csv ($!)\n";
-open TU, "> $path/data/TU.csv" or die "Error opening $path/data/TU.csv ($!)\n";
-open DELTAS, "> $path/data/deltaS.csv" or die "Error opening $path/data/deltaS.csv ($!)\n";
-open EXP_DS, "> $path/data/exp_dS.csv" or die "Error opening $path/data/exp_dS.csv ($!)\n";
-open ABS_DS, "> $path/data/abs_dS.csv" or die "Error opening $path/data/abs_dS.csv ($!)\n";
-open ACCP, "> $path/data/accP.csv" or die "Error opening $path/data/accP.csv ($!)\n";
-open FORCE, "> $path/data/force.csv" or die "Error opening $path/data/force.csv ($!)\n";
-open PLAQ, "> $path/data/plaq.csv" or die "Error opening $path/data/plaq.csv ($!)\n";
-open POLY, "> $path/data/poly.csv" or die "Error opening $path/data/poly.csv ($!)\n";
-open POLY_R, "> $path/data/poly_r.csv" or die "Error opening $path/data/poly_r.csv ($!)\n";
-open POLY_MOD, "> $path/data/poly_mod.csv" or die "Error opening $path/data/poly_mod.csv ($!)\n";
-open POLY_ARG, "> $path/data/poly_arg.csv" or die "Error opening $path/data/poly_arg.csv ($!)\n";
-open XPOLY, "> $path/data/xpoly.csv" or die "Error opening $path/data/xpoly.csv ($!)\n";
-open XPOLY_R, "> $path/data/xpoly_r.csv" or die "Error opening $path/data/xpoly_r.csv ($!)\n";
-open XPOLY_MOD, "> $path/data/xpoly_mod.csv" or die "Error opening $path/data/xpoly_mod.csv ($!)\n";
-open XPOLY_ARG, "> $path/data/xpoly_arg.csv" or die "Error opening $path/data/xpoly_arg.csv ($!)\n";
-open CG_ITERS, "> $path/data/cg_iters.csv" or die "Error opening $path/data/cg_iters.csv ($!)\n";
-open PBP, "> $path/data/pbp.csv" or die "Error opening $path/data/pbp.csv ($!)\n";
-open WALLTIME, "> $path/data/walltime.csv" or die "Error opening $path/data/walltime.csv ($!)\n";
-open WALLTU, "> $path/data/wallTU.csv" or die "Error opening $path/data/wallTU.csv ($!)\n";
-open PLAQB, "> $path/data/plaqB.csv" or die "Error opening $path/data/plaqB.csv ($!)\n";
-open POLYB, "> $path/data/polyB.csv" or die "Error opening $path/data/polyB.csv ($!)\n";
-open POLY_RB, "> $path/data/poly_rB.csv" or die "Error opening $path/data/poly_rB.csv ($!)\n";
-open POLY_MODB, "> $path/data/poly_modB.csv" or die "Error opening $path/data/poly_modB.csv ($!)\n";
-open POLY_ARGB, "> $path/data/poly_argB.csv" or die "Error opening $path/data/poly_argB.csv ($!)\n";
-open XPOLYB, "> $path/data/xpolyB.csv" or die "Error opening $path/data/xpolyB.csv ($!)\n";
-open XPOLY_RB, "> $path/data/xpoly_rB.csv" or die "Error opening $path/data/xpoly_rB.csv ($!)\n";
-open XPOLY_MODB, "> $path/data/xpoly_modB.csv" or die "Error opening $path/data/xpoly_modB.csv ($!)\n";
-open XPOLY_ARGB, "> $path/data/xpoly_argB.csv" or die "Error opening $path/data/xpoly_argB.csv ($!)\n";
-open PLAQ_DIFF, "> $path/data/plaq_diff.csv" or die "Error opening $path/data/plaq_diff.csv ($!)\n";
-open LINK_DIFF, "> $path/data/link_diff.csv" or die "Error opening $path/data/link_diff.csv ($!)\n";
-open EIG, "> $path/data/eig.csv" or die "Error opening $path/data/eig.csv ($!)\n";
-open WFLOW, "> $path/data/Wflow.csv" or die "Error opening $path/data/Wflow.csv ($!)\n";
-open TOPO, "> $path/data/topo.csv" or die "Error opening $path/data/topo.csv ($!)\n";
-open WPOLY, "> $path/data/Wpoly.csv" or die "Error opening $path/data/Wpoly.csv ($!)\n";
-open WPOLY_MOD, "> $path/data/Wpoly_mod.csv" or die "Error opening $path/data/Wpoly_mod.csv ($!)\n";
-open WFLOW_SS, "> $path/data/Wflow_ss.csv" or die "Error opening $path/data/Wflow_ss.csv ($!)\n";
-open WFLOW_ST, "> $path/data/Wflow_st.csv" or die "Error opening $path/data/Wflow_st.csv ($!)\n";
-open WFLOW_ANISO, "> $path/data/Wflow_aniso.csv" or die "Error opening $path/data/Wflow_aniso.csv ($!)\n";
+open KEY, "> data/key.csv" or die "Error opening data/key.csv ($!)\n";
+open STEPSIZE, "> data/stepsize.csv" or die "Error opening data/stepsize.csv ($!)\n";
+open NSTEP, "> data/Nstep.csv" or die "Error opening data/Nstep.csv ($!)\n";
+open MH, "> data/MH.csv" or die "Error opening data/MH.csv ($!)\n";
+open TLENGTH, "> data/tlength.csv" or die "Error opening data/tlength.csv ($!)\n";
+open TU, "> data/TU.csv" or die "Error opening data/TU.csv ($!)\n";
+open DELTAS, "> data/deltaS.csv" or die "Error opening data/deltaS.csv ($!)\n";
+open EXP_DS, "> data/exp_dS.csv" or die "Error opening data/exp_dS.csv ($!)\n";
+open ABS_DS, "> data/abs_dS.csv" or die "Error opening data/abs_dS.csv ($!)\n";
+open ACCP, "> data/accP.csv" or die "Error opening data/accP.csv ($!)\n";
+open FORCE, "> data/force.csv" or die "Error opening data/force.csv ($!)\n";
+open PLAQ, "> data/plaq.csv" or die "Error opening data/plaq.csv ($!)\n";
+open POLY, "> data/poly.csv" or die "Error opening data/poly.csv ($!)\n";
+open POLY_R, "> data/poly_r.csv" or die "Error opening data/poly_r.csv ($!)\n";
+open POLY_MOD, "> data/poly_mod.csv" or die "Error opening data/poly_mod.csv ($!)\n";
+open POLY_ARG, "> data/poly_arg.csv" or die "Error opening data/poly_arg.csv ($!)\n";
+open XPOLY, "> data/xpoly.csv" or die "Error opening data/xpoly.csv ($!)\n";
+open XPOLY_R, "> data/xpoly_r.csv" or die "Error opening data/xpoly_r.csv ($!)\n";
+open XPOLY_MOD, "> data/xpoly_mod.csv" or die "Error opening data/xpoly_mod.csv ($!)\n";
+open XPOLY_ARG, "> data/xpoly_arg.csv" or die "Error opening data/xpoly_arg.csv ($!)\n";
+open CG_ITERS, "> data/cg_iters.csv" or die "Error opening data/cg_iters.csv ($!)\n";
+open PBP, "> data/pbp.csv" or die "Error opening data/pbp.csv ($!)\n";
+open WALLTIME, "> data/walltime.csv" or die "Error opening data/walltime.csv ($!)\n";
+open WALLTU, "> data/wallTU.csv" or die "Error opening data/wallTU.csv ($!)\n";
+open PLAQB, "> data/plaqB.csv" or die "Error opening data/plaqB.csv ($!)\n";
+open POLYB, "> data/polyB.csv" or die "Error opening data/polyB.csv ($!)\n";
+open POLY_RB, "> data/poly_rB.csv" or die "Error opening data/poly_rB.csv ($!)\n";
+open POLY_MODB, "> data/poly_modB.csv" or die "Error opening data/poly_modB.csv ($!)\n";
+open POLY_ARGB, "> data/poly_argB.csv" or die "Error opening data/poly_argB.csv ($!)\n";
+open XPOLYB, "> data/xpolyB.csv" or die "Error opening data/xpolyB.csv ($!)\n";
+open XPOLY_RB, "> data/xpoly_rB.csv" or die "Error opening data/xpoly_rB.csv ($!)\n";
+open XPOLY_MODB, "> data/xpoly_modB.csv" or die "Error opening data/xpoly_modB.csv ($!)\n";
+open XPOLY_ARGB, "> data/xpoly_argB.csv" or die "Error opening data/xpoly_argB.csv ($!)\n";
+open PLAQ_DIFF, "> data/plaq_diff.csv" or die "Error opening data/plaq_diff.csv ($!)\n";
+open LINK_DIFF, "> data/link_diff.csv" or die "Error opening data/link_diff.csv ($!)\n";
+open EIG, "> data/eig.csv" or die "Error opening data/eig.csv ($!)\n";
+open WFLOW, "> data/Wflow.csv" or die "Error opening data/Wflow.csv ($!)\n";
+open TOPO, "> data/topo.csv" or die "Error opening data/topo.csv ($!)\n";
+open WPOLY, "> data/Wpoly.csv" or die "Error opening data/Wpoly.csv ($!)\n";
+open WPOLY_MOD, "> data/Wpoly_mod.csv" or die "Error opening data/Wpoly_mod.csv ($!)\n";
+open WFLOW_SS, "> data/Wflow_ss.csv" or die "Error opening data/Wflow_ss.csv ($!)\n";
+open WFLOW_ST, "> data/Wflow_st.csv" or die "Error opening data/Wflow_st.csv ($!)\n";
+open WFLOW_ANISO, "> data/Wflow_aniso.csv" or die "Error opening data/Wflow_aniso.csv ($!)\n";
 
 print KEY "t,file\n";
 print STEPSIZE "t,eps0,eps1,eps_gauge\n";
@@ -211,11 +211,11 @@ FILE: for my $file (@files) {
   # Open file
   # If not found, move on to next file instead of killing whole program,
   # but print error message so I know there is a problem
-  $infile = "$path/Out/out.$file";
+  $infile = "Out/out.$file";
   $check = open IN, "< $infile";
   if (!$check) {
-    print STDERR "Problem opening $path/Out/out.$file: $!\n";
-    print ERRFILE "Problem opening $path/Out/out.$file: $!\n";
+    print STDERR "Problem opening Out/out.$file: $!\n";
+    print ERRFILE "Problem opening Out/out.$file: $!\n";
     next FILE;
   }
 #  print STDOUT "$infile\n"; # Monitor running status
@@ -549,7 +549,7 @@ FILE: for my $file (@files) {
 EIGEN:
   # Now deal with the corresponding eigenvalues file, if it is there
   $check = -1;
-  $infile = "$path/Out/eig.$cfg";
+  $infile = "Out/eig.$cfg";
   $check = open EIG_IN, "< $infile";
   # File may not be present if configuration was not saved
   if (!$check) {
@@ -613,7 +613,7 @@ WFLOW:
   # These files now contain MCRG-blocked results: only consider t=0
   # Also ignore finite-volume correction in definition of gSq
   $check = -1;
-  $infile = "$path/Out/Wflow.$cfg";
+  $infile = "Out/Wflow.$cfg";
   $check = open WFLOW_IN, "< $infile";
   # File may not be present if configuration was not saved
   if (!$check) {

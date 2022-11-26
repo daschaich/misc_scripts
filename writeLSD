@@ -9,20 +9,20 @@ tag=$1
 date=$2
 
 # Turn Wilson line scatter plots off/on depending on theory
-if [ -d "/raid1/backup/schaich/LSD/KS_nHYP_FA/$tag" ] ; then
-  out="/raid1/backup/schaich/LSD/KS_nHYP_FA/$tag/index.html"    # Customized for Liverpool
+if [ -d "/raide/www/people/staff/schaich/LSD/KS_nHYP_FA/$tag" ] ; then
+  out="/raide/www/people/staff/schaich/LSD/KS_nHYP_FA/$tag/index.html"    # Customized for Liverpool
   scatter=0
-elif [ -d "/raid1/backup/schaich/LSD/SU4/$tag" ] ; then
-  out="/raid1/backup/schaich/LSD/SU4/$tag/index.html"
+elif [ -d "/raide/www/people/staff/schaich/LSD/SU4/$tag" ] ; then
+  out="/raide/www/people/staff/schaich/LSD/SU4/$tag/index.html"
   scatter=1
-elif [ -d "/raid1/backup/schaich/LSD/SU4YM/$tag" ] ; then
-  out="/raid1/backup/schaich/LSD/SU4YM/$tag/index.html"
+elif [ -d "/raide/www/people/staff/schaich/LSD/SU4YM/$tag" ] ; then
+  out="/raide/www/people/staff/schaich/LSD/SU4YM/$tag/index.html"
   scatter=1
-elif [ -d "/raid1/backup/schaich/LSD/SU6YM/$tag" ] ; then
-  out="/raid1/backup/schaich/LSD/SU6YM/$tag/index.html"
+elif [ -d "/raide/www/people/staff/schaich/LSD/SU6YM/$tag" ] ; then
+  out="/raide/www/people/staff/schaich/LSD/SU6YM/$tag/index.html"
   scatter=1
-elif [ -d "/raid1/backup/schaich/LSD/SU8YM/$tag" ] ; then
-  out="/raid1/backup/schaich/LSD/SU8YM/$tag/index.html"
+elif [ -d "/raide/www/people/staff/schaich/LSD/SU8YM/$tag" ] ; then
+  out="/raide/www/people/staff/schaich/LSD/SU8YM/$tag/index.html"
   scatter=1
 else
   echo "ERROR: Can't find appropriate $tag directory"
