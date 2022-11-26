@@ -767,8 +767,8 @@ WFLOW:
   print TOPO "$MDTU,null,null,null,$topo[3]\n";
   print WPOLY "$MDTU,$poly[0],$poly[1],$poly[2],$poly[3]\n";
   print WPOLY_MOD "$MDTU,$mod[0],$mod[1],$mod[2],$mod[3]\n";
-  print WFLOW_SS "$MDTU,$wflow_ss[0],$wflow_ss[1],$wflow_ss[2],$wflow_ss[3],\n";
-  print WFLOW_ST "$MDTU,$wflow_st[0],$wflow_st[1],$wflow_st[2],$wflow_st[3],\n";
+  print WFLOW_SS "$MDTU,$Wflow_ss[0],$Wflow_ss[1],$Wflow_ss[2],$Wflow_ss[3],\n";
+  print WFLOW_ST "$MDTU,$Wflow_st[0],$Wflow_st[1],$Wflow_st[2],$Wflow_st[3],\n";
   print WFLOW_ANISO "$MDTU,$aniso[0],$aniso[1],$aniso[2],$aniso[3],\n";
 
   # Lots of RG-blocked stuff to print

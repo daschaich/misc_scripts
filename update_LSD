@@ -46,7 +46,7 @@ rm -f temp
 # Use list of files in given ensemble to extract time series data
 rm -f $outpath/data/*.csv $outpath/ERRORS
 echo "parse_LSD.pl $path"
-~schaich/scripts/parse_LSD.pl $path
+~schaich/scripts/parse_LSD.pl $outpath
 chmod 644 $outpath/data/*.csv
 rm -f list.txt            # Done with this
 
