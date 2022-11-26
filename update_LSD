@@ -6,8 +6,30 @@ if [ $# != 0 ]; then
 fi
 
 temp=`pwd`
-dir=${temp##*FA/}   # Strip everything up to and including "FA/"
-path=/data/lsd/KS_nHYP_FA/$dir
+if [[ $temp == *"KS_nHYP_FA"* ]] ; then
+  dir=${temp##*FA/}   # Strip everything up to and including "FA/"
+  inpath=/raidc/schaich/LSD/KS_nHYP_FA/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/KS_nHYP_FA/$dir
+elif [[ $temp == *"SU4/4f"* ]] ; then
+  dir=${temp##*SU4/4f/}   # Strip everything up to and including "SU4/4f/"
+  inpath=/raidc/schaich/LSD/SU4/4f/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU4/$dir
+elif [[ $temp == *"SU4/0f"* ]] ; then
+  dir=${temp##*SU4/0f/}   # Strip everything up to and including "SU4/0f/"
+  inpath=/raidc/schaich/LSD/SU4/0f/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU4YM/$dir
+elif [[ $temp == *"SU6"* ]] ; then
+  dir=${temp##*SU6/}   # Strip everything up to and including "SU6/"
+  inpath=/raidc/schaich/LSD/SU6/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU6YM/$dir
+elif [[ $temp == *"SU8"* ]] ; then
+  dir=${temp##*SU8/}   # Strip everything up to and including "SU8/"
+  inpath=/raidc/schaich/LSD/SU8/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU8YM/$dir
+else
+  echo "ERROR: Unrecognized path $temp"
+  exit 1
+fi
 # ------------------------------------------------------------------
 
 
@@ -15,24 +37,29 @@ path=/data/lsd/KS_nHYP_FA/$dir
 # ------------------------------------------------------------------
 # Construct list of files in given ensemble,
 rm -f list.txt
-for i in $path/Out/out.* ; do
+for i in $inpath/Out/out.* ; do
   echo ${i##*.} >> temp    # Strip everything up to and including the last "."
 done
 sort temp -n | uniq > list.txt
 rm -f temp
 
 # Use list of files in given ensemble to extract time series data
-rm -f data/*.csv ERRORS MISSING
-date=`date`
+rm -f $outpath/data/*.csv $outpath/ERRORS
 echo "parse_LSD.pl $path"
-/home/schaich/bin/parse_LSD.pl $path
-chmod 664 data/*.csv
+~schaich/scripts/parse_LSD.pl $path
+chmod 644 $outpath/data/*.csv
 rm -f list.txt            # Done with this
 
 # Replace Web page to update timestamp
 date=`date`
-rm -f index.html
+rm -f $outpath/index.html
 echo writeLSD $dir "$date"
-/home/schaich/bin/writeLSD $dir "$date"
-chmod 664 index.html
+~schaich/scripts/writeLSD $dir "$date"
+chmod 644 $outpath/index.html
+
+# I like to monitor this (looks better without $outpath)
+#grep Apparent ERRORS
+wc -l M*
+wc -l E*
+echo
 # ------------------------------------------------------------------
