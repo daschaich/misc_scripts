@@ -1,0 +1,63 @@
+#!/bin/bash
+# ------------------------------------------------------------------
+if [ $# != 0 ]; then
+  echo "Usage: $0"
+  exit 1
+fi
+
+temp=`pwd`
+if [[ $temp == *"KS_nHYP_FA"* ]] ; then
+  echo "ERROR: This script is for pure-gauge runs only"
+  exit 1
+elif [[ $temp == *"SU4/4f"* ]] ; then
+  echo "ERROR: This script is for pure-gauge runs only"
+  exit 1
+elif [[ $temp == *"SU4/0f"* ]] ; then
+  dir=${temp##*SU4/0f/}   # Strip everything up to and including "SU4/0f/"
+  inpath=/raidc/schaich/LSD/SU4/0f/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU4YM/$dir
+elif [[ $temp == *"SU6"* ]] ; then
+  dir=${temp##*SU6/}   # Strip everything up to and including "SU6/"
+  inpath=/raidc/schaich/LSD/SU6/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU6YM/$dir
+elif [[ $temp == *"SU8"* ]] ; then
+  dir=${temp##*SU8/}   # Strip everything up to and including "SU8/"
+  inpath=/raidc/schaich/LSD/SU8/$dir
+  outpath=/raide/www/people/staff/schaich/LSD/SU8YM/$dir
+else
+  echo "ERROR: Unrecognized path $temp"
+  exit 1
+fi
+# ------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------
+# Construct list of files in given ensemble,
+rm -f list.txt
+for i in $inpath/Out/out.* ; do
+  echo ${i##*.} >> temp    # Strip everything up to and including the last "."
+done
+sort temp -n | uniq > list.txt
+rm -f temp
+
+# Use list of files in given ensemble to extract time series data
+rm -f $outpath/data/*.csv $outpath/ERRORS
+echo "parse_pg.pl $path"
+~schaich/scripts/parse_pg.pl $outpath
+chmod 644 $outpath/data/*.csv
+rm -f list.txt            # Done with this
+
+# Replace Web page to update timestamp
+date=`date`
+rm -f $outpath/index.html
+echo write_pg $dir "$date"
+~schaich/scripts/write_pg $dir "$date"
+chmod 644 $outpath/index.html
+
+# I like to monitor this (looks better without $outpath)
+#grep Apparent ERRORS
+wc -l M*
+wc -l E*
+echo
+# ------------------------------------------------------------------

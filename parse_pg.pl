@@ -2,8 +2,9 @@
 use strict;
 use warnings;
 use Switch;
+use Cwd 'abs_path';
 # ------------------------------------------------------------------
-# This script parses MILC output files for a single ensemble,
+# This script parses pure-gauge output files for a single ensemble,
 # shuffling the extracted data into dedicated files for plotting.
 
 if (! -d "Out") {
@@ -19,7 +20,6 @@ open MISSINGFILES, "> MISSING" or die "Error opening MISSING ($!)\n";
 open KEY, "> data/key.csv" or die "Error opening data/key.csv ($!)\n";
 open STEPSIZE, "> data/stepsize.csv" or die "Error opening data/stepsize.csv ($!)\n";
 open NSTEP, "> data/Nstep.csv" or die "Error opening data/Nstep.csv ($!)\n";
-open MH, "> data/MH.csv" or die "Error opening data/MH.csv ($!)\n";
 open TLENGTH, "> data/tlength.csv" or die "Error opening data/tlength.csv ($!)\n";
 open TU, "> data/TU.csv" or die "Error opening data/TU.csv ($!)\n";
 open DELTAS, "> data/deltaS.csv" or die "Error opening data/deltaS.csv ($!)\n";
@@ -36,7 +36,6 @@ open XPOLY, "> data/xpoly.csv" or die "Error opening data/xpoly.csv ($!)\n";
 open XPOLY_R, "> data/xpoly_r.csv" or die "Error opening data/xpoly_r.csv ($!)\n";
 open XPOLY_MOD, "> data/xpoly_mod.csv" or die "Error opening data/xpoly_mod.csv ($!)\n";
 open XPOLY_ARG, "> data/xpoly_arg.csv" or die "Error opening data/xpoly_arg.csv ($!)\n";
-open CG_ITERS, "> data/cg_iters.csv" or die "Error opening data/cg_iters.csv ($!)\n";
 open PBP, "> data/pbp.csv" or die "Error opening data/pbp.csv ($!)\n";
 open WALLTIME, "> data/walltime.csv" or die "Error opening data/walltime.csv ($!)\n";
 open WALLTU, "> data/wallTU.csv" or die "Error opening data/wallTU.csv ($!)\n";
@@ -49,9 +48,6 @@ open XPOLYB, "> data/xpolyB.csv" or die "Error opening data/xpolyB.csv ($!)\n";
 open XPOLY_RB, "> data/xpoly_rB.csv" or die "Error opening data/xpoly_rB.csv ($!)\n";
 open XPOLY_MODB, "> data/xpoly_modB.csv" or die "Error opening data/xpoly_modB.csv ($!)\n";
 open XPOLY_ARGB, "> data/xpoly_argB.csv" or die "Error opening data/xpoly_argB.csv ($!)\n";
-open PLAQ_DIFF, "> data/plaq_diff.csv" or die "Error opening data/plaq_diff.csv ($!)\n";
-open LINK_DIFF, "> data/link_diff.csv" or die "Error opening data/link_diff.csv ($!)\n";
-open EIG, "> data/eig.csv" or die "Error opening data/eig.csv ($!)\n";
 open WFLOW, "> data/Wflow.csv" or die "Error opening data/Wflow.csv ($!)\n";
 open TOPO, "> data/topo.csv" or die "Error opening data/topo.csv ($!)\n";
 open WPOLY, "> data/Wpoly.csv" or die "Error opening data/Wpoly.csv ($!)\n";
@@ -61,9 +57,8 @@ open WFLOW_ST, "> data/Wflow_st.csv" or die "Error opening data/Wflow_st.csv ($!
 open WFLOW_ANISO, "> data/Wflow_aniso.csv" or die "Error opening data/Wflow_aniso.csv ($!)\n";
 
 print KEY "t,file\n";
-print STEPSIZE "t,eps0,eps1,eps_gauge\n";
-print NSTEP "t,N0,N1,Ngauge\n";
-print MH "t,MH\n";
+print STEPSIZE "t,eps\n";
+print NSTEP "t,N\n";
 print TLENGTH "t,L\n";
 print TU "t,MDTU\n";
 print DELTAS "t,deltaS\n";
@@ -80,7 +75,6 @@ print XPOLY "ReTr(W_0),ImTr(W_0)\n";
 print XPOLY_R "MDTU,ReTr(W_0)\n";
 print XPOLY_MOD "MDTU,|Tr(W_0)|\n";
 print XPOLY_ARG "MDTU,arg(Tr(W_0))\n";
-print CG_ITERS "t,cg_iters\n";
 #print PBP "MDTU,Re(pbp),Im(pbp)\n";
 print PBP "MDTU,Re(pbp)\n";
 print WALLTIME "t,walltime\n";
@@ -94,9 +88,6 @@ print XPOLYB "Re(W_0),bl0,bl1,bl2,bl3,bl4\n";
 print XPOLY_RB "MDTU,bl0,bl1,bl2,bl3,bl4\n";
 print XPOLY_MODB "MDTU,bl0,bl1,bl2,bl3,bl4\n";
 print XPOLY_ARGB "MDTU,bl0,bl1,bl2,bl3,bl4\n";
-print PLAQ_DIFF "MDTU,t,x,y,z,Norm\n";
-print LINK_DIFF "MDTU,t,x,y,z,Norm\n";
-print EIG "MDTU,1,2,3,4,5,6,7,8,9,10,11,12\n";
 print WFLOW "MDTU,c=0.2,c=0.25,c=0.3,c=0.35\n";
 print TOPO "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 print WPOLY "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
@@ -112,17 +103,10 @@ print WFLOW_ANISO "MDTU,c=0.2,c=0.3,c=0.4,c=0.5\n";
 # Declare observables to be printed
 my $cpus;
 my $stepsize;
-my $stepsize1;
-my $stepsize_gauge;
 my $Nstep;
-my $Nstep1;
-my $Nstep_gauge;
-my $MH;
 my $tlength;
 my $acc;
-my $force0;
-my $force1;
-my $force_gauge;
+my $force;
 my $dS;
 my $exp_dS;
 my $abs_dS;
@@ -150,9 +134,23 @@ my $bl;
 my $alpha;
 
 # Only calculate this once
-my $gprop = 128 * 3.14159**2 / (3 * 8);
+my $Nc = -1.0;
+my $path = abs_path("Out");
+if ($path =~ /SU4/) {
+  $Nc = 4.0;
+}
+elsif ($path =~ /SU6/) {
+  $Nc = 6.0;
+}
+elsif ($path =~ /SU8/) {
+  $Nc = 8.0;
+}
+else {
+  die "ERROR: Nc unrecognized in $path"
+}
+my $gprop = 128.0 * 3.14159**2 / (3.0 * ($Nc * $Nc - 1.0));
 
-# These fellows are not currently used
+# These are not currently used
 my $startS;
 my $endS;
 # ------------------------------------------------------------------
@@ -164,16 +162,13 @@ my $endS;
 my $infile = -1;
 my $check = -1;           # Check that file is present or completed
 my $temp;                 # To hold topological charge input
+my $temp_i;               # To hold Wilson line input
 my $walltime = -1;        # Check that file completed successfully
 my $level = 0;            # Track inner vs. outer level for step size
-my $force_counter = 0;    # Track how many forces we have seen
 my $load;                 # MDTU of loaded configuration
 my $cfg;                  # MDTU of saved configuration
 my $oldcfg = 0;           # Check if any files are missing
 my $stamp = "start";
-my $mcrg_stamp = "";
-my $order_stamp = "";
-my $eig_stamp = "";
 my $Wflow_stamp = "start";
 my $oldstamp = "start";   # Check that correct configuration was used
 
@@ -191,7 +186,7 @@ my $pbp_iter = 0;
 
 
 # ------------------------------------------------------------------
-# Cycle through files, first "out" and then "Wflow" and "eig"
+# Cycle through files, first "out" and then "Wflow"
 # list.txt is a list of $load-$save
 open FILES, "< list.txt" or die "Error opening list.txt ($!)\n";
 my @files = <FILES>;
@@ -274,8 +269,6 @@ FILE: for my $file (@files) {
 
   # --------------------------------------------------------------
   # Cycle through lines in the "out" file
-  my @plaq_diff = ("null", "null", "null", "null", "null");
-  my @link_diff = ("null", "null", "null", "null", "null");
   for my $line (@in) {
     # Check for unitarity problems
     if ($line =~ /^Unitarity problem /) {
@@ -295,39 +288,20 @@ FILE: for my $file (@files) {
   $oldcfg = $cfg;
   for my $line (@in) {
     # Extract constant run parameters
-    if ($line =~ /^traj_length/) {
-      ($junk, $tlength) = split /\s+/, $line;
-      print TLENGTH "$endtraj,$tlength\n";
+    if ($line =~ /^hmc_steps /) {
+      ($junk, $Nstep) = split /\s+/, $line;
+      print NSTEP "$endtraj,$Nstep\n";
     }
 
-    elsif ($line =~ /^nstep /) {
-      if ($level == 0) {
-        ($junk, $Nstep) = split /\s+/, $line;
-        $stepsize = $tlength / $Nstep;
-        $level = 1;
-      }
-      else {
-        ($junk, $Nstep1) = split /\s+/, $line;
-        $stepsize1 = $stepsize / (2 * $Nstep1);
-        $Nstep1 *= 2 * $Nstep;
-        $level = 0;
-      }
-    }
-    elsif ($line =~ /^nstep_gauge /) {
-      ($junk, $Nstep_gauge) = split /\s+/, $line;
-      $stepsize_gauge = $stepsize1 / (2 * $Nstep_gauge);
-      $Nstep_gauge *= 2 * $Nstep1;
-      print NSTEP "$endtraj,$Nstep,$Nstep1,$Nstep_gauge\n";
-      print STEPSIZE "$endtraj,$stepsize,$stepsize1,$stepsize_gauge\n";
+    elsif ($line =~ /^traj_length/) {
+      ($junk, $tlength) = split /\s+/, $line;
+      print TLENGTH "$endtraj,$tlength\n";
+      $stepsize = $tlength / $Nstep;
+      print STEPSIZE "$endtraj,$stepsize\n";
     }
 
     elsif ($line =~ /^Machine = /) {
       ($junk, $junk, $junk, $junk, $junk, $cpus, $junk) = split /\s+/, $line;
-    }
-
-    elsif ($line =~ /^Hasenbusch_mass /) {
-      ($junk, $MH) = split /\s+/, $line;
-      print MH "$endtraj,$MH\n";
     }
     # ------------------------------------------------------------
 
@@ -383,41 +357,22 @@ FILE: for my $file (@files) {
       }
     }
 
-    # Forces -- order rearranged during code development
-    elsif ($line =~ /MONITOR_FORCE_FERMION0 /) {
-      ($junk, $force0) = split /\s+/, $line;
-      $force_counter++;
-      if ($force_counter == 3) {
-        print FORCE "$traj,$force0,$force1,$force_gauge\n";
-        $force_counter = 0;
-      }
-    }
-    elsif ($line =~ /MONITOR_FORCE_FERMION1 /) {
-      ($junk, $force1) = split /\s+/, $line;
-      $force_counter++;
-      if ($force_counter == 3) {
-        print FORCE "$traj,$force0,$force1,$force_gauge\n";
-        $force_counter = 0;
-      }
-    }
-    elsif ($line =~ /MONITOR_FORCE_GAUGE /) {
-      ($junk, $force_gauge) = split /\s+/, $line;
-      $force_counter++;
-      if ($force_counter == 3) {
-        print FORCE "$traj,$force0,$force1,$force_gauge\n";
-        $force_counter = 0;
-      }
+    # Force --- interested in max rather than average
+    elsif ($line =~ /MONITOR_FORCE /) {
+      ($junk, $junk, $force) = split /\s+/, $line;
+      print FORCE "$traj,$force\n";
     }
     # ------------------------------------------------------------
 
     # ------------------------------------------------------------
-    # Gauge measurements come next:
-    # plaquette and Polyakov loop, and CG iterations for some reason
+    # Gauge measurements come next: plaquette and Polyakov loop
+    # Normalize Wilson lines to 1
     elsif ($line =~ /^GMES/) {
-      ($junk, $ploop_r, $ploop_i, $iters, $plaq_ss, $plaq_st) = split /\s+/, $line;
+      ($junk, $temp, $temp_i, $plaq_ss, $plaq_st) = split /\s+/, $line;
       print PLAQ "$MDTU,$plaq_ss,$plaq_st\n";
-      print CG_ITERS "$traj,$iters\n";
 
+      $ploop_r = $temp / $Nc;
+      $ploop_i = $temp_i / $Nc;
       print POLY "$ploop_r,$ploop_i\n";
       print POLY_R "$MDTU,$ploop_r\n";
       $p_mod = sqrt($ploop_r**2 + $ploop_i**2);
@@ -428,7 +383,9 @@ FILE: for my $file (@files) {
 
     # Wilson line in the x direction
     elsif ($line =~ /^POLYA/) {
-      ($junk, $ploop_r, $ploop_i, $xloop_r, $xloop_i) = split /\s+/, $line;
+      ($junk, $junk, $junk, $temp, $temp_i) = split /\s+/, $line;
+      $xloop_r = $temp / $Nc;
+      $xloop_i = $temp_i / $Nc;
       print XPOLY "$xloop_r,$xloop_i\n";
       print XPOLY_R "$MDTU,$xloop_r\n";
       $x_mod = sqrt($xloop_r**2 + $xloop_i**2);
@@ -460,66 +417,12 @@ FILE: for my $file (@files) {
         $pbp_iter = 0;
       }
     }
-    # ------------------------------------------------------------
 
-    # ------------------------------------------------------------
-    # The S4b order parameters are also measured only once in a while
-    elsif ($line =~ /^StaggPlaq t /) {
-      ($junk, $junk, $r_e, $r_o) = split /\s+/, $line;
-      $plaq_diff[0] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^StaggPlaq x /) {
-      ($junk, $junk, $r_e, $r_o) = split /\s+/, $line;
-      $plaq_diff[1] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^StaggPlaq y /) {
-      ($junk, $junk, $r_e, $r_o) = split /\s+/, $line;
-      $plaq_diff[2] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^StaggPlaq z /) {
-      ($junk, $junk, $r_e, $r_o) = split /\s+/, $line;
-      $plaq_diff[3] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^pbpt: /) {
-      ($junk, $junk, $junk, $r_e, $r_o, $i_e, $i_o, $junk) = split /\s+/, $line;
-      $link_diff[0] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^pbpx: /) {
-      ($junk, $junk, $junk, $r_e, $r_o, $i_e, $i_o, $junk) = split /\s+/, $line;
-      $link_diff[1] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^pbpy: /) {
-      ($junk, $junk, $junk, $r_e, $r_o, $i_e, $i_o, $junk) = split /\s+/, $line;
-      $link_diff[2] = ($r_e - $r_o);
-    }
-    elsif ($line =~ /^pbpz: /) {
-      ($junk, $junk, $junk, $r_e, $r_o, $i_e, $i_o, $junk) = split /\s+/, $line;
-      $link_diff[3] = ($r_e - $r_o);
-    }
     # Store total walltime to average at the end
     elsif ($line =~ /^Time = /) {
       ($junk, $junk, $walltime, $junk) = split /\s+/, $line;
     }
   } # Done cycling through output file
-
-  # Post-process S4b order parameter data
-  if ($plaq_diff[0] ne "null") {   # Calculate norms
-    $plaq_diff[4] = 0;
-    for ($i = 0; $i < 4; $i++) {
-      $plaq_diff[4] += $plaq_diff[$i]**2;
-    }
-    $plaq_diff[4] = sqrt($plaq_diff[4]);
-  }
-  # Some older measurements didn't include the link difference
-  if ($link_diff[0] ne "null") {
-    $link_diff[4] = 0;
-    for ($i = 0; $i < 4; $i++) {
-      $link_diff[4] += $link_diff[$i]**2;
-    }
-    $link_diff[4] = sqrt($link_diff[4]);
-  }
-  print PLAQ_DIFF "$MDTU,$plaq_diff[0],$plaq_diff[1],$plaq_diff[2],$plaq_diff[3],$plaq_diff[4]\n";
-  print LINK_DIFF "$MDTU,$link_diff[0],$link_diff[1],$link_diff[2],$link_diff[3],$link_diff[4]\n";
   # ----------------------------------------------------------------
 
 
@@ -542,68 +445,6 @@ FILE: for my $file (@files) {
     print WALLTU "$traj,$TUtime\n";
   }
   # ----------------------------------------------------------------
-
-
-
-  # ----------------------------------------------------------------
-EIGEN:
-  # Now deal with the corresponding eigenvalues file, if it is there
-  $check = -1;
-  $infile = "Out/eig.$cfg";
-  $check = open EIG_IN, "< $infile";
-  # File may not be present if configuration was not saved
-  if (!$check) {
-    print MISSINGFILES "$infile\n";
-    goto WFLOW;
-  }
-  my @eig_in = <EIG_IN>;
-  close EIG_IN;
-
-  # We have a file, so let's cycle over its lines
-  # Can't get all the eigenvalues, so let's check out the lowest six
-  $check = -1;               # Check whether file completed successfully
-  my @eig = ("null", "null", "null", "null", "null", "null");
-  for my $line (@eig_in) {
-    if ($line =~ /^Time stamp /) {
-      chomp ($line);              # Remove linebreak from end of line
-      $eig_stamp = join ' ', split ' ', $line;    # Replace multiple spaces with single spaces
-      if ($eig_stamp ne $oldstamp) {
-        print STDERR "$infile: loaded $eig_stamp doesn't match saved $oldstamp\n";
-        print ERRFILE "$infile: loaded $eig_stamp doesn't match saved $oldstamp\n";
-      }
-    }
-    elsif ($line =~ /^EIGENVALUE 0 /) {
-      ($junk, $junk, $eig[0], $junk) = split /\s+/, $line;
-    }
-    elsif ($line =~ /^EIGENVALUE 1 /) {
-      ($junk, $junk, $eig[1], $junk) = split /\s+/, $line;
-    }
-    elsif ($line =~ /^EIGENVALUE 2 /) {
-      ($junk, $junk, $eig[2], $junk) = split /\s+/, $line;
-    }
-    elsif ($line =~ /^EIGENVALUE 3 /) {
-      ($junk, $junk, $eig[3], $junk) = split /\s+/, $line;
-    }
-    elsif ($line =~ /^EIGENVALUE 4 /) {
-      ($junk, $junk, $eig[4], $junk) = split /\s+/, $line;
-    }
-    elsif ($line =~ /^EIGENVALUE 5 /) {
-      ($junk, $junk, $eig[5], $junk) = split /\s+/, $line;
-    }
-    elsif ($line =~ /WARNING/) {
-      print STDERR "$infile saturated eigenvalue iterations\n";
-      print ERRFILE "$infile saturated eigenvalue iterations\n";
-    }
-    elsif ($line =~ /RUNNING COMPLETED/) {
-      $check = 1;
-    }
-  } # Done with eigenvalues file
-  if ($check == -1) {
-    print STDERR "$infile did not complete\n";
-    print ERRFILE "$infile did not complete\n";
-  }
-  print EIG "$MDTU,$eig[0],$eig[1],$eig[2],$eig[3],$eig[4],$eig[5]\n";
-  # ------------------------------------------------------------------
 
 
 
@@ -708,6 +549,7 @@ WFLOW:
       $cOld = $c;
     }
     # Wilson-flowed Polyakov loop
+    # Normalized to Nc rather than 1
     elsif ($line =~ /^POLYA ORIG /) {
       ($junk, $junk, $Wflow_t, $Wploop_r, $Wploop_i, $xloop_r, $xloop_i) = split /\s+/, $line;
       $cp = sqrt(8.0 * $Wflow_t) / $L;
@@ -820,7 +662,6 @@ close ERRFILE;
 close KEY;
 close STEPSIZE;
 close NSTEP;
-close MH;
 close TLENGTH;
 close TU;
 close DELTAS;
@@ -837,7 +678,6 @@ close XPOLY;
 close XPOLY_R;
 close XPOLY_MOD;
 close XPOLY_ARG;
-close CG_ITERS;
 close PBP;
 close WALLTIME;
 close WALLTU;
@@ -850,9 +690,6 @@ close XPOLYB;
 close XPOLY_RB;
 close XPOLY_MODB;
 close XPOLY_ARGB;
-close PLAQ_DIFF;
-close LINK_DIFF;
-close EIG;
 close WFLOW;
 close TOPO;
 close WPOLY;
