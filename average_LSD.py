@@ -46,7 +46,7 @@ vol = L**3 * Nt
 
 # Set pbp normalization depending on number of flavors
 # For quenched "valence pbp" we want the 4f normalization
-if '4f' in path or '0f' in path:
+if '4f' in path or '0f' in path or 'SU6' in path or 'SU8' in path:
   pbp_norm = 1.0
 elif '8f' in path:
   pbp_norm = 0.5
@@ -99,7 +99,8 @@ for line in open('data/Wpoly_mod.csv'):
   if line.startswith('M'):
     continue
   temp = line.split(',')
-  MDTU = int(temp[0])
+  # !!!This integer cast is just to simplify separation check...
+  MDTU = int(round(float(temp[0])))
 
   # Need to check separation and update prev before skipping to therm cut
   if not MDTU - prev == sep:
@@ -135,46 +136,50 @@ print("%d # %d" % (tau, eff_stat), file=outfile)
 outfile.close()
 
 # Also keep track of the pbp autocorrelation time
+# (when pbp is computed, which LargeN-YM code doesn't do)
 # Print warnings if larger than the Wpoly_mod tau computed above
 # (Format: MDTU,pbp)
-dat = []
-sep = 1       # Measured after each trajectory
-prev = 0
-for line in open('data/pbp.csv'):
-  if line.startswith('M'):
-    continue
-  temp = line.split(',')
-  MDTU = int(temp[0])
+if not os.path.isfile('data/pbp.csv'):
+  print("Skipping pbp autorcorrelation time check")
+else:
+  dat = []
+  sep = 1       # Measured after each trajectory
+  prev = 0
+  for line in open('data/pbp.csv'):
+    if line.startswith('M'):
+      continue
+    temp = line.split(',')
+    MDTU = int(temp[0])
 
-  # Need to check separation and update prev before skipping to therm cut
-  if not MDTU - prev == sep:
-    print("Error: pbp meas at %d and %d not separated by %d" \
-          % (prev, MDTU, sep))
-    sys.exit(1)
-  prev = MDTU
+    # Need to check separation and update prev before skipping to therm cut
+    if not MDTU - prev == sep:
+      print("Error: pbp meas at %d and %d not separated by %d" \
+            % (prev, MDTU, sep))
+      sys.exit(1)
+    prev = MDTU
 
-  if MDTU <= cut:
-    continue
-  dat.append(float(temp[1]))
+    if MDTU <= cut:
+      continue
+    dat.append(float(temp[1]))
 
-# Arguments discussed above --- make this advice rather than requirement
-tau_pbp = acor.integrated_time(np.array(dat), c=5, tol=10, quiet=True)
-tau_pbp *= sep
-if tau_pbp > block_size:
-  print("Warning: pbp autocorrelation time %d " % tau_pbp, end='')
-  print("is larger than block size %d " % block_size, end='')
-  print("in %s" % path)
+  # Arguments discussed above --- make this advice rather than requirement
+  tau_pbp = acor.integrated_time(np.array(dat), c=5, tol=10, quiet=True)
+  tau_pbp *= sep
+  if tau_pbp > block_size:
+    print("Warning: pbp autocorrelation time %d " % tau_pbp, end='')
+    print("is larger than block size %d " % block_size, end='')
+    print("in %s" % path)
 
-# Record pbp auto-correlation time for future reference
-# Include effective number of independent measurements
-eff_stat = np.floor(len(dat) * sep / tau_pbp)
-outfilename = 'results/pbp.autocorr'
-outfile = open(outfilename, 'w')
-print("%d # %d" % (tau_pbp, eff_stat), file=outfile)
-if tau_pbp > tau:
-  print("Warning: %d for pbp " % tau_pbp, end='', file=outfile)
-  print("larger than %d for Wpoly_mod" % tau, file=outfile)
-outfile.close()
+  # Record pbp auto-correlation time for future reference
+  # Include effective number of independent measurements
+  eff_stat = np.floor(len(dat) * sep / tau_pbp)
+  outfilename = 'results/pbp.autocorr'
+  outfile = open(outfilename, 'w')
+  print("%d # %d" % (tau_pbp, eff_stat), file=outfile)
+  if tau_pbp > tau:
+    print("Warning: %d for pbp " % tau_pbp, end='', file=outfile)
+    print("larger than %d for Wpoly_mod" % tau, file=outfile)
+  outfile.close()
 # ------------------------------------------------------------------
 
 
@@ -189,7 +194,11 @@ for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
   count = 0
   datList = []
   begin = cut       # Where each block begins, to be incremented
+
+  # Only run if we have these data (not all saved by LargeN-YM code)
   obsfile = 'data/' + obs + '.csv'
+  if not os.path.isfile(obsfile):
+    continue
   for line in open(obsfile):
     if line.startswith('M'):
       continue
@@ -244,8 +253,9 @@ for obs in ['plaq', 'pbp', 'poly_r', 'poly_mod', 'xpoly_r', 'xpoly_mod']:
 # we're interested in the first datum on each line
 # Need to work in terms of trajectories rather than MDTU
 for obs in ['wallTU', 'cg_iters', 'accP', 'exp_dS']:
-  if '0f' in path and obs == 'cg_iters':
-    continue        # No CG iterations for pure-gauge runs
+  if obs == 'cg_iters':
+    if '0f' in path or 'SU6' in path or 'SU8' in path:
+      continue      # No CG iterations for pure-gauge runs
 
   ave = 0.0         # Accumulate within each block
   count = 0

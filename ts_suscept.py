@@ -77,7 +77,11 @@ for obs in ['plaq', 'pbp', 'Wpoly', 'Wpoly_mod', 'poly_r', 'poly_mod']:
   cuList = []
   foList = []
   begin = cut       # Where each block begins, to be incremented
+
+  # Only run if we have these data (not all saved by LargeN-YM code)
   obsfile = 'data/' + obs + '.csv'
+  if not os.path.isfile(obsfile):
+    continue
   for line in open(obsfile):
     if line.startswith('M'):
       continue
