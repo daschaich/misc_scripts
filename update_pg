@@ -55,6 +55,11 @@ echo write_pg $dir "$date"
 ~schaich/scripts/write_pg $dir "$date"
 chmod 644 $outpath/index.html
 
+# Automatedly clear files with no data
+for i in `wc -l data/* | grep " 1 "` ; do
+  rm -fv $i
+done
+
 # I like to monitor this (looks better without $outpath)
 #grep Apparent ERRORS
 wc -l M*
