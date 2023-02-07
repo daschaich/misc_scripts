@@ -11,8 +11,10 @@ last=$3
 skip=$4
 time=$5
 
-# Source points are either (0, 0, 0, 0) or (L/4, L/4, L/4, L/2)
-if [ "$t" == "24" ]; then
+# Source locations are n * (L/8, L/8, L/8, L/4) for n = 0, ..., 7
+if [ "$t" == "0" ]; then
+  src=0
+elif [ "$t" == "24" ]; then
   src=12
 elif [ "$t" == "32" ]; then
   src=16
@@ -20,10 +22,20 @@ elif [ "$t" == "48" ]; then
   src=24
 elif [ "$t" == "64" ]; then
   src=32
+elif [ "$t" == "72" ]; then
+  src=36
 elif [ "$t" == "96" ]; then
   src=48
+elif [ "$t" == "120" ]; then
+  src=60
+elif [ "$t" == "144" ]; then
+  src=72
+elif [ "$t" == "168" ]; then
+  src=84
 else
-  src=0
+  echo "ERROR: UNRECOGNIZED SOURCE LOCATION $t, SUBMISSION ABORTED"
+  rm -f temp
+  exit 1
 fi
 
 # Adjustable parameters
@@ -34,12 +46,9 @@ echo "#SBATCH -A latticgc" >> temp
 echo "#SBATCH -p pbatch" >> temp
 echo "#SBATCH --qos=normal" >> temp
 echo "#SBATCH -N 1" >> temp
-if [ "$t" == "96" ]; then      # !!!Need most of node's memory
-  echo "#SBATCH -n 20" >> temp # !!!srun will only use 1 of these...
-else
-  echo "#SBATCH -n 1" >> temp
-fi
-echo "#SBATCH --mem=0" >> temp
+#echo "#SBATCH -n 1" >> temp
+echo "#SBATCH -n 20" >> temp # !!!TEMP for 96^3 x 192 --- need 20 cores worth of memory
+echo "#SBATCH --mem=0" >> temp # !!!TEMP for 96^3 x 192 --- request all available memory
 echo "#SBATCH -t $time" >> temp
 echo "#SBATCH -J KSdecomp" >> temp
 echo "#SBATCH -o ../out.KSdecomp.%j" >> temp
@@ -74,6 +83,11 @@ for(( i=$first ; $i<=$last ; i+=$skip )); do
   out=out.KSdecomp.t$t.$i
   if [ -f $out ]; then
     echo "Error: output file $out exists"
+    rm -f temp
+    exit 1
+  fi
+  if [ -f KSdecomp.t$t.$i ]; then
+    echo "Error: output file KSdecomp.t$t.$i exists"
     rm -f temp
     exit 1
   fi
