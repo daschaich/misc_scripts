@@ -2,9 +2,10 @@
 
 if [ $# == 1 ]; then
   echo "Usage: $0 <tag>"
-  cd /p/lscratche/schaich2/$1/
+  cd /p/lustre1/schaich2/$1/
 fi
 
+echo "Currently customized for staggered S parameter"
 path=`pwd`
 temp=${path##*f/}   # Strip everything up to and including "f/"
 vol=${temp%%/*}     # Strip everything after and including "/" 
@@ -13,21 +14,74 @@ echo "--> $vol"
 # Staggered S parameter
 temp=${path##*schaich2/}   # Strip everything up to and including "schaich2/"
 toCheck=${temp%%/*}        # Strip everything after and including "/" 
-if [ "$toCheck" == "KS_nHYP_FA" ]; then
+#if [ "$toCheck" == "KS_nHYP_FA" ]; then
   echo -ne "job:       "
   ls Out/s-param.t* | wc -l
   echo -ne "done:      "
   grep "RUNNING COMPLETED" Out/s-param.t* | wc -l
   echo -ne "decomp:    "
 
-  if [ "$vol" == "32nt64" ]; then
+  if [ "$vol" == "96nt192" ]; then
+    head -n 1 Out/KSdecomp.* | grep 0.001071 | wc -l
+    echo -ne "Wflow:     "
+#    wc -l Out/Wflow.* | grep " 28848 " | wc -l
+    echo "(skipping)"
+
+    echo -ne "axi:       "
+    ls -l Out/KSaxi.t* | grep 21743276384 | wc -l 
+    echo -ne "vec:       "
+    ls -l Out/KSvec.t* | grep 21743276384 | wc -l 
+    echo -ne "configs:   "
+    ls -l Configs/config.*.lime | grep 48922363888 | wc -l 
+
+  elif [ "$vol" == "64nt128" ]; then
+    head -n 1 Out/KSdecomp.* | grep 0.00241 | wc -l
+    echo -ne "Wflow:     "
+#    wc -l Out/Wflow.* | grep " 1284[89] " | wc -l
+    echo "(skipping)"
+
+    echo -ne "axi:       "
+    ls -l Out/KSaxi.t* | grep 4294971744 | wc -l 
+    echo -ne "vec:       "
+    ls -l Out/KSvec.t* | grep 4294971744 | wc -l 
+    echo -ne "configs:   "
+    ls -l Configs/config.*.lime | grep 9663678448 | wc -l 
+
+  elif [ "$vol" == "48nt96" ]; then
+    head -n 1 Out/KSdecomp.* | grep 0.004284 | wc -l 
+    echo -ne "Wflow:     "
+#    wc -l Out/Wflow.* | grep " 724[89] " | wc -l
+    echo "(skipping)"
+
+    echo -ne "axi:       "
+    ls -l Out/KSaxi.t* | grep 1358958944 | wc -l 
+    echo -ne "vec:       "
+    ls -l Out/KSvec.t* | grep 1358958944 | wc -l 
+    echo -ne "configs:   "
+    ls -l Configs/config.*.lime | grep 3057649648 | wc -l 
+
+  elif [ "$vol" == "40nt80" ]; then
+    head -n 1 Out/KSdecomp.* | grep 0.006169 | wc -l 
+    echo -ne "Wflow:     "
+#    wc -l Out/Wflow.* | grep " 5047 " | wc -l
+    echo "(skipping)"
+
+    echo -ne "axi:       "
+    ls -l Out/KSaxi.t* | grep 655364448 | wc -l 
+    echo -ne "vec:       "
+    ls -l Out/KSvec.t* | grep 655364448 | wc -l 
+    echo -ne "configs:   "
+    ls -l Configs/config.*.lime | grep 2949121608 | wc -l 
+
+  elif [ "$vol" == "32nt64" ]; then
     head -n 1 Out/KSdecomp.* | grep 0.009638 | wc -l 
     echo -ne "Wflow:     "
-    wc -l Out/Wflow.* | grep " 3248 " | wc -l
+#    wc -l Out/Wflow.* | grep " 324[89] " | wc -l
+    echo "(skipping)"
 
-    echo -ne "axic:      "
+    echo -ne "axi:       "
     ls -l Out/KSaxi.t* | grep 268439904 | wc -l 
-    echo -ne "vecc:      "
+    echo -ne "vec:       "
     ls -l Out/KSvec.t* | grep 268439904 | wc -l 
     echo -ne "configs:   "
     ls -l Configs/config.*.lime | grep 603981808 | wc -l 
@@ -35,18 +89,21 @@ if [ "$toCheck" == "KS_nHYP_FA" ]; then
   elif [ "$vol" == "24nt48" ]; then
     head -n 1 Out/KSdecomp.* | grep 0.01713 | wc -l 
     echo -ne "Wflow:     "
-    wc -l Out/Wflow.* | grep " 2078 " | wc -l
+#    wc -l Out/Wflow.* | grep " 207[468] " | wc -l
+    echo "(skipping)"
 
-    echo -ne "axic:      "
+    echo -ne "axi:       "
     ls -l Out/KSaxi.t* | grep 84939104 | wc -l 
-    echo -ne "vecc:      "
+    echo -ne "vec:       "
     ls -l Out/KSvec.t* | grep 84939104 | wc -l 
     echo -ne "configs:   "
     ls -l Configs/config.*.lime | grep 191104536 | wc -l 
   fi
 
   exit 0
-fi
+#fi
+
+exit 0
 
 # Mostly domain wall S parameter
 # Some cruft from static potential, spectrum, eigenmodes

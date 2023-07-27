@@ -1,0 +1,33 @@
+#!/bin/bash
+
+path=`pwd`
+temp=${path##*nt}   # Strip everything up to and including "nt"
+nt=${temp%%/*}     # Strip everything after and including "/" 
+echo "t = $nt"
+
+ls KSdecomp.t* | wc -l
+
+if [ "$nt" == "192" ]; then
+  head -n 1 KSdecomp.* | grep 0.001071 | wc -l
+  exit 0
+elif [ "$nt" == "128" ]; then
+  head -n 1 KSdecomp.* | grep 0.00241 | wc -l
+  exit 0
+elif [ "$nt" == "96" ]; then
+  head -n 1 KSdecomp.* | grep 0.004284 | wc -l
+  exit 0
+elif [ "$nt" == "80" ]; then
+  head -n 1 KSdecomp.t* | grep 0.006169 | wc -l
+  exit 0
+elif [ "$nt" == "64" ]; then
+  head -n 1 KSdecomp.t* | grep 0.009638 | wc -l
+  exit 0
+elif [ "$nt" == "48" ]; then
+  head -n 1 KSdecomp.* | grep 0.01713 | wc -l 
+  exit 0
+elif [ "$nt" == "32" ]; then
+  head -n 1 KSdecomp.* | grep 0.03855 | wc -l 
+  exit 0
+else
+  echo "Error: Nt not recognized"
+fi

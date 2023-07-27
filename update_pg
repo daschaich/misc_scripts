@@ -48,11 +48,15 @@ echo "parse_pg.pl $path"
 chmod 644 $outpath/data/*.csv
 rm -f list.txt            # Done with this
 
-# Replace Web page to update timestamp
+# Either write Web page or update its timestamp using sed
 date=`date`
-rm -f $outpath/index.html
-echo write_pg $dir "$date"
-~schaich/scripts/write_pg $dir "$date"
+if [ -f $outpath/index.html ] ; then
+  echo "Update timestamp"
+  sed -i -E "s/(Last update:) .*/\1 $date/" $outpath/index.html
+else
+  echo write_pg $dir "$date"
+  ~schaich/scripts/write_pg $dir "$date"
+fi
 chmod 644 $outpath/index.html
 
 # Automatedly clear files with no data
