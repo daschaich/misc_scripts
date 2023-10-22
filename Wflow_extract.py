@@ -40,7 +40,10 @@ Nt = int(temp[1][:2])    # First two digits after 'nt'
 vol = L**3 * Nt
 
 # Proportionality factor, ignoring finite-volume correction delta_c
-gprop = 128. * np.pi**2 / (3. * 8.);
+if 'SU4' in path:
+  gprop = 128. * np.pi**2 / (3. * 15.);
+else:
+  gprop = 128. * np.pi**2 / (3. * 8.);
 # ------------------------------------------------------------------
 
 
