@@ -10,13 +10,16 @@ import numpy as np
 # Also extract topological charge for c=0.2, 0.3, 0.4 and 0.5
 
 # See if this is necessary
-if os.path.isdir('data'):
-  print "Just use data/Wflow.csv and data/topo"
-  # sys.exit(0)
+if os.path.isfile('data/Wflow.csv'):
+  print "Just use data/Wflow.csv"
+  sys.exit(0)
+if os.path.isfile('data/topo.csv'):
+  print "Just use data/topo.dat"
+  sys.exit(0)
 
 # Construct and sort list of output files
 cfgs = []
-for filename in glob.glob('Wflow.[0-9]*'):
+for filename in glob.glob('Out/Wflow.[0-9]*'):
   cfg = int((filename.split('.'))[1])             # Number after '.'
   if cfg not in cfgs:
     cfgs.append(cfg)
@@ -24,7 +27,7 @@ cfgs.sort()
 
 # Check to make sure the arguments are appropriate
 if len(cfgs) == 0:
-  print "ERROR: no files named Wflow.[0-9]*"
+  print "ERROR: no files named Out/Wflow.[0-9]*"
   sys.exit(1)
 
 # Extract lattice volume from path
@@ -44,9 +47,9 @@ gprop = 128. * np.pi**2 / (3. * 8.);
 
 # ------------------------------------------------------------------
 # Now just grab and print, overwriting existing file
-flowfilename = 'Wflow.dat'
+flowfilename = 'data/Wflow.dat'
 flowfile = open(flowfilename, 'w')
-topofilename = 'topo.dat'
+topofilename = 'data/topo.dat'
 topofile = open(topofilename, 'w')
 gSq = np.zeros(4, dtype = np.float)
 topo = np.zeros(4, dtype = np.float)
@@ -54,7 +57,7 @@ for i in cfgs:
   # Reset
   topprop = 1
   gSq[:] = 0;     topo[:] = 0;      c = -1.;      cOld = 1.
-  toOpen = 'Wflow.' + str(i)
+  toOpen = 'Out/Wflow.' + str(i)
   for line in open(toOpen):
     # This is annoying: measurements at Fermilab have the wrong normalization
     # Measurements at Argonne or Livermore have the right normalization
