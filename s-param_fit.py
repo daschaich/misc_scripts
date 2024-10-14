@@ -192,6 +192,8 @@ for i in range(Ndirs):  # Reset block for each directory
       dat[Q].append(toAve[Q] / float(count))
       datSq[Q].append(toAveSq[Q] / float(count))
     lengths.append(count)
+    print "# Block %d holds %d measurements from MDTU in [%d, %d)" \
+          % (len(lengths), lengths[-1], begin, begin + block_size)
 
 Nblocks = len(dat[0])
 

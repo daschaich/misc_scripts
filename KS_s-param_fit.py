@@ -34,12 +34,24 @@ runtime = -time.time()
 # Fit up to QSq = 0.4 (checked to be optimal for 32nt64 DWF)
 path = os.getcwd()
 if '24nt48' in path:
-  Npts = 15
+  Npts = 11
 elif '32nt64' in path:
   Npts = 21
+elif '40nt80' in path:
+  Npts = 32
+elif '48nt96' in path:
+  Npts = 47
+elif '64nt128' in path:
+  Npts = 83
+elif '96nt192' in path:
+  Npts = 83 # !!!TODO: PLACEHOLDER...
 else:
   print "Error: Unrecognized volume in", path
   sys.exit(1)
+
+# !!!TODO: Temporary hack to stabilize 24nt48 m=0.00889 fits
+if '00889' in path:
+  Npts = 15
 
 # errfunc will be minimized via least-squares optimization
 pade12 = lambda p, x: (p[0] + p[1] * x) / (1 + x * (p[2] + x * p[3]))
@@ -183,6 +195,8 @@ for i in range(Ndirs):  # Reset block for each directory
       dat[Q].append(toAve[Q] / float(count))
       datSq[Q].append(toAveSq[Q] / float(count))
     lengths.append(count)
+    print "# Block %d holds %d measurements from MDTU in [%d, %d)" \
+          % (len(lengths), lengths[-1], begin, begin + block_size)
 
 Nblocks = len(dat[0])
 
